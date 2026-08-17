@@ -1,0 +1,101 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{latex}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=5d77435450d10a850a5b58577b9a456b}{%
+           family={Lamport},
+           familyi={L\bibinitperiod},
+           given={Leslie},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Addison-Wesley Professional}%
+      }
+      \strng{namehash}{5d77435450d10a850a5b58577b9a456b}
+      \strng{fullhash}{5d77435450d10a850a5b58577b9a456b}
+      \strng{fullhashraw}{5d77435450d10a850a5b58577b9a456b}
+      \strng{bibnamehash}{5d77435450d10a850a5b58577b9a456b}
+      \strng{authorbibnamehash}{5d77435450d10a850a5b58577b9a456b}
+      \strng{authornamehash}{5d77435450d10a850a5b58577b9a456b}
+      \strng{authorfullhash}{5d77435450d10a850a5b58577b9a456b}
+      \strng{authorfullhashraw}{5d77435450d10a850a5b58577b9a456b}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{LaTeX : A Documentation Preparation System User's Guide and Reference Manual}
+      \field{year}{1994}
+    \endentry
+    \entry{acosta2011anapsid}{article}{}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=f42642af894f4a4f2284730b05232578}{%
+           family={Acosta},
+           familyi={A\bibinitperiod},
+           given={Maribel},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7690d7bd760c8039dc1ab142ff7c067b}{%
+           family={Vidal},
+           familyi={V\bibinitperiod},
+           given={Maria-Esther},
+           giveni={M\bibinithyphendelim E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=61cca735ab87763765137e5fe0735a0b}{%
+           family={Lampo},
+           familyi={L\bibinitperiod},
+           given={Tomas},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=e0e262e9ec40c2a044397d048f64ddb8}{%
+           family={Castillo},
+           familyi={C\bibinitperiod},
+           given={Julio},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=28fa93b3623f46c883913aa2513720e8}{%
+           family={Ruckhaus},
+           familyi={R\bibinitperiod},
+           given={Edna},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{0041187240d8f1d54fa49ffb6293ff85}
+      \strng{fullhash}{ddd3f43fd303c2d53781f34481148bdd}
+      \strng{fullhashraw}{ddd3f43fd303c2d53781f34481148bdd}
+      \strng{bibnamehash}{ddd3f43fd303c2d53781f34481148bdd}
+      \strng{authorbibnamehash}{ddd3f43fd303c2d53781f34481148bdd}
+      \strng{authornamehash}{0041187240d8f1d54fa49ffb6293ff85}
+      \strng{authorfullhash}{ddd3f43fd303c2d53781f34481148bdd}
+      \strng{authorfullhashraw}{ddd3f43fd303c2d53781f34481148bdd}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{The Semantic Web -- ISWC 2011}
+      \field{title}{ANAPSID: An Adaptive Query Processing Engine for {SPARQL} Endpoints}
+      \field{year}{2011}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
