@@ -1,39 +1,38 @@
 % refer to https://en.wikibooks.org/wiki/LaTeX/Glossary for acronyms and glossary entries
+% Entries are the ones this thesis actually uses; more will be added as the
+% text is written.
 
-\newacronym[shortplural={D$_{\text{dye}}$}, longplural={donor dye, ex. Alexa 488}]{ddye}{D$_{\text{dye}}$}{donor dye, ex. Alexa 488}
+\newacronym{cpr}{CPR}{Consistency Preservation Rule}
+\newacronym{ewma}{EWMA}{exponentially weighted moving average}
+\newacronym{c2pl}{C2PL}{conservative two-phase locking}
+\newacronym{tps}{tps}{transactions per second}
+\newacronym{tuma}{TUM}{Technical University of Munich}
 
-\newacronym[description={\glslink{r0}{F\"{o}rster distance}}]{R0}{$R_{0}$}{F\"{o}rster distance}
-
-\newglossaryentry{r0}
+\newglossaryentry{dirtyresource}
 {
-  name=\glslink{R0}{\ensuremath{R_{0}}},
-  text=F\"{o}rster distance,
-  description={F\"{o}rster distance, where 50\% ...}, 
-  sort=R
+  name=dirty resource,
+  description={a resource carrying a consistency-preserving update that
+               has not yet been applied}
 }
 
-\newglossaryentry{kdeac}
+\newglossaryentry{reconciliation}
 {
-  name=\glslink{R0}{\ensuremath{k_{DEAC}}},
-  text=$k_{DEAC}$, 
-  description={is the rate of deactivation from ... and emission)}, 
-  sort=k
+  name=reconciliation,
+  description={the background work that applies pending
+               consistency-preserving updates and clears dirty resources}
 }
 
-\newacronym[shortplural={TUM}, longplural={Technical University of Munich}]{tuma}{TUM}
-{Technical University of Munich}
-
-\newglossaryentry{tum}
+\newglossaryentry{semanticoverlap}
 {
-  name = TUM,
-  description = {A university in Germany, Bavaria, in the city of Munich},
-  plural = TUM
+  name=semantic overlap,
+  description={the degree to which two models represent the same
+               underlying information}
 }
 
-\newglossaryentry{computer}
+\newglossaryentry{modeoracle}
 {
-  name=computer,
-  description={is a programmable machine that receives input,
-               stores and manipulates data, and provides
-               output in a useful format}
+  name=mode oracle,
+  description={the component that decides, at admission of a root
+               transaction, whether it executes under ACID or BASE
+               semantics}
 }

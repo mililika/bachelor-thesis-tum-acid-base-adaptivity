@@ -14,7 +14,7 @@
   minnames=3,
   maxbibnames=99,
   giveninits,
-  uniquename=init]{biblatex} % TODO: adapt citation style
+  uniquename=init]{biblatex}
 \usepackage{graphicx}
 \usepackage{scrhack} % necessary for listings package
 \usepackage{listings}
@@ -25,6 +25,16 @@
 \usepackage{booktabs} % for better looking table creations, but bad with vertical lines by design (package creator despises vertical lines)
 \usepackage[final]{microtype}
 \usepackage{caption}
+\usepackage{float}% [H]: pin a figure exactly where it is written
+
+% Discourage float-only pages: let a large table share a page with text
+% instead of being deferred to a page of its own.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.8}
+\setcounter{topnumber}{2}
+\setcounter{totalnumber}{3}
 \usepackage[hidelinks]{hyperref} % hidelinks removes colored boxes around references and links
 \usepackage{ifthen} % for comparison of the current language and changing of the thesis layout
 \usepackage{pdftexcmds} % string compare to work with all engines
@@ -47,7 +57,7 @@
 \newcommand{\xmark}{\ding{55}}%
 
 
-\usepackage[acronym,xindy,toc]{glossaries} % TODO: include "acronym" if glossary and acronym should be separated
+\usepackage[acronym,xindy,toc]{glossaries}
 \makeglossaries
 \loadglsentries{pages/glossary.tex} % important update for glossaries, before document
 
@@ -146,3 +156,26 @@ ex-am-ple
 \newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}} % for horizontal and vertical alignment with limited column width
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}m{#1}} % for vertical alignment left with limited column width
 \newcolumntype{R}[1]{>{\raggedleft\arraybackslash}m{#1}} % for vertical alignment right with limited column width
+
+% =====================================================================
+%  Table source lines
+% =====================================================================
+
+% Where the numbers in a results table came from.
+\newcommand{\datasource}[1]{%
+  \par\smallskip{\footnotesize\sffamily\textbf{Source.}\ #1}\par}
+
+% Placeholder for a figure that is planned but not yet drawn.
+% Usage: \plannedfigure{label}{caption}{what the figure will show}
+\newcommand{\plannedfigure}[3]{%
+  \begin{figure}[htbp]
+  \centering
+  \fbox{\begin{minipage}{0.88\textwidth}
+    \vspace{6mm}
+    \centering\footnotesize\sffamily
+    #3
+    \vspace{6mm}
+  \end{minipage}}
+  \caption{#2}
+  \label{#1}
+  \end{figure}}

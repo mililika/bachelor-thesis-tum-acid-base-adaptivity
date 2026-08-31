@@ -1,8 +1,149 @@
 % !TeX root = ../kazymyr-thesis.tex
-% Add the above to each chapter to make compiling the PDF easier in some editors.
 
-\chapter{Related Work}\label{chapter:related_work}
+\chapter{Related Work}\label{chapter:related-work}
 
-\section{Section}
+\section{Combining ACID and BASE}\label{sec:rw-acid-base}
 
-\subsection{Subsection}
+\subsection{Static classification of transactions}\label{sec:rw-static}
+
+Salt~\cite{xie2014salt} is the closest neighbour of this work. It lets a
+developer convert the few performance-critical ACID transactions of an
+application into BASE transactions, split into smaller steps, while the
+remaining ACID transactions keep their guarantees through an additional
+isolation level. The mixture of the two semantics is therefore explicit
+and intended, as it is here.
+
+Two differences separate it from this thesis. Salt decides \emph{which}
+transactions are BASE, statically, when the application is written,
+whereas this thesis decides \emph{when} to use each mode, at runtime, from
+measured system state. And Salt targets single-schema replicated storage,
+whereas the setting here is a multi-model system in which inconsistency is
+produced by automatic propagation between models.
+
+RedBlue consistency~\cite{li2012redblue} makes a similar classification at
+a finer granularity: operations labelled blue execute without coordination
+and operations labelled red require it, with the labelling fixed at design
+time and constrained by commutativity requirements. The same contrast
+applies, one level down.
+
+\subsection{Runtime-adaptive consistency}\label{sec:rw-adaptive}
+
+Consistency Rationing~\cite{kraska2009rationing} is the closest
+methodological precedent. Data is divided into categories that receive
+different guarantees, and the middle category switches its consistency
+level at runtime according to a policy driven by monitored statistics and
+expected cost. The mode oracle of this thesis is the same idea applied to
+a different signal: the measured dirty fraction rather than an economic
+estimate.
+
+Harmony~\cite{chihoub2012harmony} adapts the number of replicas consulted
+per read in a cloud storage system based on an estimate of the probability
+of returning stale data, which is again a runtime decision driven by a
+monitored proxy.
+
+\subsection{Bounded inconsistency}\label{sec:rw-bounded}
+
+Yu and Vahdat~\cite{yu2000conit} treat consistency as a continuous
+quantity and allow applications to bound the divergence they tolerate
+along several axes through conits. The critical dirty fraction used here
+is a conit-style numerical bound, and the tracking result of
+Section~\ref{sec:x2-critical-sweep} is direct evidence that it behaves as
+one in this setting.
+
+\section{Multi-model consistency preservation}\label{sec:rw-multimodel}
+
+Vitruvius~\cite{klare2021vitruvius} and the line of work on consistency
+preservation rules provide the setting itself: automated propagation of
+updates between models that represent the same system from different
+viewpoints. That work treats propagation as a correctness mechanism to be
+specified and executed, rather than as a source of transient inconsistency
+to be measured and bounded.
+
+\section{Simulating transactional multi-model systems}\label{sec:rw-simulators}
+
+This thesis extends an existing simulator, and the work behind it is the
+most directly relevant related work of all.
+
+Transaction simulators have a long history in single-model settings. Ries
+and Stonebraker~\cite{ries1979locking} used one to study locking
+granularity under a workload held in equilibrium, and Dandamudi and
+Au~\cite{dandamudi1991locking} extended that analysis to multiprocessor
+database systems. Both establish the method this thesis relies on:
+comparing concurrency-control policies under identical synthetic
+workloads, in virtual time, so that the comparison is not confounded by
+the host machine.
+
+Zacouris and Acosta~\cite{zacouris2025m2ts} carry that method into
+multi-model systems. Their simulator models a transactional server in
+which an update to one model triggers consistency-preserving updates in
+the models that overlap it, executed by bookkeeper transactions, and lets
+the user vary concurrency, transaction size, semantic overlap and CPR
+structure. The subsequent study~\cite{zacouris2026mxs} adds the second
+execution semantics and the comparison this thesis starts from: under
+ACID, the consistency-preserving work runs inside the triggering
+transaction, and throughput degrades sharply as semantic overlap and CPR
+density grow; under BASE, the work is deferred to background
+reconciliation, and foreground throughput becomes largely insensitive to
+both, at the price of transient inconsistency whose level depends on how
+many processors are allocated to reconciliation.
+
+Two results of that work are the direct starting point here. The first is
+the throughput/consistency trade-off governed by reconciler provisioning:
+too few reconcilers leave inconsistency high, too many starve foreground
+execution. Section~\ref{sec:x1-validation} reproduces its shape and uses
+it to validate the extended simulator. The second is the observation that
+the best allocation depends on the configuration of the multi-model
+system, which is precisely the property that makes reconciler provisioning
+an awkward control: it is a knob whose correct setting must be found again
+for every deployment.
+
+What that work does not provide, and what this thesis adds, is a way to
+select the execution semantics \emph{per transaction} and \emph{at
+runtime}. In the base simulator, ACID and BASE are alternative
+configurations of a whole run; here they coexist within one run, which
+requires the arbiter of Section~\ref{sec:approach-arbiter} and makes the
+tolerated inconsistency a configurable parameter rather than an outcome of
+the provisioning.
+
+\section{Discussion and delimitation}\label{sec:rw-gap}
+
+Table~\ref{tab:rw-comparison} states the differentiation on the dimensions
+that actually separate the work, rather than by topic.
+
+\begin{table}[htbp]
+\centering
+\caption{Differentiation from related work.}
+\label{tab:rw-comparison}
+\footnotesize
+\begin{tabular}{l l l >{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{2.4cm}}
+\toprule
+Work & What is decided & When & Target system & Knob is stated in \\
+\midrule
+Salt~\cite{xie2014salt}              & which txn is BASE    & authoring time & single schema, replicated & code annotations \\
+RedBlue~\cite{li2012redblue}         & which op is weak     & authoring time & single schema, replicated & operation labels \\
+Cons.\ Rationing~\cite{kraska2009rationing} & consistency level & runtime   & single schema, replicated & expected cost \\
+Harmony~\cite{chihoub2012harmony}    & replicas read        & runtime        & key-value store & staleness estimate \\
+Yu \& Vahdat~\cite{yu2000conit}      & divergence allowance & runtime        & replicated state & conit bounds \\
+Vitruvius~\cite{klare2021vitruvius}  & --- (always applied) & ---            & multi-model & --- \\
+Base simulator~\cite{zacouris2025m2ts,zacouris2026mxs} & semantics per run & configuration time & multi-model, CPR-driven & reconciler count \\
+\midrule
+\textbf{This thesis}                 & mode per transaction & admission time & multi-model, CPR-driven & the controlled quantity \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two rows carry the delimitation. Against the base simulator, the
+difference is granularity and timing: semantics chosen per transaction at
+admission rather than per run at configuration time. Against everything
+above it, the difference is the last column, and it follows from the RQ3
+result rather than from the literature. The existing runtime-adaptive
+systems are steered by a proxy --- an expected cost, a staleness estimate,
+a reconciler count --- so the consistency they achieve is emergent,
+whereas $c$ is set in the units of the quantity it bounds.
+
+Beyond the base simulator, all of the work above targets distributed
+replicated storage under a single schema, where inconsistency means
+divergence between copies of the same datum. None of it addresses
+inconsistency generated by automatic consistency-preserving updates
+between semantically overlapping models. That is the gap this thesis
+fills.

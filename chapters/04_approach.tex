@@ -1,0 +1,257 @@
+% !TeX root = ../kazymyr-thesis.tex
+
+\chapter{Approach}\label{chapter:approach}
+
+\section{Starting point and contribution boundary}\label{sec:approach-delta}
+
+The base simulator described in Section~\ref{sec:prelim-simulator} is
+received work~\cite{zacouris2025m2ts,zacouris2026mxs}. Table~\ref{tab:approach-delta} separates it from what this
+thesis adds, so that the boundary is explicit before the design is
+described.
+
+\begin{table}[htbp]
+\centering
+\caption{Received work against own contribution.}
+\label{tab:approach-delta}
+\footnotesize
+\begin{tabular}{>{\raggedright\arraybackslash}p{6.1cm} >{\raggedright\arraybackslash}p{7.2cm}}
+\toprule
+Received (base simulator) & Added in this thesis \\
+\midrule
+Execution engine, fixed time step, processor pools & HYBRID execution mode and per-transaction mode tag \\
+Lock table and conservative 2PL & Locked-XOR-dirty arbiter between the two modes \\
+Dirty set and reconciler pool & Adaptive mode oracle (threshold, hysteresis) \\
+CPR expansion and bookkeeper transactions & Random mode oracle with configurable $p$, as a baseline \\
+Pure ACID and pure BASE runtimes & Metrics for mode switching, ACID share, blocking and excursions \\
+Existing metric and CSV export & Four experiment runner scripts and their sweeps \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+One configuration value also differs from the reference setup, justified
+in Section~\ref{sec:exp-baseline}: the run duration. Everything else stays
+at the reference configuration, which is what makes the validation in
+Section~\ref{sec:x1-validation} meaningful.
+
+\section{Why a hybrid mode}\label{sec:approach-why-hybrid}
+
+The purpose of the hybrid mode is to turn inconsistency from an emergent
+outcome into a configurable budget. An operator sets a level; the system
+spends whatever ACID execution is needed to stay under it, and runs BASE
+otherwise.
+
+The claim is deliberately restricted in one respect. The hybrid mode is
+not claimed to respond to changing load better than a static
+configuration. All experiments run under a stationary workload
+(\texttt{EQUILIBRIUM}), where there is no change to respond to and a
+well-tuned static configuration wins by construction. What the results
+support is configurability \emph{across deployments}, not adaptation to
+load \emph{within} one; the latter is untested here by construction and is
+listed as future work.
+
+\section{The mixing hazard}\label{sec:approach-mixing-hazard}
+
+ACID's lock table and BASE's dirty set are independent mechanisms that
+never coexist in a pure run. Choosing the mode per transaction lets a
+resource be locked and dirty at the same time. The two states contradict
+each other: the lock says the value is being written under exclusive
+access, while dirtiness says an unapplied update is still pending on it. A
+mixed execution therefore has to define what happens when a transaction in
+one mode meets a resource marked by the other.
+
+\plannedfigure{fig:mixing-hazard}{The mixing hazard: with modes chosen per
+transaction, a resource can be held by an ACID lock and be in the dirty
+set at the same time.}{Two transactions and one resource. The ACID
+transaction holds a lock on it; the BASE transaction has left a pending
+CPR update on it. The state that neither pure mode defines is marked, with
+the two possible resolutions --- wait or yield --- as the edges out of
+it.}
+
+\section{The locked-XOR-dirty arbiter}\label{sec:approach-arbiter}
+
+\subsection{The rule}\label{sec:approach-arbiter-rule}
+
+The arbiter enforces a single invariant: no resource is simultaneously
+locked and dirty. It does so with one asymmetric rule. An ACID transaction
+that needs a dirty resource waits until reconciliation has cleared it. A
+BASE transaction that would dirty a locked resource yields instead, and
+its work is retried later. ACID waits on dirty; BASE yields on locked.
+
+\subsection{Deadlock freedom}\label{sec:approach-deadlock}
+
+Pure ACID execution is deadlock-free under conservative two-phase locking
+with cautious waiting (Section~\ref{sec:prelim-acid}). The arbiter adds
+exactly one new kind of wait edge: from an ACID transaction to the
+reconciliation of a dirty resource. Reconcilers never wait on ACID
+transactions, because a BASE-side conflict is resolved by yielding rather
+than by blocking. The added edge therefore points one way only, no cycle
+that includes it can be formed, and the arbiter admits no deadlock that
+pure ACID did not already admit.
+
+\subsection{Blocking cost}\label{sec:approach-blocking-cost}
+
+The rule is safe but not free, and the cost falls entirely on the ACID
+side. A transaction touches up to $L = 50$ resources
+(\texttt{maxTransactionResources}). If those resources were drawn
+independently and uniformly at dirty fraction $d$, the blocking
+probability follows from asking the opposite question first: what is the
+chance that the transaction gets through \emph{clean}, i.e.\ touches no
+dirty resource at all?
+
+A single resource is clean with probability $1-d$. With $L$ resources
+drawn independently, the transaction is clean only if every one of them
+is clean, so the probabilities multiply:
+
+\begin{equation}
+  P_{\text{clean}}(d) \;=\; \underbrace{(1-d)\cdot(1-d)\cdots(1-d)}_{L \text{ resources}}
+  \;=\; (1-d)^L.
+  \label{eq:clean-probability}
+\end{equation}
+
+That is the whole meaning of $(1-d)^L$: the probability that all $L$
+resources touched by the transaction happen to be clean. Blocking is the
+complementary event --- at least one of the $L$ resources is dirty --- so
+its probability is one minus Equation~\ref{eq:clean-probability}:
+
+\begin{equation}
+  P_{\text{block}}(d) \;=\; 1 - P_{\text{clean}}(d) \;=\; 1-(1-d)^L,
+  \label{eq:blocking-probability}
+\end{equation}
+
+which for $L = 50$ gives 40\% at $d = 0.01$, 64\% at $d = 0.02$, 92\% at
+$d = 0.05$ and 99.5\% at $d = 0.10$. Blocking is thus not a rare event but
+the normal case for an ACID transaction admitted while the dirty set is
+large; across the X2 grid, blocked transactions number 0.59 to 1.12 per
+ACID admission (Table~\ref{tab:blocking}; that ratio is not a probability,
+see Section~\ref{sec:exp-threats}).
+
+The measurements also show what this probability cannot explain. Since
+$P_{\text{block}}$ saturates near one over most of the operating range, it
+cannot account for a throughput range spanning a factor of eight. What
+varies over that range --- by a factor of 17, monotonically with $R$ ---
+is not \emph{whether} an ACID transaction blocks but \emph{for how long}.
+The mean blocking time at $c = 0.10$ falls from 392\,s at $R = 1$ to
+22.5\,s at $R = 15$. At $R = 1$ the reconciler pool drains about 0.5
+resources per second while a blocked transaction waits on a mean of 2.9
+dirty resources, so foreground work serialises behind background work. It
+is the product of incidence and duration that produces the throughput
+valley of Section~\ref{sec:x1-engagement}, and the same argument explains
+why raising $c$ helps only sublinearly: a larger $c$ lengthens each
+excursion, and hence each block, while reducing the number of ACID
+admissions.
+
+\section{Dispatcher architecture}\label{sec:approach-dispatchers}
+
+Mode tagging is applied at admission, and a dispatcher per mode routes the
+tagged transaction to the corresponding execution path. Both paths draw on
+the same processor pools, the same lock table and the same CPR expansion;
+they differ in scheduling and bookkeeping, not in the work performed. That
+is what makes the comparison between configurations in
+Chapter~\ref{chapter:experiments} a comparison of policies rather than of
+implementations.
+
+\plannedfigure{fig:dispatchers}{Dispatcher architecture: one admission
+path, two dispatchers, shared processors, lock table, dirty set and
+reconciler pool.}{Internal structure of the server, with components shared
+by both modes drawn once and the two mode-specific dispatchers as the only
+fork. Shading separates received components from those added in this
+thesis, matching Table~\ref{tab:approach-delta}.}
+
+\section{Mode oracles}\label{sec:approach-oracles}
+
+\subsection{The oracle interface}\label{sec:approach-oracle-interface}
+
+A mode oracle assigns a mode at the admission of a root transaction. The
+tag is frozen for the lifetime of the transaction group: bookkeeper
+transactions inherit their root's tag and never consult the oracle, and a
+transaction that aborts and retries keeps its original mode. Only two
+implementations exist, and they differ solely in what the decision is
+based on.
+
+\subsection{The random oracle}\label{sec:approach-random-oracle}
+
+The random oracle returns ACID with a fixed probability $p$ and BASE
+otherwise. It is not a strawman but the ablation baseline: the full hybrid
+machinery --- the same arbiter, the same tagging, the same dispatchers ---
+with exactly one component removed, the feedback signal. Without it, a
+good adaptive result would be equally consistent with ``mixing the two
+modes at all helps'' and would say nothing about the feedback loop. This
+is what makes RQ3 answerable.
+
+One property of this baseline shapes the evaluation. The probability $p$
+fixes the share of transactions routed to ACID by construction
+($\phi_{\mathrm{comp}} = 0.4968$ to $0.5003$ at $p = 0.5$, across all
+$R$), but it does not fix the share of \emph{time} spent in ACID, which
+ranges from 0.52 to 0.79 over the same runs, because ACID transactions
+occupy more simulated time when reconciliation is slow. The routing share
+is controlled; the time share is emergent. This asymmetry makes the phrase
+``equal ACID budget'' ambiguous, which is why X3 compares the two oracles
+on a measured outcome --- the $p_{95}$ dirty fraction --- rather than on
+either ACID share.
+
+\subsection{The adaptive oracle}\label{sec:approach-adaptive-oracle}
+
+The adaptive oracle reads the live dirty fraction at the instant of the
+decision and switches between two states:
+
+\begin{align}
+  \text{BASE} \rightarrow \text{ACID} \quad &\text{when} \quad d_k \ge c
+    \label{eq:enter-acid} \\
+  \text{ACID} \rightarrow \text{BASE} \quad &\text{when} \quad d_k \le r
+    \label{eq:leave-acid}
+\end{align}
+
+with the interval $[r, c]$ acting as the hysteresis band.
+
+\plannedfigure{fig:oracle-fsm}{The adaptive oracle as a two-state machine,
+with the entry and exit conditions on the edges.}{Two states, BASE and
+ACID, and two edges labelled with Equations~\ref{eq:enter-acid}
+and~\ref{eq:leave-acid}. An inset plot of the dirty fraction over
+time, with $c$ and $r$ as horizontal lines and the band between them
+shaded, shows the anti-flap role of the band.}
+
+Dirtiness is the oracle's only decision signal, so every mode transition
+has a single unambiguous cause.
+
+\subsection{Control parameters}\label{sec:approach-parameters-oracle}
+
+The oracle has two parameters: the critical threshold $c$ and the recovery
+threshold $r$, which together define the hysteresis band. There is no
+third. An earlier version applied an exponentially weighted filter to the
+dirty signal, with a smoothing factor as a third parameter; it was removed
+after the ablation of Section~\ref{sec:alpha-ablation} showed it left the
+bound untouched while lengthening every ACID excursion. Filtering earns
+its cost on a signal carrying measurement noise, and this one carries
+none: $d_k$ is an exact count of a set the simulator maintains.
+
+Because the comparison is against the live count, $r = 0$ needs no special
+handling --- $d_k$ reaches zero exactly. What remains is a granularity
+effect rather than an estimator lag: the rule is evaluated only at
+admissions, so the set can drain past $r$ between two consecutive looks.
+Section~\ref{sec:effective-recovery} measures that at every transition.
+
+\subsection{Signal sampling}\label{sec:approach-sampling}
+
+The oracle samples the dirty fraction inside \texttt{assignMode}, that is,
+once per admission of a root transaction rather than once per unit of
+simulated time. The simulation's own tick does not drive the estimate at
+all.
+
+Under \texttt{EQUILIBRIUM} the transaction population is held constant, so
+admissions track completions and the oracle's sampling rate is
+approximately the system's throughput. The filter's time constant is
+expressed in samples, the quantity it estimates evolves in seconds, and
+the exchange rate between them is the throughput that the oracle itself
+suppresses whenever it routes work to ACID. Across the engaged cells of the
+X2 grid the measured interval between samples ranges from 0.8\,s to
+228\,s, the long end being ACID at one reconciler;
+Table~\ref{tab:sampling-interval} gives the $c = 0.10$ slice. This is a design property of the
+implementation; its consequences are measured in
+Section~\ref{sec:effective-recovery}.
+
+\section{Implementation notes}\label{sec:approach-implementation}
+
+Hardening the received code surfaced several defects that would have
+affected the measurements. Each is documented with its symptom, the fix,
+and the metric it would otherwise have distorted, with the detail placed
+in the appendix.

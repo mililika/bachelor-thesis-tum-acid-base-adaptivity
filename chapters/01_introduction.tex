@@ -1,8 +1,212 @@
 % !TeX root = ../kazymyr-thesis.tex
-% Add the above to each chapter to make compiling the PDF easier in some editors.
 
 \chapter{Introduction}\label{chapter:introduction}
 
-\section{Section}
+\section{Motivation}\label{sec:intro-motivation}
 
-\subsection{Subsection}
+Engineering systems maintain several models of the same product side by
+side: CAD geometry, a simulation mesh, a written specification. These
+models overlap semantically, in the sense that the same underlying fact is
+represented in more than one of them. Keeping the representations in
+agreement is automated through Consistency Preservation Rules (CPRs),
+which take an update made in one model and propagate it into every model
+that shares the affected information.
+
+\plannedfigure{fig:motivating-example}{Motivating example: an update to
+  one model propagates to two others through consistency preservation
+  rules, either inside the transaction or after it commits.}{Three
+  overlapping models --- CAD geometry, simulation mesh, specification ---
+  with a write landing in one of them and the induced CPR work drawn twice:
+  once on the critical path (ACID) and once deferred to a background
+  reconciler (BASE), with the transiently inconsistent resources marked in
+  the second case.}
+
+The open question is \emph{when} that propagation is scheduled. Under ACID
+semantics the CPR work sits on the critical path: a transaction does not
+commit until every consequence of its write has been applied, so the
+models are never observably inconsistent, and throughput pays for it.
+Under BASE semantics the CPR work is handed to background reconcilers.
+Foreground throughput is high, but the models are transiently
+inconsistent, and how inconsistent they get is not something the operator
+chooses.
+
+Neither mode offers a way to state how much inconsistency is acceptable.
+That is the gap this thesis addresses.
+
+\section{Problem statement}\label{sec:intro-problem}
+
+Under pure BASE, the inconsistency level is an emergent property of the
+configuration. The only lever available is the number of reconciler
+processors, $R$. It is coarse, indirect, and it costs foreground
+throughput across the whole system. Under pure ACID, inconsistency is zero
+by construction and throughput collapses. In neither case can an operator
+ask for a given consistency level and have the system deliver it.
+
+This thesis introduces a HYBRID execution mode, in which the choice
+between ACID and BASE is made per transaction, at admission time, by a
+component called a \emph{mode oracle}. The adaptive oracle makes that
+choice from a threshold on the measured dirty fraction. The claim under
+test is that this turns inconsistency from an emergent outcome into a
+configurable target.
+
+\section{Formal problem definition}\label{sec:intro-formal}
+
+\subsection{System model}\label{sec:intro-formal-system}
+
+A multi-model system is a finite set of resources $\mathcal{X}$ with
+$|\mathcal{X}| = N$, partitioned across models $M_1, \dots, M_m$. Semantic
+overlap is a relation on $\mathcal{X}$ that holds between resources
+representing the same underlying fact. A consistency preservation rule
+maps a write on a resource $x$ to the set
+$\mathrm{cpr}(x) \subseteq \mathcal{X}$ of resources that must be updated
+in consequence; applying it may trigger further rules, up to a bounded CPR
+depth.
+
+\subsection{Execution modes and inconsistency}\label{sec:intro-formal-modes}
+
+A root transaction $t$ carries a mode
+$\mu(t) \in \{\textsc{acid}, \textsc{base}\}$, fixed at admission and
+inherited by every bookkeeper transaction it spawns. Under \textsc{acid},
+the transitive CPR closure of $t$'s writes is applied inside $t$'s
+boundary and $t$ commits only when that closure is complete. Under
+\textsc{base}, $t$ commits after its own writes and the closure is handed
+to background reconcilers.
+
+The dirty set $D_k \subseteq \mathcal{X}$ is the set of resources carrying
+a CPR update that has not yet been applied, and $d_k = |D_k| / N$ is the
+dirty fraction. A run therefore has an inconsistency profile $\{d_k\}$
+over simulated time rather than a single inconsistency value. It is
+summarised by its 95th percentile $p_{95}(d)$: the level that the dirty
+fraction stays below for at least 95\% of simulated time.
+
+\subsection{Mode oracles and the resulting problem}\label{sec:intro-formal-problem}
+
+A mode oracle is a function $\Omega$ that produces $\mu(t)$ for each
+arriving root transaction from the state observable at admission. Pure
+ACID and pure BASE are the two constant oracles. An oracle is
+\emph{feedback-driven} if its output depends on the measured dirty
+fraction and \emph{fixed} if it does not; the random oracle, which returns
+\textsc{acid} with probability $p$, is the fixed oracle used as a
+baseline.
+
+Given a system instance, a reconciler provisioning $R$ and a target
+inconsistency level $c$, the problem is to find an oracle $\Omega$ that
+maximises throughput subject to
+
+\begin{equation}
+  p_{95}(d) \;\le\; c + \varepsilon
+  \label{eq:problem}
+\end{equation}
+
+for a small tolerance $\varepsilon$, using the same setting of its control
+parameter for every $R$. The two constant oracles solve degenerate
+versions of this problem. Pure ACID satisfies Equation~\ref{eq:problem}
+for every $c$ with $d \equiv 0$, at the lowest throughput available; pure
+BASE maximises throughput and satisfies it only when $c$ happens to exceed
+the level that the configuration produces on its own. The region between
+them is unreachable without a per-transaction decision.
+
+Allowing that decision creates a second, non-numerical problem. If two
+transactions in different modes run concurrently, a resource can be locked
+and dirty at the same time, a state that neither pure mode defines. The
+problem above is therefore an optimisation problem and a well-definedness
+problem at once, and the second must be solved first.
+
+\section{Research questions}\label{sec:intro-rqs}
+
+\begin{description}
+  \item[RQ1] How can a multi-model transactional system integrate a
+        \emph{hybrid mode} that safely adapts between ACID and BASE semantics
+        at runtime, when its subsystems hold overlapping resources?
+
+  \item[RQ2] How does the hybrid mode compare with pure ACID and pure BASE
+        execution in throughput and inconsistency, and can the inconsistency it
+        permits be configured?
+
+  \item[RQ3] Does choosing the mode from the system's own internal metrics
+        outperform a random ACID/BASE assignment on the same
+        throughput/inconsistency trade-off?
+
+\end{description}
+
+In the terms of Section~\ref{sec:intro-formal}, RQ1 asks whether a
+non-constant $\Omega$ can be made well defined at all, RQ2 asks what it
+costs and whether $c$ controls the bound in Equation~\ref{eq:problem}, and
+RQ3 asks whether $\Omega$ has to be feedback-driven or whether a fixed
+oracle suffices.
+
+\section{Overview of the approach}\label{sec:intro-approach-overview}
+
+The approach has three parts. First, a HYBRID execution mode extends the
+base simulator so that each root transaction is tagged \textsc{acid} or
+\textsc{base} at admission and executes accordingly, with both paths
+sharing the same resources, processors and CPR machinery. Second, because
+the two paths now coexist, an arbiter defines what happens when they meet
+on the same resource: ACID transactions wait for a dirty resource to be
+reconciled, and BASE transactions yield on a locked one. This single rule
+makes the mixed state well defined, and because the wait edge it adds
+points one way only, it introduces no new deadlock. Third, the tagging
+decision is delegated to a mode oracle. The adaptive oracle switches to
+ACID when the smoothed dirty fraction reaches the configured threshold $c$
+and back to BASE when it falls to a lower recovery threshold $r$; the
+random oracle, which flips a coin with fixed probability $p$, is the
+baseline that isolates what the feedback contributes.
+
+The evaluation follows the same logic. Five parameter sweeps, 640
+simulation runs in total, establish where the oracle engages, what the
+mixture costs, whether $c$ controls the realised inconsistency, and
+whether a fixed oracle can do the same job.
+
+\plannedfigure{fig:approach-overview}{Overview of the approach: mode
+  assignment at admission, the two execution paths, and the arbiter between
+  them.}{Block diagram of the request path --- admission, mode oracle, the
+  ACID and BASE dispatchers, the shared lock table and dirty set, the
+  reconciler pool --- with the oracle's input arrow drawn back from the
+  dirty set.}
+
+\section{Contributions}\label{sec:intro-contributions}
+
+\begin{description}
+  \item[C1 (RQ1)] The HYBRID execution mode and the locked-XOR-dirty
+        arbiter that makes it well defined, together with the argument that it
+        admits no new deadlocks (Section~\ref{sec:approach-arbiter}).
+
+  \item[C2 (RQ1)] Two mode oracles, an adaptive one that reads the system's
+        own state and a random one used as a baseline, together with their
+        control parameters (Section~\ref{sec:approach-oracles}).
+
+  \item[C3 (RQ2)] A measurement of where the adaptive oracle engages, and a
+        quantified explanation of what mixing the two modes costs: ACID
+        transactions admitted during an ACID excursion block behind background
+        reconciliation for a mean of up to 687 simulated seconds
+        (Sections~\ref{sec:x1-reconciler-sweep} and~\ref{sec:x2-critical-sweep}).
+
+  \item[C4 (RQ2)] Evidence that the critical threshold $c$ works as a
+        configurable bound on the inconsistency tail: across $c$ from 2\% to
+        30\% and $R$ from 1 to 15, the measured $p_{95}$ never differs
+        from the configured $c$ by more than 0.74 percentage points
+        (Section~\ref{sec:x2-critical-sweep}).
+
+  \item[C5 (RQ3)] Evidence that this bound comes from the feedback loop and
+        not from hybrid execution in general. Aiming at the same target with a
+        fixed random split requires a control parameter that has to be
+        recalibrated for every reconciler count, and whose realised effect varies
+        by up to a factor of 44 across the range studied
+        (Section~\ref{sec:x3-random-baseline}).
+\end{description}
+
+\section{Structure of the thesis}\label{sec:intro-structure}
+
+Chapter~\ref{chapter:preliminaries} introduces the concepts the thesis
+relies on: transactions and two-phase locking, BASE and reconciliation,
+multi-model systems and CPRs, the base simulator this work extends, and
+the two signal-handling ideas the oracle uses.
+Chapter~\ref{chapter:related-work} positions the work against the
+literature on combining ACID and BASE, on switching consistency at
+runtime, and on bounded inconsistency.
+Chapter~\ref{chapter:approach} describes the approach: the hybrid mode,
+the correctness problem it creates, the arbiter that resolves it, and the
+two oracles. Chapter~\ref{chapter:experiments} gives the experimental
+settings and reports the four sweeps.
+Chapter~\ref{chapter:conclusion} answers each research question, records
+the lessons learned, and lists the open questions.

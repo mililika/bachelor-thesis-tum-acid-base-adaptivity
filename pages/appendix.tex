@@ -1,13 +1,33 @@
-\chapter{General Addenda}
+\chapter{Additional material}
 
-If there are several additions you want to add, but they do not fit into the thesis itself, they belong here.
+\section{Full parameter table}
 
-\section{Detailed Addition}
+The complete configuration of the simulator with its baseline value for
+every parameter, placed next to the parameter table of the reference paper
+so that the two can be compared line by line.
 
-Even sections are possible, but usually only used for several elements in, e.g.\ tables, images, etc.
+\section{Per-seed result tables}
 
-\chapter{Figures}
-\section{Example 1}
-\cmark
-\section{Example 2}
-\xmark
+Chapter~\ref{chapter:experiments} reports means over five seeds. This
+section gives the per-seed rows for all five sweeps, from which the
+seed-to-seed variation behind those means can be checked.
+
+\section{Full grids}
+
+The complete blocking-counter grid behind Table~\ref{tab:blocking}, the
+complete smoothing-factor grid behind Table~\ref{tab:alpha-grid}, and the
+full adaptive-versus-random cell grid behind Table~\ref{tab:x3-matched},
+including the twelve engaged cells that no random cell matches to within
+the tolerance.
+
+\section{Implementation defects found and fixed}
+
+The defects surfaced while hardening the received code, each with its
+symptom, its fix, and the metric it would otherwise have distorted.
+
+\section{Supplemental material and AI usage disclosure}
+
+The repository containing the simulator, the experiment runner scripts and the
+exported result files, followed by a disclosure of which AI tools were
+used and how, separated into conceptualising, developing code, writing and
+proofreading.

@@ -1,10 +1,25 @@
 \chapter{\abstractname}
 
-%TODO: Abstract
+The abstract will be written last, in about 200 words, and will follow the
+structure below.
 
-
-
-
+Multi-model engineering systems keep several representations of the same
+product in agreement through automated consistency-preserving updates.
+Scheduling that work inside the transaction (ACID) keeps the models
+consistent at a high throughput cost, while deferring it to background
+reconcilers (BASE) is fast but leaves the models inconsistent by an amount
+the operator cannot choose. This thesis adds a hybrid execution mode that
+decides between the two per transaction, at admission time, and an
+adaptive oracle that makes that decision from the measured dirty fraction.
+The abstract will state the correctness problem the mixture creates and
+the arbiter that resolves it, then give the two headline measurements: the
+configured threshold acts as a bound on the inconsistency tail to within
+1.3 percentage points across a tenfold range of the threshold and a
+fifteenfold range of reconciler provisioning, and this bound comes from
+the feedback loop rather than from mixing the two modes, since a fixed
+random split needs recalibration for every deployment. It will close on
+the honest summary: the adaptive oracle does not make the ACID/BASE
+trade-off cheaper, it makes it addressable.
 
 \makeatletter
 \ifthenelse{\pdf@strcmp{\languagename}{english}=0}
@@ -14,11 +29,10 @@
 
 \chapter{\abstractname}
 
-%TODO: Abstract in other language
-\begin{otherlanguage}{ngerman} % TODO: select other language, either ngerman or english !
-
+\begin{otherlanguage}{ngerman}
+Die deutsche Kurzfassung wird eine Übersetzung des englischen Abstracts
+und erst am Ende geschrieben.
 \end{otherlanguage}
-
 
 % Undo the name switch
 \makeatletter

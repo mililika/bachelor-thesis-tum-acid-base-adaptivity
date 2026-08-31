@@ -1,4 +1,4 @@
-FILE := main
+FILE := kazymyr-thesis
 OUT  := build
 
 .PHONY: pdf

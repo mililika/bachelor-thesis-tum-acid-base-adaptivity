@@ -1,0 +1,240 @@
+% !TeX root = ../kazymyr-thesis.tex
+% =====================================================================
+%  APPENDIX — VERIFICATION REGISTER
+%
+%  DRAFT-ONLY APPENDIX. This chapter exists so the author and advisor can
+%  check what was validated against the data and what is still open. It
+%  is NOT part of the submitted thesis — delete this file and its \input
+%  line before submission.
+% =====================================================================
+
+\chapter{Verification register (draft only)}\label{chapter:register}
+
+\begin{reviewnote}
+\textbf{This appendix is not part of the thesis.} It records what was
+checked against the experiment CSVs on 24.08.2026, what changed as a
+result, and what remains open. Delete this file and its \texttt{\textbackslash input}
+line in \texttt{kazymyr-thesis.tex} before submission.
+\end{reviewnote}
+
+\section{Data provenance}\label{sec:reg-provenance}
+
+All four sweeps were re-run on 22.08.2026 against schema~v3 of
+\texttt{ExperimentCsvRow} (132 columns). The 21.08 draft PDF predates
+them. Every table in Chapter~\ref{chapter:experiments} was regenerated
+from these files.
+
+\begin{table}[htbp]
+\centering
+\caption{Experiment inventory as of 24.08.2026.}
+\label{tab:reg-inventory}
+\small
+\begin{tabular}{l l l r l}
+\toprule
+ID & Sweep & Grid & Runs & Source directory \\
+\midrule
+X1 & Reconciler       & $R \in \{0,1,5,10,15,20,25\}$, 4 configs & 84  & \texttt{reconciler\_sweep} \\
+X2 & Consistency budget & $c \in \{.02,.05,.1,.15,.2,.3\}$, $R \in \{1,5,10,15\}$ & 72 & \texttt{critical\_dirty\_fraction\_sweep} \\
+X3 & Open-loop baseline & $p \in \{.05,.1,.15,.25,.5\}$, $R \in \{1,5,10,15\}$ & 60 & \texttt{random\_p\_sweep} \\
+X5 & Smoothing factor   & $\alpha \in \{0.0,\dots,1.0\}$, $R \in \{1,5,10,15\}$ & 132 & \texttt{alpha\_sweep} \\
+\midrule
+   &                    &                                          & 348 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All runs use 50\,000\,s simulated duration, three fixed seed pairs, and
+the baseline of Section~\ref{sec:exp-baseline}.
+
+\section{Corrections applied to the draft}\label{sec:reg-corrections}
+
+Each of these is marked \textsc{[corrected]} at the point of use.
+
+\begin{table}[htbp]
+\centering
+\caption{Substantive corrections made on 24.08.2026.}
+\label{tab:reg-corrections}
+\small
+\begin{tabular}{l p{4.4cm} p{5.2cm}}
+\toprule
+ID & Was & Is \\
+\midrule
+C1 & Table~\ref{tab:x1-summary} ``ACID frac.'' captioned as time-share
+   & Column was $\phi_{\mathrm{comp}}$; both fractions now reported
+     (Section~\ref{sec:x1-correction}) \\
+C2 & Mixing cost ``45$\times$ gap'' at $R = 1$
+   & 7.5$\times$ under the stated definition
+     (Table~\ref{tab:x1-mixing}) \\
+C3 & O6/F6: ``\texttt{acid\_fraction\_time} pinned at $\approx$0.51''
+   & $\phi_{\mathrm{comp}}$ is pinned; $\phi_{\mathrm{time}}$ falls
+     0.79\,$\to$\,0.52 (Section~\ref{sec:x1-engagement}) \\
+C4 & $R = 0$ BASE non-monotonicity filed as an open anomaly
+   & Reproduces the reference paper's inline-CPR result; discharged
+     (Section~\ref{sec:x1-validation}) \\
+C5 & X2 P1 predicted a small \emph{negative} offset
+   & Offset is positive at low $c$; restate as $|p_{95}-c| \le 1.3$\,pp
+     (Section~\ref{sec:x2-scorecard}) \\
+C6 & X2 P3 predicted superlinear throughput gain in $c$
+   & Sublinear everywhere (elasticity 0.18--0.97), non-monotone at
+     $R = 1$ (Section~\ref{sec:x2-throughput}) \\
+C7 & \S\ref{sec:approach-blocking-cost} attributed mixing cost to
+     blocking \emph{probability}
+   & Probability saturates; cost is carried by block \emph{duration}
+     (Section~\ref{sec:x2-mechanism}) \\
+C8 & Effective recovery threshold inferred from run-wide $p_{50}$
+   & Measured per transition; proxy was misleading at $R = 1$
+     (Table~\ref{tab:effective-recovery}) \\
+C9 & X5 P1 rejected because the peak was at $R = 5$
+   & Peak is at $R = 10$; $R = 10$ was missing from the old table
+     (Section~\ref{sec:x5-scorecard}) \\
+C10 & X5 $\alpha = 0$ footnote ``comparison recommended''
+   & Comparison made; agrees to 5 s.f.\ at all four $R$
+     (Section~\ref{sec:x5-anchor}) \\
+C11 & Notation table carried both $r = \rho c$ and absolute $r$
+   & $r$ defined directly, $\rho$ derived only
+     (Section~\ref{sec:prelim-notation}) \\
+C12 & RQ3 posed as Pareto dominance at equal budget
+   & Reframed as a necessity question, answered in two parts:
+     RQ3(a) (trade-off, negative) and RQ3(b) (transfer, positive)
+     (Section~\ref{sec:intro-rqs}) \\
+C13 & ACID sampling interval quoted as a constant 8.4\,s (BASE 1.7\,s)
+   & Measured 6.8--82.7\,s in ACID, 1.24--2.11\,s in BASE
+     (Table~\ref{tab:sampling-interval}) \\
+C14 & Old Table~1.4: observations per recovery phase 60/12/6/4 for
+     $R = 1/5/10/15$, i.e.\ ``sample starvation'' at high $R$
+   & Withdrawn. Measured samples per excursion are 16.4/20.8/22.5/29.5 ---
+     they \emph{rise} with $R$. Mechanism now stated as an open
+     hypothesis (Section~\ref{sec:recovery-status}) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Minor issues, not yet actioned}\label{sec:reg-minor}
+
+None of these affects a number or a conclusion in the thesis. They are
+recorded here so they are not lost; work through them if time allows.
+
+\subsection{Experiment repository}
+
+\begin{description}
+
+\item[M1 --- \texttt{findings.md} for X3 is stale.]
+\texttt{random\_p\_sweep/findings.md} (21.08, 17:44) documents 63 runs
+over $R \in \{1,5,10\}$ and $p \in \{0.05 \dots 0.65\}$ including an
+\texttt{--extra-p 0.35,0.65} fallback. The CSVs beside it (22.08,
+19:03--19:31) contain 60 runs over $R \in \{1,5,10,15\}$ with no $p =
+0.35$ or $0.65$ anywhere. The later run used a different grid and
+overwrote the earlier one. \textbf{Its six-row equal-budget table cannot
+be reproduced from current data --- four of the six rows cite $p = 0.35$
+or $0.65$. Do not transcribe it into the thesis.} Either re-run those
+points or rewrite the file against the current grid.
+
+\item[M2 --- three referenced result files do not exist.]
+\texttt{random\_p\_sweep\_extra\_seed\{0,1,2\}.csv},
+\texttt{random\_p\_sweep\_summary.csv} and
+\texttt{random\_vs\_adaptive\_equal\_budget.csv} are all named in
+\texttt{findings.md} and absent from \texttt{results/}.
+
+\item[M3 --- javadoc contradicts the code it documents.] Both
+\texttt{CriticalDirtyFractionSweepExperiment} and
+\texttt{RandomOracleProbabilitySweepExperiment} declare
+\texttt{RECONCILER\_VALUES = \{1, 5, 10, 15\}} while their class javadoc
+says $R \in \{1, 5, 10\}$ and derives run counts from it: ``$6 \times 3
+\times 3 = 54$ runs'' (actually 72) and ``$5 \times 3 \times 3 = 45$
+runs'' (actually 60).
+
+\item[M4 --- stale schema caveat.]
+\texttt{RandomOracleProbabilitySweepExperiment}'s javadoc explains at
+length that X1's CSV ``predates two schema additions'' and that the pure
+ACID/BASE anchors are therefore only partly comparable. X1 was re-run at
+schema~v3 on 22.08 at 20:24, after both new sweeps. The caveat no longer
+applies and the paragraph should be deleted.
+
+\item[M5 --- plot scripts read files that were never generated.]
+\texttt{plot\_critical\_dirty\_fraction\_sweep.py} and
+\texttt{plot\_random\_p\_sweep.py} both expect \texttt{*\_summary.csv}
+merge files; the latter additionally wants the two files listed under M2.
+The PNGs currently in \texttt{plots/} date from 21.08 and were rendered
+from superseded data. \emph{Author's note: figures are deliberately out
+of scope for this pass.}
+
+\item[M6 --- empty directory.]
+\texttt{artifacts/experiments/results/} exists and is empty.
+
+\item[M13 --- tick-timeline headers misreport processor counts.] The
+header record in \texttt{alpha\_sweep/results/timelines/
+timeline\_alpha0.2\_R15\_seed0.jsonl} reports
+\texttt{ioProcessors: 15, cpuProcessors: 15}, while the CSV written by
+the same run (one minute later) reports 30 and 30, which is the
+configured baseline and is consistent across all four sweeps. Exactly
+half in both fields, so most likely the header writer reads the wrong
+field or a per-pool split rather than the run being misconfigured. Worth
+resolving before any timeline-based analysis is attempted --- in
+particular before the within-excursion sampling question in
+Section~\ref{sec:recovery-status} is investigated, since that analysis
+would depend on these files.
+
+\item[M7 --- blocking fraction is not a fraction.]
+\texttt{SimulationMetrics.java:93} documents
+\texttt{acid\_txn\_blocked\_on\_dirty\_count / acid\_txn\_admitted\_count}
+as ``a clean fraction''. It exceeds 1.0 in four cells of the X2 grid
+(maximum 1.050 at $R = 10$, $c = 0.20$) because the two counters cover
+different populations: \texttt{recordAcidDirtyBlockStart} fires during
+lock acquisition
+(\texttt{TransactionLockCoordinator.java:178}) while
+\texttt{incrementAcidTxnAdmitted} fires only on successful admission.
+Either widen the denominator to attempted admissions or drop the
+fraction. Cross-referenced from Section~\ref{sec:x2-mechanism}.
+
+\end{description}
+
+\subsection{Thesis document}
+
+\begin{description}
+
+\item[M8 --- template chapters still in the build.]
+\texttt{chapters/code\_examples.tex} (``LaTeX examples'') and the two
+figure placeholders in \texttt{pages/appendix.tex} are still
+\texttt{\textbackslash input}. They were left in deliberately for now
+--- remove before submission.
+
+\item[M9 --- bibliography is still the template's.]
+\texttt{bibliography.bib} contains two entries (Lamport; Acosta et al.\
+ANAPSID), neither cited by the current text. Every work named in
+Chapter~\ref{chapter:related-work} still needs a verified DBLP entry.
+
+\item[M10 --- glossary and acronym entries are the template's.]
+\texttt{pages/glossary.tex} still defines the Förster-distance example
+entries.
+
+\item[M11 --- front matter unwritten.] Abstract, Kurzfassung and the
+acknowledgements typo (``Zenon Zachauris'' should be ``Zenon
+Zacouris''; the title page has it right).
+
+\item[M12 --- \texttt{\textbackslash sout} dependency.] The discharged
+threat in Section~\ref{sec:exp-threats} uses \texttt{\textbackslash sout},
+which requires \texttt{ulem}. Loaded in \texttt{settings.tex} alongside
+the draft apparatus; both go away together at submission.
+
+\end{description}
+
+\section{Checks performed that found nothing}\label{sec:reg-clean}
+
+Recorded because a negative check is evidence too.
+
+\begin{itemize}
+\item Every non-ACID-fraction column of the old X1 table reproduces
+exactly against the 22.08 re-run: throughput, switch counts, $p_{50}$,
+$p_{95}$, \texttt{started\_total}, \texttt{aborted\_total}.
+\item The X5 $\alpha = 0$ rows equal the X1 BASE rows to five
+significant figures at all four values of $R$.
+\item Configuration columns (\texttt{cfg\_*}) are identical across X2 and
+X3 apart from the swept parameter and the oracle type, confirming the
+two sweeps share the baseline as intended.
+\item All three seeds are present in all four sweeps, with no missing
+cells anywhere in any grid.
+\item \texttt{aborted\_base} is zero in every row of every sweep,
+consistent with O5.
+\item Degenerate cells in X2 match the corresponding BASE rows of X1 to
+the digit, in every seed.
+\end{itemize}

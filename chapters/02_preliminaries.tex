@@ -1,0 +1,158 @@
+% !TeX root = ../kazymyr-thesis.tex
+
+\chapter{Preliminaries}\label{chapter:preliminaries}
+
+\section{Transactions and concurrency control}\label{sec:prelim-transactions}
+
+\subsection{Transactions and serialisability}\label{sec:prelim-serialisability}
+
+A transaction is a partial order of read and write steps over resources. A
+schedule of concurrently executing transactions is correct if it is
+equivalent to some serial execution of the same
+transactions~\cite{weikum2001transactional}. This is the
+only correctness criterion used in the thesis; the vocabulary is needed
+mainly to state what the ACID execution path guarantees and what the BASE
+path gives up.
+
+\subsection{ACID and two-phase locking}\label{sec:prelim-acid}
+
+The simulator enforces isolation with conservative two-phase locking and
+cautious waiting~\cite{hsu1992cautious}. A transaction declares the resources it needs before it
+begins, acquires them as a set rather than incrementally, and releases
+them only after its final step. A transaction that would have to wait for
+a resource held by another does not acquire a partial lock set and hold it
+while waiting.
+
+Three consequences of this scheme are used later. Locks are never acquired
+after the first release, so no transaction can extend its lock set while
+holding one. A waiting transaction holds no locks that another transaction
+is waiting for. Therefore the wait-for relation among ACID transactions
+cannot contain a cycle, and pure ACID execution is deadlock-free by
+construction. Section~\ref{sec:approach-deadlock} shows that the arbiter
+introduced in this thesis preserves that property.
+
+\subsection{BASE and eventual consistency}\label{sec:prelim-base}
+
+BASE trades immediate consistency for availability and
+throughput~\cite{pritchett2008base,vogels2009eventually}: a transaction
+commits before all of its consequences have been applied, and the system
+converges afterwards. Two terms recur throughout the thesis. A
+resource is \emph{dirty} when a consistency-preserving update that
+concerns it has not yet been applied. \emph{Reconciliation} is the
+background work that applies those pending updates and clears the
+resources again.
+
+\section{Multi-model systems and consistency preservation}\label{sec:prelim-multimodel}
+
+\subsection{Models, semantic overlap and CPRs}\label{sec:prelim-cprs}
+
+A model is a set of resources describing one view of the
+product~\cite{klare2021vitruvius}. Two
+models exhibit \emph{semantic overlap} when they contain resources
+representing the same underlying fact; the overlap degree is a
+configuration parameter of the simulator. A consistency preservation rule
+(CPR) states that a write to one resource requires updates to the
+resources that overlap it. Rules compose: an update produced by a rule may
+itself trigger further rules, and the resulting chain is bounded by a
+maximum CPR depth.
+
+The transactions that carry this induced work are called \emph{bookkeeper}
+transactions. They are spawned by the root transaction whose write
+triggered the rule and inherit its execution mode. A rule also has a
+referential action: \texttt{ON\_CASCADE} propagates the update, whereas
+\texttt{ON\_RESTRICT} rejects the originating write instead. All
+experiments in this thesis use \texttt{ON\_CASCADE}.
+
+\subsection{The dirty set as a control signal}\label{sec:prelim-dirtyset}
+
+Under BASE semantics, the resources awaiting a CPR update form the dirty
+set $D_k$, of size $|D_k|$, and the dirty fraction is $d_k = |D_k| / N$
+over the $N$ resources of the system. Reconciler processors drain this set
+in the background; their number $R$ is the main provisioning parameter of
+the system. The dirty fraction is the quantity every result in this thesis
+is about: it is what the adaptive policy observes, what the critical
+threshold bounds, and what the reported percentiles summarise.
+
+It is also the only signal available for deciding \emph{when} the system
+should stop accumulating inconsistency, which makes it a control signal
+and not merely a metric. The simplest policy over such a signal is a
+single threshold: run BASE below it, ACID above it. A single threshold on
+a fluctuating signal causes flapping, that is, the system switches back
+and forth every time the signal crosses it, paying the cost of a mode
+change without staying in the new mode long enough to benefit from it. The
+standard remedy is a \emph{hysteresis band}: separate thresholds for
+entering and for leaving a state. Here the critical threshold $c$ governs
+entry into ACID and the lower recovery threshold $r$ governs the return to
+BASE, so the interval $[r, c]$ is the margin the signal must traverse
+before a second switch can occur. Section~\ref{sec:approach-adaptive-oracle}
+states the resulting rule for the oracle built in this thesis.
+
+Two properties of the dirty fraction make this band cheap to reason about.
+It carries no measurement noise --- $d_k$ is an exact count of a set the
+simulator maintains, not an estimate --- and it is bounded in $[0, 1]$, so
+both thresholds are directly interpretable as fractions of the resource
+population.
+
+\section{The base simulator}\label{sec:prelim-simulator}
+
+\subsection{Execution engine and scheduling}\label{sec:prelim-engine}
+
+The work extends the discrete-event simulator of a transactional server
+for multi-model systems introduced by Zacouris and
+Acosta~\cite{zacouris2025m2ts,zacouris2026mxs}. Time advances in fixed steps of one
+simulated second. Transactions are admitted, expanded into their CPR
+closure, scheduled onto IO and CPU processor pools, and either commit or
+abort; under BASE the closure is instead queued for the reconciler pool.
+Because the clock is virtual, results do not depend on the speed of the
+host machine.
+
+\subsection{Parameters and metrics}\label{sec:prelim-parameters}
+
+The simulator exposes the workload profile, the number and size of models,
+the semantic overlap degree, the processor and reconciler counts, the lock
+budget, and the maximum number of resources and models per transaction.
+The workload profile decides how root transactions arrive; the closed-loop
+profile \texttt{EQUILIBRIUM} used throughout this thesis holds the number
+of in-flight transactions constant and admits a new one whenever one
+completes, so the load is stationary by construction
+(Section~\ref{sec:exp-workload}). The simulator also generates its own
+workload from seeds, so no external dataset is involved, and it exports
+per-run metrics as CSV. The parameter table
+of~\cite{zacouris2026mxs} is reproduced here, and the configuration used
+in Chapter~\ref{chapter:experiments} is stated as a difference against
+it.
+
+\section{Notation}\label{sec:prelim-notation}
+
+Table~\ref{tab:notation} fixes the symbols used throughout. Lowercase
+symbols are fractions of the resource population and uppercase symbols are
+absolute counts or configuration values. The index $k$ counts successive
+samples, which are taken once per admission event rather than once per
+unit of simulated time --- a property with consequences of its own
+(Section~\ref{sec:recovery-mechanism}).
+
+\begin{table}[htbp]
+  \centering
+  \caption{Notation used throughout this thesis.}
+  \label{tab:notation}
+  \small
+  \begingroup
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{llll}
+    \toprule
+    Symbol                 & Meaning                  & Definition                      & Implementation                        \\
+    \midrule
+    $R$                    & Reconciler processors    & ---                             & \texttt{numberOfReconcilerProcessors} \\
+    $N$                    & Total resources          & ---                             & \texttt{totalResources}               \\
+    $L$                    & Max resources per txn    & ---                             & \texttt{maxTransactionResources}      \\
+    $D_k$                  & Dirty resources (count)  & ---                             & \texttt{DirtySetManager.size()}       \\
+    $d_k$                  & Dirty fraction           & $D_k / N$                       & \texttt{dirtyFraction}                \\
+    $c$                    & Critical threshold       & ---                             & \texttt{criticalDirtyFraction}        \\
+    $r$                    & Recovery threshold       & --- ($0 \le r \le c$)           & \texttt{recoveryDirtyFraction}        \\
+    $p$                    & Random-oracle ACID prob. & ---                             & \texttt{randomOracleAcidProbability}  \\
+    $\phi_{\mathrm{time}}$ & ACID time-share          & (Section~\ref{sec:exp-metrics}) & \texttt{acid\_fraction\_time}         \\
+    $\phi_{\mathrm{comp}}$ & ACID completion-share    & (Section~\ref{sec:exp-metrics}) & \texttt{acid\_fraction\_completed}    \\
+    \bottomrule
+  \end{tabular}
+  \endgroup
+\end{table}

@@ -1,25 +1,165 @@
-@book{latex,
-  title = {LaTeX : A Documentation Preparation System User's Guide and Reference Manual},
-  publisher = {Addison-Wesley Professional},
-  year = {1994},
-  author = {Leslie Lamport}
+% =====================================================================
+%  Bibliography
+%  Entries marked [verified] were taken from the publication itself or
+%  from the reference list of the base-simulator paper. Entries marked
+%  [to verify] were written from secondary knowledge and still need a
+%  DBLP check before submission.
+% =====================================================================
+
+% ---------------------------------------------------------------- base
+% [verified] Published demo paper.
+@article{zacouris2025m2ts,
+  author    = {Zacouris, Zenon and Acosta, Maribel},
+  title     = {Simulating a Transactional Server for Multi-Model Systems},
+  journal   = {Proceedings of the VLDB Endowment},
+  volume    = {18},
+  number    = {12},
+  pages     = {5395--5398},
+  year      = {2025},
+  doi       = {10.14778/3750601.3750680}
 }
 
-@article{acosta2011anapsid,
-  title   = {ANAPSID: An Adaptive Query Processing Engine for {SPARQL} Endpoints},
-  author  = {Acosta, Maribel and Vidal, Maria-Esther and Lampo, Tomas and Castillo, Julio and Ruckhaus, Edna},
-  journal = {The Semantic Web -- ISWC 2011},
-  year    = {2011},
+% [to verify] Full simulator study. Author list and venue to be confirmed:
+% the available copy is an anonymised submission.
+@unpublished{zacouris2026mxs,
+  author = {Zacouris, Zenon and Acosta, Maribel},
+  title  = {A Transaction Simulator for Updates in Consistency-Aware
+            Multi-Model Systems},
+  note   = {Under submission},
+  year   = {2026}
 }
 
-@article{zacouris2025simulating,
-  title   = {Simulating a Transactional Server for Multi-Model Systems},
-  author  = {Zacouris, Z. and Acosta, M.},
+% ------------------------------------------------- multi-model setting
+% [verified] via the base-simulator reference list.
+@article{klare2021vitruvius,
+  author  = {Klare, Heiko and Kramer, Max E. and Langhammer, Michael and
+             Werle, Dominik and Burger, Erik and Reussner, Ralf},
+  title   = {Enabling consistency in view-based system development ---
+             the {Vitruvius} approach},
+  journal = {Journal of Systems and Software},
+  volume  = {171},
+  pages   = {110815},
+  year    = {2021}
+}
+
+% ------------------------------------------- transactions and locking
+% [verified] via the base-simulator reference list.
+@book{weikum2001transactional,
+  author    = {Weikum, Gerhard and Vossen, Gottfried},
+  title     = {Transactional Information Systems: Theory, Algorithms, and
+               the Practice of Concurrency Control and Recovery},
+  publisher = {Elsevier},
+  year      = {2001}
+}
+
+@article{hsu1992cautious,
+  author  = {Hsu, Meichun and Zhang, Bin},
+  title   = {Performance evaluation of cautious waiting},
+  journal = {ACM Transactions on Database Systems},
+  volume  = {17},
+  number  = {3},
+  pages   = {477--512},
+  year    = {1992},
+  doi     = {10.1145/132271.132275}
+}
+
+@article{ries1979locking,
+  author  = {Ries, Daniel R. and Stonebraker, Michael R.},
+  title   = {Locking granularity revisited},
+  journal = {ACM Transactions on Database Systems},
+  volume  = {4},
+  number  = {2},
+  pages   = {210--227},
+  year    = {1979},
+  doi     = {10.1145/320071.320078}
+}
+
+@inproceedings{dandamudi1991locking,
+  author    = {Dandamudi, Sivarama and Au, Siu-Lung},
+  title     = {Locking granularity in multiprocessor database systems},
+  booktitle = {Proceedings of the Seventh International Conference on
+               Data Engineering},
+  pages     = {268--269},
+  publisher = {IEEE},
+  year      = {1991}
+}
+
+% -------------------------------------------------------- ACID / BASE
+% [verified] via the base-simulator reference list.
+@article{pritchett2008base,
+  author  = {Pritchett, Dan},
+  title   = {{BASE}: An {ACID} Alternative},
+  journal = {ACM Queue},
+  volume  = {6},
+  number  = {3},
+  pages   = {48--55},
+  year    = {2008}
+}
+
+@article{vogels2009eventually,
+  author  = {Vogels, Werner},
+  title   = {Eventually consistent},
+  journal = {Communications of the ACM},
+  volume  = {52},
+  number  = {1},
+  pages   = {40--44},
+  year    = {2009}
+}
+
+% [verified] title page of the proceedings version.
+@inproceedings{xie2014salt,
+  author    = {Xie, Chao and Su, Chunzhi and Kapritsos, Manos and
+               Wang, Yang and Yaghmazadeh, Navid and Alvisi, Lorenzo and
+               Mahajan, Prince},
+  title     = {Salt: Combining {ACID} and {BASE} in a Distributed Database},
+  booktitle = {11th USENIX Symposium on Operating Systems Design and
+               Implementation (OSDI 14)},
+  publisher = {USENIX Association},
+  year      = {2014}
+}
+
+% [to verify] page numbers.
+@article{kraska2009rationing,
+  author  = {Kraska, Tim and Hentschel, Martin and Alonso, Gustavo and
+             Kossmann, Donald},
+  title   = {Consistency Rationing in the Cloud: Pay only when it matters},
   journal = {Proceedings of the VLDB Endowment},
-  volume  = {18},
-  number  = {12},
-  pages   = {5395--5398},
-  year    = {2025},
-  doi     = {10.14778/3750601.3750680}
+  volume  = {2},
+  number  = {1},
+  pages   = {253--264},
+  year    = {2009}
 }
 
+% [verified] via the reference list of Kraska et al.
+@inproceedings{yu2000conit,
+  author    = {Yu, Haifeng and Vahdat, Amin},
+  title     = {Design and Evaluation of a Continuous Consistency Model for
+               Replicated Services},
+  booktitle = {4th USENIX Symposium on Operating Systems Design and
+               Implementation (OSDI 2000)},
+  pages     = {305--318},
+  year      = {2000}
+}
+
+% [to verify] author list and pages.
+@inproceedings{li2012redblue,
+  author    = {Li, Cheng and Porto, Daniel and Clement, Allen and
+               Gehrke, Johannes and Pregui{\c{c}}a, Nuno and
+               Rodrigues, Rodrigo},
+  title     = {Making Geo-Replicated Systems Fast as Possible, Consistent
+               when Necessary},
+  booktitle = {10th USENIX Symposium on Operating Systems Design and
+               Implementation (OSDI 12)},
+  year      = {2012}
+}
+
+% [to verify] author list and pages.
+@inproceedings{chihoub2012harmony,
+  author    = {Chihoub, Houssem-Eddine and Ibrahim, Shadi and
+               Antoniu, Gabriel and P{\'e}rez, Mar{\'i}a S.},
+  title     = {Harmony: Towards Automated Self-Adaptive Consistency in
+               Cloud Storage},
+  booktitle = {IEEE International Conference on Cluster Computing
+               (CLUSTER)},
+  year      = {2012}
+}
