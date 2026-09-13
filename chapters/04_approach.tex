@@ -2,9 +2,18 @@
 
 \chapter{Approach}\label{chapter:approach}
 
-This chapter describes the implementation details added in the course of this
-project. It covers all the components that were added to extend the received
-simulator so that it supports the HYBRID mode.
+This chapter describes how the received simulator was extended so that it
+supports the hybrid mode. The sections follow the order in which the design
+was built. Section~\ref{sec:approach-delta} lists which parts are inherited
+and which are new. Section~\ref{sec:approach-why-hybrid} explains why a hybrid
+mode is needed. Section~\ref{sec:approach-pipeline} shows how the received
+simulator runs only one mode per run.
+Section~\ref{sec:approach-hybrid} adds the hybrid mode on top of it.
+Section~\ref{sec:approach-arbiter} covers the shared-resource arbiter, which
+keeps ACID and BASE from breaking each other's work.
+Section~\ref{sec:approach-oracles} covers the two oracles that choose the mode
+of each transaction. Section~\ref{sec:approach-deadlock} argues that the
+hybrid mode is safe.
 
 \section{Starting point and contributions}\label{sec:approach-delta}
 
