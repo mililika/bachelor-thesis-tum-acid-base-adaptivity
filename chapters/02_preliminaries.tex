@@ -266,9 +266,11 @@ Table~\ref{tab:notation} collects the symbols used throughout, most of
 which are defined in Section~\ref{sec:prelim-multimodel}. Lowercase
 symbols are fractions of the resource population. Uppercase symbols are
 absolute counts or configuration values. The index $k$ counts successive
-samples. Samples are taken once per admission event rather than once per
-unit of simulated time, and that has consequences of its own
-(Section~\ref{sec:recovery-mechanism}).
+readings of the dirty fraction. The oracle takes one reading per new root
+transaction rather than once per unit of simulated time, and that has
+consequences of its own (Section~\ref{sec:recovery-mechanism}). The reported
+percentiles use a separate reading at the end of every simulated tick
+(Section~\ref{sec:approach-sampling}).
 
 \begin{table}[H]
   \centering
@@ -288,8 +290,8 @@ unit of simulated time, and that has consequences of its own
     $\sigma$               & Semantic overlap degree & ---                     & \texttt{semanticOverlap}              \\
     $D_k$                  & Dirty resource set      & ---                     & \texttt{DirtySetManager.size()}       \\
     $d_k$                  & Dirty fraction          & $|D_k| / N$             & \texttt{dirtyFraction}                \\
-    $p_{95}(d)$            & Dirty-fraction tail     & 95th pct.\ of $\{d_k\}$ & \texttt{dirty\_p95\_pct}              \\
-    $c$                    & \begin{tabular}[t]{@{}l@{}}Critical dirty resources threshold, \\ also inconsistency level threshold\end{tabular}
+    $p_{95}(d)$            & Dirty-fraction tail     & 95th pct.\ per tick& \texttt{dirty\_p95\_pct}              \\
+    $c$                    & \begin{tabular}[t]{@{}l@{}}Critical dirty resources \\ threshold, also \\ inconsistency level threshold\end{tabular}
                            & ---                     & \texttt{criticalDirtyFraction}        \\
     $r$                    & Recovery threshold      & --- ($0 \le r \le c$)   & \texttt{recoveryDirtyFraction}        \\
     $p_{\mathrm{acid}}$    & Configured ACID share   & ---                     & \texttt{fixedAcidShare}               \\

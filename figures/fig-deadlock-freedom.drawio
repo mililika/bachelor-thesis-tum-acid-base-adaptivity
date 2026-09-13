@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="claude">
   <diagram name="deadlock-freedom" id="deadlock-freedom">
-    <mxGraphModel dx="975" dy="586" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="760" pageHeight="566" math="0" shadow="0">
+    <mxGraphModel dx="940" dy="654" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="760" pageHeight="566" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -37,7 +37,7 @@
         <mxCell id="bTxn" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eaeae4;strokeColor=#aaaaa4;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="ACID transaction" vertex="1">
           <mxGeometry height="42" width="170" x="262" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="bReg" parent="1" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="WAITER REGISTRY&lt;br&gt;&lt;font style=&quot;font-size: 11.5px;&quot; color=&quot;#3a5f8f&quot;&gt;acid transaction holds no lock here&lt;/font&gt;" vertex="1">
+        <mxCell id="bReg" parent="1" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="WAITER REGISTRY" vertex="1">
           <mxGeometry height="52" width="190" x="252" y="221" as="geometry" />
         </mxCell>
         <mxCell id="bRec" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eaeae4;strokeColor=#aaaaa4;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="BASE transaction" vertex="1">
@@ -74,7 +74,7 @@
         <mxCell id="cTxn" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eaeae4;strokeColor=#aaaaa4;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="BASE parent or repair" vertex="1">
           <mxGeometry height="42" width="190" x="506" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="cDef" parent="1" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="DEFERRED QUEUE&lt;br&gt;&lt;font style=&quot;font-size: 11.5px;&quot; color=&quot;#3a5f8f&quot;&gt;claims nothing, marks nothing&lt;/font&gt;" vertex="1">
+        <mxCell id="cDef" parent="1" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="DEFERRED QUEUE" vertex="1">
           <mxGeometry height="52" width="190" x="510" y="221" as="geometry" />
         </mxCell>
         <mxCell id="cE1" edge="1" parent="1" source="cTxn" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#3a5f8f;endArrow=block;endFill=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="R41OL3M628fsYQkrd4b3-4">

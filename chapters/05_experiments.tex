@@ -1895,108 +1895,48 @@ numbers are seed means under the stationary \texttt{EQUILIBRIUM} load.
   should matter most, was not tested.
 \end{bullets}
 
+\section{Threats to validity}\label{sec:exp-threats}
 
+The results above hold under the conditions of this chapter. The following
+points limit how far they can be generalised.
 
-\begin{comment}
-  \section{Threats to validity}\label{sec:exp-threats}
+\begin{bullets}
+  \item[Stationary load only.] Every run uses the \texttt{EQUILIBRIUM} profile,
+  so the load never changes (Section~\ref{sec:approach-stationary-load}). This
+  is the setting in which feedback helps least. The RQ3 result should be read
+  in that light.
 
-  \begin{itemize}
-    \item \textbf{Stationary load only (\texttt{EQUILIBRIUM}).} Adaptive control
-          would be expected to show its clearest advantage when the operating
-          point moves, and constant load cannot test that. The claim is scoped
-          accordingly in Section~\ref{sec:approach-why-hybrid}. The X3 claim
-          about the pair $(p_{\mathrm{acid}}, R)$ (O8) is phrased in terms of
-          transfer across \emph{configurations} rather than adaptation within a
-          run. The stationarity of the load is stated at the head of
-          Section~\ref{sec:x3-fixed-share-baseline} as well, because the
-          throughput comparison there is run in the regime least favourable to
-          feedback and should be read in that light.
+  \item[Simulated execution.] The simulator treats all models as one entity, so
+  a lookup of the arbiter has no latency and never fails
+  (Section~\ref{sec:approach-arbiter-lookup}). The absolute numbers are
+  properties of the simulator. The comparisons between configurations are the
+  part that transfers.
 
-    \item \textbf{Five seeds per configuration.} This is mitigated but not
-          removed by how little the results move between seeds
-          (Section~\ref{sec:exp-setup}). The fixed-share arm of X3 is the
-          high-variance one. Its median seed CV on $p_{95}$ is 8.6\%, against
-          about 0.7\% for the adaptive arm. So the O8 conclusion rests on the
-          arm with the larger error bars. The throughput values behind the
-          ratios of Table~\ref{tab:x3-matched} carry seed standard deviations
-          of 0.002 to 0.023\,tps. This is small against the 0.79 to 1.12 range
-          of the ratios themselves. It is still computed from five runs and
-          should be read as an indication rather than an interval. The
-          smoothing sweep of the appendix is the exception at three seeds. Its
-          conclusion is independently confirmed at five by the X1 and X2
-          re-runs reported there.
+  \item[One workload shape.] Service times, bookkeeper depth, referential
+  action and the uniform distribution of transaction sizes are fixed. X4 and
+  X5 vary one axis each, so the corner where both $\sigma$ and $L$ are extreme
+  is not sampled.
 
-    \item \textbf{\texttt{reconciler\_busy\_fraction} is misnamed.} It is not a
-          utilisation but the fraction of samples in which \emph{every}
-          reconciler was busy at the same instant. It is taken once per
-          simulated second against a service time of two seconds. The phase
-          relationship between the two makes it unreliable. It reads 0.5 at $R
-            = 1$ and 0.0 at $R \ge 10$ under pure BASE, while the same runs
-          sustain about $0.5R$ completed reconciliations per second, a pool
-          that is in fact fully saturated. Saturation is read in this chapter
-          from the completion rate instead
-          (Section~\ref{sec:effective-recovery}). No result uses this column,
-          and it should not be read from the exported CSVs.
+  \item[Five seeds per cell.] The results move little between seeds, but five
+  runs give an indication rather than a confidence interval. The fixed-share
+  oracle varies more than the adaptive one. Its median coefficient of
+  variation of $p_{95}$ is 8.6\,\%. For the adaptive oracle it is 0.7\,\%.
 
-    \item \textbf{$R = 0$ is a different mechanism, not zero capacity.} At $R =
-            0$ the CPR work is queued on the main processors, so the run has
-          no dedicated reconciliation pool. It has about 963\,k mark events
-          against 26\,k at $R = 1$. The $R = 0$ rows are a reference line and
-          are not points on the same capacity axis as $R \ge 1$.
+  \item[Hidden dirty resources.] A deferred repair is not in the dirty set
+  until it is created (Section~\ref{sec:approach-arbiter}). The measured
+  dirty fraction can therefore be lower than the real inconsistency, most of
+  all in ACID mode.
 
-    \item \textbf{Simulated rather than real execution, and a single workload
-            shape.} The absolute numbers are properties of the simulator. The
-          comparisons between configurations are the transferable part. The
-          service times are fixed (IO 200\,ms and CPU 100\,ms per resource),
-          the bookkeeper depth is 5, the referential action is
-          \texttt{ON\_CASCADE}, and transaction sizes are uniform in $1$ to
-          $L$. That is one workload shape.
+  \item[Recovery threshold not swept.] Every run uses $r = 0.5c$. How the
+  results depend on the width of the hysteresis band is not tested. The
+  percentiles of the exit levels also rest on few switches. At $R = 1$: about
+  23 exits per run.
 
-    \item \textbf{The recovery threshold is never swept.} Every run uses $r =
-            0.5c$. How the results depend on the width of the hysteresis band
-          is therefore not tested.
+  \item[Interpolated X3 comparison.] The fixed-share oracle is sampled at five
+  values of $p_{\mathrm{acid}}$. Table~\ref{tab:x3-matched} reads its
+  throughput between measured points, and some of these points are far apart.
 
-    \item \textbf{Warm-up.} The warm-up window applies only to two steady-state
-          columns. All reported values include the first 5000\,s. The effect
-          on the percentiles is at most about 0.1 percentage points.
-
-    \item \textbf{Few switch events per run.} At $R = 1$ and $c = 0.10$ a run
-          has only about 23 exits from ACID. Percentiles of the switch levels
-          in Table~\ref{tab:effective-recovery} are therefore noisy.
-
-    \item \textbf{The matched comparison of X3 reads between measured points.}
-          The fixed-share arm is sampled at five values of
-          $p_{\mathrm{acid}}$, and Table~\ref{tab:x3-matched} reads its
-          throughput at intermediate values of $p_{95}$ rather than at
-          measured ones. Ten of the 18 comparisons land within 12\% of a
-          measured fixed-share run and one needs no estimate at all. The other
-          rows lean on the straight line between two runs that can be far
-          apart. The reconciler-count trend of Section~\ref{sec:x3-frontier}
-          survives the restriction to the ten close rows of
-          Table~\ref{tab:x3-close}, but no single distant row is read on its
-          own. The interval $p_{\mathrm{acid}} \in (0, 0.05)$ is unsampled and
-          contains the steepest part of the trade-off. A finer grid there,
-          together with settings between $p_{\mathrm{acid}} = 0.10$ and
-          $p_{\mathrm{acid}} = 0.25$ to bracket the tight-threshold adaptive
-          cells, would turn most of these readings into measurements and close
-          the one cell where the two arms do not overlap at all.
-
-    \item \textbf{The workload sweeps vary one axis at a time.} X4 and X5 each
-          find a band over which the threshold holds, one in semantic overlap
-          and one in resources per transaction. Each holds the other axis at
-          its baseline, so the corner where both are extreme is unsampled. The
-          overshoot at small $R$ has the same likely source in both sweeps,
-          work already admitted that no switch can recall. The undershoot of
-          X5 at $R \ge 10$ has a different source, waiting and low throughput.
-          The corner is therefore the one most likely to behave differently.
-
-    \item \textbf{The smoothing sweep cannot be re-run against current code.}
-          The \texttt{alpha\_sweep} results behind the appendix are archived
-          under \texttt{experiments-old-ewma-0.2/} and the tables can be
-          regenerated from them. The parameter they sweep no longer exists
-          in the simulator, so the runs themselves cannot be reproduced without
-          reverting the removal. The X1 and X2 re-runs that confirm the removal
-          are reproducible against current code. The smoothing grid is
-          reproducible only from the archive.
-  \end{itemize}
-\end{comment}
+  \item[Coarse locks not tested.] Every resource has its own lock at the
+  baseline, so the effect of lock buckets (C1 in
+  Section~\ref{sec:approach-conservatism}) does not appear in the results.
+\end{bullets}
