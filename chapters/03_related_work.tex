@@ -81,8 +81,9 @@ resources but never create or destroy them. The workload holds a constant
 number of transactions in flight, and a terminal-based workload is named
 there as future work. That terminal workload is the \texttt{TERMINAL}
 profile of Section~\ref{sec:prelim-workload-profiles}, which was still
-being built while these experiments ran and is the reason the adaptation
-claim of Section~\ref{sec:approach-why-hybrid} is left untested.
+being built while these experiments ran and is the reason the adaptive
+oracle is tested only under a stationary load
+(Section~\ref{sec:approach-stationary-load}).
 
 What that work does not provide is a way to select the execution semantics
 \emph{per transaction} and \emph{at runtime}. There, ACID and BASE are

@@ -258,7 +258,7 @@ so the load is stationary by construction (Section~\ref{sec:exp-workload}).
 A second profile, \texttt{TERMINAL}, lets the in-flight population rise and
 fall instead, and is the one under which a load that varies could be
 studied. It was still under development while these experiments were run and
-is not used (Section~\ref{sec:approach-why-hybrid}).
+is not used (Section~\ref{sec:approach-stationary-load}).
 
 \section{Notation}\label{sec:prelim-notation}
 
@@ -289,7 +289,8 @@ unit of simulated time, and that has consequences of its own
     $D_k$                  & Dirty resource set      & ---                     & \texttt{DirtySetManager.size()}       \\
     $d_k$                  & Dirty fraction          & $|D_k| / N$             & \texttt{dirtyFraction}                \\
     $p_{95}(d)$            & Dirty-fraction tail     & 95th pct.\ of $\{d_k\}$ & \texttt{dirty\_p95\_pct}              \\
-    $c$                    & Critical threshold      & ---                     & \texttt{criticalDirtyFraction}        \\
+    $c$                    & \begin{tabular}[t]{@{}l@{}}Critical dirty resources threshold, \\ also inconsistency level threshold\end{tabular}
+                           & ---                     & \texttt{criticalDirtyFraction}        \\
     $r$                    & Recovery threshold      & --- ($0 \le r \le c$)   & \texttt{recoveryDirtyFraction}        \\
     $p_{\mathrm{acid}}$    & Configured ACID share   & ---                     & \texttt{fixedAcidShare}               \\
     $\phi_{\mathrm{time}}$ & ACID time-share         & ---                     & \texttt{acid\_fraction\_time}         \\

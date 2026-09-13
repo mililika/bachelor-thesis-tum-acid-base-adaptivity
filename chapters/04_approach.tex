@@ -535,20 +535,16 @@ transaction occupies the system.
 In short, this fixed-share oracle generates a controlled split of ACID and BASE
 tags assigned to pending incoming transactions.
 
-\paragraph{The adaptive oracle.}\label{sec:approach-adaptive-oracle} The
-adaptive oracle reads the live dirty fraction at the instant of the decision
-and switches between two states.
-
-\todo{static load}
-
-One important detail worth mentioning before diving deeper into design
-descriptoin. All experiments from next section \todo{add reference to the
-  experiments section} run under a stationary workload
-(\texttt{EQUILIBRIUM}), where there is nothing to react to and a well-tuned
-static configuration wins by construction. What the results support is that
-the system can be configured \emph{across deployments}, not that it adapts
-to load \emph{within} one run. The second claim is untested here by
-construction and is listed as future work.
+\paragraph{The adaptive oracle in details.}\label{sec:approach-adaptive-oracle} The
+adaptive oracle reads the live dirty fraction $d_k$ at the instant of the decision
+and switches between two modes. It starts always in BASE mode, since we want to
+priorities the throughput whenever possible. As as soon the systems level of
+inconsistency goes over the
+critical dirty fraction threshold $c$ that was introdcued as part of this
+thesis, adaptvie oracle swithches to the ACID mode, and all next transactions
+would be tagged as ACID.
+To get back to base, the level on incosistency $d_k$ has to drop to the dirty
+recovery threshold $r$.
 
 \begin{align}
   \text{BASE} \rightarrow \text{ACID} \quad & \text{when} \quad d_k \ge c
@@ -560,28 +556,25 @@ construction and is listed as future work.
 with the interval $[r, c]$ acting as the hysteresis band
 (Figure~\ref{fig:oracle-fsm}).
 
-The oracle holds one current mode for the whole system, not one mode per
-transaction. Every admission is stamped with whatever that mode is at that
-instant, and a switch changes the tag of later arrivals only. Work that is
-already in flight keeps the mode it was admitted under, by the lifetime
-rules of Section~\ref{sec:approach-tag}. A mode change is therefore not an
-event that the running population experiences. It is a change in what the
-next arrivals become, and the actual composition of the system follows it
-only as the old population drains.
+The oracle locks one mode for the whole system until the switch conditions are
+met. Every new transaction admission is tagged with whatever that mode is at that
+instant. Work that is already in flight keeps the mode it was admitted under, by
+the lifetime rules of Section~\ref{sec:approach-tag}. A mode change is therefore
+not an event that the running transactions experience.
 
-Dirtiness is the only decision signal the oracle has, so every mode
-transition has a single clear cause. Figure~\ref{fig:oracle-fsm} reads the
-band against a schematic trace. Only an upward crossing of $c$ and a
-downward crossing of $r$ move the mode. The return through $c$ and any
-movement inside the band leave it unchanged. A switch does not stop the
-movement that caused it, only its source. Past $c$ no further BASE work is
+Incosistency level $d_k$ is the only metric the oracle uses, so every mode
+transition has a single clear cause. The Figure~\ref{fig:oracle-fsm}
+demonstrates how the adaptive oracle behaves, when the mode switch happens and
+what tag each transaction will receive at some simuatlion point.
+
+Past $c$ no further BASE work is
 admitted and only the BASE transactions already in flight still add dirt,
 and past $r$ only the reconciliations already running carry on. The two
-edges are not symmetric in how far they run. The excursion past $c$ is
-small, but the one past $r$ can be large, because the oracle reads $d_k$
+edges are not symmetric in how far they run. The overshoot past $c$ is
+small, but the $r$ undershoot can be large, because the oracle reads $d_k$
 only at admission (Section~\ref{sec:approach-sampling}) and admissions are
-rare in ACID, so reconciliation keeps draining while nothing is looking
-(Section~\ref{sec:recovery-mechanism}).
+rare in ACID, so reconciliation keeps draining while nothing is looking. More
+details you can find in Section~\ref{sec:recovery-mechanism}.
 
 \begin{figure}[htbp]
   \centering
@@ -599,96 +592,139 @@ rare in ACID, so reconciliation keeps draining while nothing is looking
     admissions are rare, so reconciliation keeps draining while nothing
     is looking (Section~\ref{sec:recovery-mechanism}).
   \end{figurekeys}
+  \vspace{-12pt}
 \end{figure}
 
-\paragraph{The critical and recovery
+\paragraph{The critical dirty and recovery
   thresholds.}\label{sec:approach-parameters-oracle} The oracle has two
-parameters. The critical threshold $c$ is the fraction of resources that may
-be dirty before the oracle stops issuing BASE tags, and it is the statement
-of the operator about how much inconsistency the deployment is willing to
-hold. The recovery threshold $r$ is the fraction the system must reconcile
-back down to before BASE resumes. Both of them are fractions of the resource
-population $N$, and $r$ is configured directly rather than derived from $c$,
-subject to $0 \le r \le c$.
+parameters. The critical dirty or also incosistency level threshold $c$ is the
+fraction of resources that allowed to be dirty before the oracle stops issuing
+BASE tags. It is the value of simulator configuration about how much
+inconsistency the deployment is willing to accept.
 
-The two extremes of that range are worth naming, because they are policies
-and not just values. At $r = c$ the band has zero width and the only
-anti-flap mechanism in the design is gone
-(Section~\ref{sec:approach-nofilter}). It is a legal configuration and is
-used as a sweep anchor, not as a recommended setting. At $r = 0$ the rule
-says reconcile everything before resuming BASE, which differs from a small
-$r$ in kind rather than in degree, because an ACID visit then ends only when
-the dirty set is empty, so its length is set by the reconciler pool alone.
-Values in between trade the length of an ACID visit against the margin that
-protects the next one.
+The recovery threshold $r$ is the fraction the system must reconcile back down
+to before BASE resumes. This reconciliation happens because oracle switches to
+ACID mode, which is slower and fully consistent semantic. That allows to avoid
+additional dirtiness and gives reconcile processors time to catch up. Both of
+the threshold are fractions of the resources $N$, and $r$ is configured directly
+rather than derived from $c$, subject to $0 \le r \le c$.
 
-\paragraph{The cost of making ACID
-  wait.}\label{sec:approach-blocking-cost} What the operator permits with
-$c$ decides how often an ACID transaction meets a resource it may not touch,
-and then waits for BASE work under the rule of
-Section~\ref{sec:approach-arbiter}. That cost is a design property rather
-than a result, so it is derived here. The measurements that follow are
-quoted from Chapter~\ref{chapter:experiments}, because the derivation alone
-does not predict them.
+The two extremes of that range are worth naming, because they are policies and
+not just values. At $r = c$ the band has zero width and the only anti-flap
+mechanism in the design is gone (Section~\ref{sec:approach-nofilter}). The
+simulator accepts this configuration, but it is not a recommended setting and no
+experiment in this thesis uses it. At $r = 0$ the rule says reconcile everything
+before resuming BASE, which differs from a small $r$, because an ACID visit then
+ends only when the dirty set is empty, so its length is set by the reconciler
+pool alone.
 
-One qualification belongs before the derivation. $L = 50$
-(\texttt{maxTransactionResources}) is a maximum, not a size. The simulator
-draws the resource count of each transaction uniformly from $1$ to $L$, so
-the average transaction touches about $26$ resources and the smallest one
-touches a single resource. Setting $\ell = L$ below therefore describes the
-largest transaction the workload produces rather than the typical one, and
-the resulting figure is a worst case. Averaging the same expression over the
-actual distribution of $\ell$ lowers it, at $d = 0.05$ from 92\% to 65\% and
-at $d = 0.10$ from 99.5\% to 82\%, which changes the number without changing
-the conclusion. Even for a transaction of average size, meeting a dirty
-resource is the common case rather than the exception once the dirty set is
-at the levels the oracle is configured to permit. The worst case is carried
-below because it is the bound the design has to survive, and because it is
-the form that composes with the durations quoted below.
+\paragraph{The oracle reads incosistency level $d_k$ at the
+  admission.}\label{sec:approach-sampling}\label{sec:approach-samplers} The oracle
+reads the dirty fraction inside the call that assigns a mode, that is, once per
+admission of an untagged root transaction, nothing else triggers a reading. The
+simulation tick does not forces it, and no reading is taken while the
+system is progressing but admits nothing.
 
-If the $L$ resources of a transaction were drawn independently and uniformly
-at dirty fraction $d$, the blocking probability follows from asking the
-opposite question first. What is the chance that the transaction gets
-through \emph{clean}, that is, touches no dirty resource at all?
+This ties the rate at which the oracle sees the system dirty fraction to the rate at which
+transactions are admitted. Under \texttt{EQUILIBRIUM} the transaction population is
+held constant, so admissions tied to completions and the reading rate of the
+oracle is approximately the throughput. That means when adaptive oracle is in
+ACID mode the throughput drops significantly, and with that the rate of
+inconsistency $d_k$ lookup and Section~\ref{sec:effective-recovery}
+measures consequenses of that.
 
-A single resource is clean with probability $1-d$. With $L$ resources drawn
-independently, the transaction is clean only if every one of them is clean,
-so the probabilities multiply.
+It is important being explicit that this is not how the reported measurements of
+dirty resources fraction are taken. The reading of the oracle is part of the
+system under study. The reported measurements come from a separate reader that
+runs once at the end of each simulated tick regardless of mode or load.
+
+Reading $d_k$ only at admission is still enough, because a reading matters only when a
+transaction has to be tagged. A reading once per tick would change the mode of
+the oracle earlier, but it would not affect any transaction earlier. Under
+\texttt{EQUILIBRIUM} a new root transaction is created only when an in-flight
+one finishes. In ACID mode these transactions are long, and they hold the
+admission capacity while reconciliation clears the dirty set in the background.
+The first BASE transaction is therefore admitted at the same moment with either
+kind of reading, and it sees the same $d_k$.
+
+\paragraph{The adaptive oracle is studied only under a stationary
+  load.}\label{sec:approach-stationary-load} The adaptive oracle is designed for
+a load that changes during a run. When more work arrives, the dirty fraction
+grows faster and the oracle moves more work to ACID. When the load falls, it
+returns to BASE. All experiments in Chapter~\ref{chapter:experiments} use the
+\texttt{EQUILIBRIUM} profile, which keeps the number of in-flight transactions
+constant (Section~\ref{sec:prelim-workload-profiles}). The load is therefore
+stationary, and the oracle has no change in load to react to. It still switches
+modes, but only in response to the dirty fraction that its own decisions
+produce. The received simulator also has a profile with a varying load,
+\texttt{TERMINAL}, but it was still under development while the experiments
+were run, so it is not used.
+
+This has two consequences. First, the comparison with the fixed-share oracle for
+RQ3 (Section~\ref{sec:x3-frontier}) is made in a setting that is not ideal for
+the adaptive oracle, because a fixed ACID share that is tuned for one
+configuration never has to change under a constant load. Second, every run uses
+one fixed setup, for example one reconciler count $R$. The results show that the
+oracle keeps the dirty fraction close to critical incosistency threshold $c$ in
+each of these setups. They do not show how the oracle behaves when the load
+changes during a run. Testing the oracle under a varying load is left for future
+work (Section~\ref{sec:future-work}).
+
+\paragraph{Collision probability of ACID
+  transactions and dirty resources.}\label{sec:approach-blocking-cost} The
+adaptive oracle introduces the critical dirty threshold $c$. This means that
+only about a fraction $c$ of the resources can be inconsistent at the same time.
+Knowing that value, we can model a useful quantity, the probability that one
+ACID transaction has to wait on a dirty resource.
+
+One parameter has to be explained before the derivation. The baseline value
+$L = 50$ (\texttt{maxTransactionResources}) is the maximum number of resources
+one transaction can touch. The simulator draws the resource count $\ell$ of each
+transaction uniformly from $1$ to $L$. The derivation assumes that these
+resources are independent of each other and that each of them is dirty with
+probability $d$.
+
+In this setup a single resource is clean with probability $1-d$. A transaction
+with $\ell$ resources is clean only if every one of them is clean, so the
+probabilities multiply.
 
 \begin{equation}
-  P_{\text{clean}}(d) \;=\; \underbrace{(1-d)\cdot(1-d)\cdots(1-d)}_{L \text{ resources}}
-  \;=\; (1-d)^L.
+  P_{\text{clean}}(d) \;=\; \underbrace{(1-d)\cdot(1-d)\cdots(1-d)}_{\ell \text{ resources}}
+  \;=\; (1-d)^{\ell}
   \label{eq:clean-probability}
 \end{equation}
 
-That is the whole meaning of $(1-d)^L$. It is the probability that all $L$
-resources touched by the transaction happen to be clean. Blocking is the
-complementary event, at least one of the $L$ resources being dirty, so its
-probability is one minus Equation~\ref{eq:clean-probability}.
+Blocking is the complementary event, in which at least one of the $\ell$
+resources is dirty.
 
 \begin{equation}
-  P_{\text{block}}(d) \;=\; 1 - P_{\text{clean}}(d) \;=\; 1-(1-d)^L,
+  P_{\text{block}}(d) \;=\; 1 - P_{\text{clean}}(d) \;=\; 1-(1-d)^{\ell}
   \label{eq:blocking-probability}
 \end{equation}
 
-which for $L = 50$ gives 40\% at $d = 0.01$, 64\% at $d = 0.02$, 92\% at
-$d = 0.05$ and 99.5\% at $d = 0.10$. Figure~\ref{fig:blocking-probability}
-plots both that worst case and the average over the actual uniform draw of
-$\ell$, which is the typical transaction. Both curves saturate well inside
-the range of $d$ the oracle is configured to permit. Blocking is thus not a rare event but the normal case for an ACID
-transaction admitted while the dirty set is large. Across the X2 grid,
-blocked transactions number 0.59 to 1.12 per ACID admission
-(Table~\ref{tab:blocking}, and that ratio is not a probability). The claim table adds to this in the same
-direction, since a claimed resource stops an ACID transaction for the same
-reason a dirty one does, but its contribution is small next to the dirty
-set. A claim lasts only as long as one BASE parent executes, while a dirty
-entry lasts until a reconciler gets to it.
+Figure~\ref{fig:blocking-probability} plots this probability against the dirty
+fraction $d$ from $0$ to $0.12$ for two cases. The first is the worst case
+$\ell = L = 50$. The second is the average over all transaction sizes $\ell$
+from $1$ to $50$. The figure shows that blocking is not a rare event but the
+normal case for an ACID transaction admitted while the dirty set is large. The
+system is not always at the worst state $d_k = 0.10$. But even at the baseline
+recovery threshold $r = 0.05$, an average ACID transaction is blocked by a
+dirty resource with a probability of 65\%. In addition,
+Equation~\ref{eq:blocking-probability} ignores the resources claimed by BASE
+parent transactions, which make the probability even higher.
+
+This paragraph shows the additional cost that this implementation of the
+adaptive oracle introduces. ACID transactions now have to wait not only on the
+locks of other ACID transactions, but also on the resources claimed by BASE
+parents and on the dirty resources left by BASE bookkeeper transactions.
+Unfortunately, this is unavoidable, because otherwise the isolation promise of
+ACID would be broken.
 
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
     \begin{axis}[
-        width=0.92\textwidth,
+        width=0.9\textwidth,
         height=6.4cm,
         xlabel={dirty fraction $d$},
         ylabel={$P_{\text{block}}$},
@@ -741,84 +777,63 @@ entry lasts until a reconciler gets to it.
   \label{fig:blocking-probability}
 \end{figure}
 
-The measurements also show what this probability cannot explain. Since
-$P_{\text{block}}$ saturates near one over most of the operating range, it
-cannot account for a throughput range whose top is eight times its bottom.
-What varies over that range, 17 times and monotonically with $R$, is not
-\emph{whether} an ACID transaction blocks but \emph{for how long}. The mean
-blocking time at $c = 0.10$ falls from 392\,s at $R = 1$ to 22.5\,s at
-$R = 15$. At $R = 1$ the reconciler pool drains about 0.5 resources per
-second while a blocked transaction waits on a mean of 2.9 dirty resources,
-so foreground work has to queue behind background work. It is the product of
-how often blocking happens and how long it lasts that produces the
-throughput valley of X1 (Section~\ref{sec:x1-reconciler-sweep}), and the
-same argument
-explains why raising $c$ helps only sublinearly. A larger $c$ lengthens each
-ACID visit, and hence each block, while it reduces the number of ACID
-admissions.
+\paragraph{Dirty fraction $d_k$ weighted average as one of considered
+  designs.}\label{sec:approach-nofilter} One design decision taken along the way
+was to smooth the inconsistency level before the oracle looks at it. The
+thresholds were not compared against inconsistency level $d_k$ directly, but against an
+exponentially weighted moving average (EWMA) $\bar{d}_k$ of it. At every reading
+the average was updated with the smoothing factor $\alpha$.
 
-\paragraph{Dirty signal weighted average as one of considered designs}\label{sec:approach-nofilter} One design decision taken along the
-way was to smooth the signal before the oracle looks at it. The thresholds
-were not compared against $d_k$ directly but against an exponentially
-weighted moving average (EWMA) of it, with the smoothing factor as a third
-parameter. The intention was the usual one for a controller. A filtered
-signal is expected to reject measurement noise and to make the mode of the
-system calmer. That decision was reversed, and the oracle now reads the live
-count, which is why the design above has two parameters and not three.
+\begin{equation}
+  \bar{d}_k \;=\; \alpha \, d_k + (1 - \alpha) \, \bar{d}_{k-1},
+  \qquad 0 \le \alpha \le 1, \qquad \bar{d}_0 = d_0
+  \label{eq:ewma}
+\end{equation}
 
-Three reasons speak against the filter, and they are empirical. A sweep of
-the smoothing factor over its full range gives all of them.
+At $\alpha = 1$ the average is equal to the live value $d_k$, so there is no
+smoothing. The baseline smoothing factor was $\alpha = 0.2$. This means that a
+new reading $d_k$ contributed only 20\% to the average.
+
+A filtered signal was expected to reduce noise and to avoid rapid mode switches.
+That decision was reversed, and the adaptive oracle now reads the live dirty
+fraction $d_k$ at the moment of admission. The smoothing was removed for three
+reasons.
 
 \begin{bullets}
-  \item[It has nothing to reject.] The dirty count is an exact number
-  maintained by the simulator and not a noisy measurement, so there is
-  no measurement error for a filter to remove. Anti-flap work was
-  already being done by the hysteresis band
+  \item[Incosistency level $d_k$ is an exact value.] The dirty fraction is an exact number
+  maintained by the simulator, and it has no measurement noise. The filter
+  therefore had nothing to remove. It only delayed real changes of $d_k$.
+  Additionaly, the
+  anti-flap work was already done by the hysteresis band
   (Section~\ref{sec:approach-adaptive-oracle}).
 
-  \item[It gains nothing at the entry edge.] The measured tail of the dirty
-  fraction stays within about one percentage point of $c$ at every
-  setting of the smoothing factor, so the entry threshold behaves the
-  same with the filter and without it.
+  \item[The switch at critical dirty threshold $c$ was unaffected.] The measured $p_{95}$ of the dirty
+  fraction stayed within about one percentage point of $c$ at every setting of
+  the smoothing factor. The BASE $\to$ ACID switch therefore behaved the same
+  way with and without the filter.
 
-  \item[It damages the exit edge.] The oracle leaves ACID far too early,
-  because the lagged estimate has not yet caught up with the true
-  value. Configured recovery threshold: 5\%. True dirty fraction at
-  exit: 0.03\% to 2.01\%.
+  \item[It increased the undershoot of $r$.] The smoothing added a second lag
+  to the ACID $\to$ BASE switch, on top of the one described in
+  Section~\ref{sec:approach-sampling}. ACID transactions are long, so the time
+  between two readings was already large, and with smoothing the switch to BASE
+  took even longer. As a result, the system became much cleaner than configured
+  before BASE resumed, and the recovery threshold $r$ had little effect.
 \end{bullets}
 
-Nor does the filter calm the system, which was the main thing expected of
-it. It lowers the raw switch count, but the mean time spent in BASE per
-entry does not move outside the seed dispersion. The switches it removes are
-therefore bought with longer ACID visits rather than with a steadier mode.
-The measurements are reported in the appendix.
 
-\paragraph{When the oracle reads the
-  signal.}\label{sec:approach-sampling}\label{sec:approach-samplers} The
-oracle reads the dirty fraction inside the call that assigns a mode, that
-is, once per admission of an untagged root transaction. Nothing else
-triggers a reading. The tick of the simulation does not drive it, and no
-reading is taken while the system is busy but admits nothing.
+\paragraph{The hybrid mode is designed to work with any
+  oracle.}\label{sec:approach-other-oracles} The two oracles of this section are
+only two possible policies. The hybrid mode itself does not depend on how a tag
+is issued. The dispatchers, the arbiter and the tagging rules work with any
+component that implements the \texttt{ModeOracle} interface. A new policy
+therefore only needs one new class, which is connected through the hybrid
+runtime assembler.
 
-This ties the rate at which the oracle sees the system to the rate at which
-transactions arrive. Under \texttt{EQUILIBRIUM} the transaction population
-is held constant, so admissions track completions and the reading rate of
-the oracle is approximately the throughput of the system, the same
-throughput its own decisions suppress whenever it routes work to ACID. The
-sensor is slowest exactly when the system is slowest, and
-Section~\ref{sec:effective-recovery} measures what that costs.
-
-It is worth being explicit that this is not how the reported measurements
-are taken, because the two are easy to confuse. The reading of the oracle is
-part of the system under study. It is load-gated, irregular, and taken only
-at admissions. The reported measurements come from a separate reader
-that runs once per simulated second regardless of mode or load. Clocking the instrument the way the sensor is clocked would
-make the two indistinguishable, since a genuine shift in the operating point
-would look the same as the instrument slowing down together with the system
-it measures. Keeping them apart is what allows
-Section~\ref{sec:effective-recovery} to attribute the gap between the
-configured recovery threshold and the observed one to the sensor rather than
-to the system.
+For example, other policies could focus on the throughput or on the length of
+the pending queue, or they could use a learned policy like the one used by
+Hybrid Transactional Replication~\cite{kobus2018htr}. Every such oracle
+also keeps the safety properties of Section~\ref{sec:approach-deadlock}, because
+they come from the arbiter and not from the choice of the tag.
 
 \section{Why the hybrid mode is safe}\label{sec:approach-deadlock}
 

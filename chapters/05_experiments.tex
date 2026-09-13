@@ -120,11 +120,8 @@ keeps the number of in-flight transactions constant. Whenever one transaction
 finishes, a new one is created at the next step. In HYBRID runs the new
 transaction may still wait for admission. The load is therefore stationary by
 design. This allows the throughput to be compared across different experiment
-configurations, but it also means the mode oracles are never tested under a more
-real-world setup. The simulator provides an alternative profile,
-\texttt{TERMINAL}, which could give more insight into the usefulness of
-adaptivity. Unfortunately it was still under construction during this thesis, so
-it was left for future work.
+configurations, but it also means that the adaptive oracle is never tested
+under a load that changes (Section~\ref{sec:approach-stationary-load}).
 
 \paragraph{Deviations from the reference configuration.} Two new entries were
 added to the configuration, the critical dirty threshold $c$ and the recovery
@@ -888,10 +885,8 @@ two consecutive draws and cannot be compared with the switches of the adaptive
 oracle (Section~\ref{sec:exp-metrics}).
 
 Every run in this thesis is executed under \texttt{EQUILIBRIUM}, a stationary
-load (Section~\ref{sec:exp-workload}). The intended scenario for the adaptive
-oracle is a varying load, where it can adapt to incoming changes. The comparison
-below is therefore run in a configuration that is not ideal for the adaptive
-oracle.
+load. The comparison below is therefore run in a setting that is not ideal for
+the adaptive oracle (Section~\ref{sec:approach-stationary-load}).
 
 \begin{table}[htbp]
   \centering
@@ -1830,7 +1825,11 @@ finishes, so no new transaction arrives and no reading is taken. Meanwhile the
 reconciler processors clear the inconsistency in the background. When the next
 transaction finally arrives, the level has already dropped to $d_{k+1} = 0.04$.
 The oracle now switches back to BASE, because $d_{k+1} \le r$. So the next value
-the oracle gets is already lower than the one it should react to.
+the oracle gets is already lower than the one it should react to. The exit level
+in Table~\ref{tab:effective-recovery} is recorded at this reading, not at the
+moment $d_k$ crosses $r$. A reading once per tick would record the exit close
+to $r$, but the first BASE transaction would still be admitted only when an ACID
+transaction finishes (Section~\ref{sec:approach-sampling}).
 
 The mean check interval shows the direction of the effect, but not its size.
 Reconciliation drains about $0.5R$ resources per second. Multiplied by the mean
