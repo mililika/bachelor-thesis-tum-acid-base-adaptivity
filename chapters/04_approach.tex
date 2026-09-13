@@ -2,105 +2,658 @@
 
 \chapter{Approach}\label{chapter:approach}
 
-\section{Starting point and contribution boundary}\label{sec:approach-delta}
+This chapter describes the implementation details added in the course of this
+project. It covers all the components that were added to extend the received
+simulator so that it supports the HYBRID mode.
+
+\section{Starting point and contributions}\label{sec:approach-delta}
 
 The base simulator described in Section~\ref{sec:prelim-simulator} is
-received work~\cite{zacouris2025m2ts,zacouris2026mxs}. Table~\ref{tab:approach-delta} separates it from what this
-thesis adds, so that the boundary is explicit before the design is
-described.
+existing work~\cite{zacouris2025m2ts,zacouris2026mxs}. Two tables make clear
+which parts are inherited and which are new, before the design is described.
+Table~\ref{tab:approach-received} lists the components that this thesis
+builds on. Each of them is used as it was received.
+Table~\ref{tab:approach-added} in the next section lists what is new. None of
+its entries has a counterpart in the base simulator.
 
 \begin{table}[htbp]
-\centering
-\caption{Received work against own contribution.}
-\label{tab:approach-delta}
-\footnotesize
-\begin{tabular}{>{\raggedright\arraybackslash}p{6.1cm} >{\raggedright\arraybackslash}p{7.2cm}}
-\toprule
-Received (base simulator) & Added in this thesis \\
-\midrule
-Execution engine, fixed time step, processor pools & HYBRID execution mode and per-transaction mode tag \\
-Lock table and conservative 2PL & Locked-XOR-dirty arbiter between the two modes \\
-Dirty set and reconciler pool & Adaptive mode oracle (threshold, hysteresis) \\
-CPR expansion and bookkeeper transactions & Random mode oracle with configurable $p$, as a baseline \\
-Pure ACID and pure BASE runtimes & Metrics for mode switching, ACID share, blocking and excursions \\
-Existing metric and CSV export & Four experiment runner scripts and their sweeps \\
-\bottomrule
-\end{tabular}
+  \centering
+  \captionsetup{format=plain,justification=centering}
+  \caption{Taken from the base simulator.}
+  \label{tab:approach-received}
+  \footnotesize
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}>{\raggedright\arraybackslash}p{0.26\textwidth} >{\raggedright\arraybackslash}p{0.61\textwidth}@{}}
+    \toprule
+    Execution engine & Fixed time step, IO and CPU processor pools \\
+    \midrule
+    ACID runtime & Lock table, conservative 2PL with cautious waiting \\
+    \midrule
+    BASE runtime & Dirty set, its (model, resource) key, fan-out
+    collapse, and the reconciler pool that clears it \\
+    \midrule
+    Rule expansion & Bookkeeper transactions and multi-model CPR \\
+    \midrule
+    Workload generator & Seeded transactions under the \texttt{EQUILIBRIUM} profile \\
+    \bottomrule
+  \end{tabular*}
 \end{table}
 
-One configuration value also differs from the reference setup, justified
-in Section~\ref{sec:exp-baseline}: the run duration. Everything else stays
-at the reference configuration, which is what makes the validation in
+The baseline configuration of Section~\ref{sec:exp-setup} follows the
+reference setup of the base simulator for the system and workload
+parameters, but not for every value. The runs are five times longer,
+steady-state metrics ignore an initial warm-up window, and the two oracle
+thresholds have no counterpart in the reference setup at all. Each of these
+differences is stated with the baseline table and justified there. Keeping
+the remaining values at the reference setup is what makes the validation in
 Section~\ref{sec:x1-validation} meaningful.
 
-\section{Why a hybrid mode}\label{sec:approach-why-hybrid}
 
-The purpose of the hybrid mode is to turn inconsistency from an emergent
-outcome into a configurable budget. An operator sets a level; the system
-spends whatever ACID execution is needed to stay under it, and runs BASE
-otherwise.
 
-The claim is deliberately restricted in one respect. The hybrid mode is
-not claimed to respond to changing load better than a static
-configuration. All experiments run under a stationary workload
-(\texttt{EQUILIBRIUM}), where there is no change to respond to and a
-well-tuned static configuration wins by construction. What the results
-support is configurability \emph{across deployments}, not adaptation to
-load \emph{within} one; the latter is untested here by construction and is
-listed as future work.
 
-\section{The mixing hazard}\label{sec:approach-mixing-hazard}
+\section{Introduction of Hybrid Mode}\label{sec:approach-why-hybrid}
 
-ACID's lock table and BASE's dirty set are independent mechanisms that
-never coexist in a pure run. Choosing the mode per transaction lets a
-resource be locked and dirty at the same time. The two states contradict
-each other: the lock says the value is being written under exclusive
-access, while dirtiness says an unapplied update is still pending on it. A
-mixed execution therefore has to define what happens when a transaction in
-one mode meets a resource marked by the other.
+The purpose of the hybrid mode is to turn inconsistency into a threshold that
+an operator can set. Simulator suppports two semantcs. First is ACID, the slow but
+consistent approach. Its dirty fraction $d_k$ is always zero, but its throughput
+drops sharply as the number of resources and systems that one ACID
+transaction has to reach grows~\cite{zacouris2026mxs}. BASE is the other
+side. It lets the work that has to be propagated to other models be
+distributed to reconciliation processors, which clear the updates
+eventually. In BASE, however, the inconsistency of the system cannot be
+controlled at all, and it can grow so fast that the reconciliation capacity
+is unable to keep up. Our approach combines the two modes and adds a
+mechanism for inconsistency control. The operator states a critical
+dirty threshold $c$, and the system spends as much ACID execution as it needs
+to stay under that level and runs BASE the rest of the time.
 
-\plannedfigure{fig:mixing-hazard}{The mixing hazard: with modes chosen per
-transaction, a resource can be held by an ACID lock and be in the dirty
-set at the same time.}{Two transactions and one resource. The ACID
-transaction holds a lock on it; the BASE transaction has left a pending
-CPR update on it. The state that neither pure mode defines is marked, with
-the two possible resolutions --- wait or yield --- as the edges out of
-it.}
+Table~\ref{tab:approach-added} lists the components of the hybrid mode that
+were introduced in this thesis, with a reference to the section where each of
+them is described in more detail.
 
-\section{The locked-XOR-dirty arbiter}\label{sec:approach-arbiter}
+\begin{table}[htbp]
+  \centering
+  \captionsetup{format=plain,justification=centering}
+  \caption{Added in this thesis.}
+  \label{tab:approach-added}
+  \footnotesize
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}>{\raggedright\arraybackslash}p{0.28\textwidth} >{\raggedright\arraybackslash}p{0.59\textwidth}@{}}
+    \toprule
+    HYBRID execution mode (Section~\ref{sec:approach-dispatchers}) & The mode
+    becomes a per-transaction tag instead of a run-wide configuration \\
+    \midrule
+    Shared-resource arbiter (Section~\ref{sec:approach-arbiter}) & Lookup
+    that connects the ACID and BASE bookkeeping on shared resources, so that
+    neither mode overwrites the work of the other \\
+    \midrule
+    Claim table (Section~\ref{sec:approach-claim-table}) & Records the
+    locks used by BASE parent transactions \\
+    \midrule
+    Fixed-share oracle
+    (Section~\ref{sec:approach-fixed-share-oracle}) & Tags ACID with a
+    configured probability $p_{\mathrm{acid}}$ \\
+    \midrule
+    Adaptive oracle (Section~\ref{sec:approach-adaptive-oracle}) & Switches
+    to ACID when the dirty fraction reaches the threshold, and back to BASE
+    once the inconsistency has recovered \\
+    \midrule
+    Hybrid metrics & Mode switches, ACID share, blocking and ACID visit
+    duration \\
+    \bottomrule
+  \end{tabular*}
+\end{table}
 
-\subsection{The rule}\label{sec:approach-arbiter-rule}
 
-The arbiter enforces a single invariant: no resource is simultaneously
-locked and dirty. It does so with one asymmetric rule. An ACID transaction
-that needs a dirty resource waits until reconciliation has cleared it. A
-BASE transaction that would dirty a locked resource yields instead, and
-its work is retried later. ACID waits on dirty; BASE yields on locked.
+\section{Received simulator allows only one mode per run}\label{sec:approach-pipeline}
 
-\subsection{Deadlock freedom}\label{sec:approach-deadlock}
+The simulator can run ACID or BASE, but never both. A run binds its
+configured concurrency model through the \emph{runtime assembler}, and there
+is one assembler per mode. It builds every mode-dependent collaborator at the
+start of the simulation, so all transactions run in the one mode that was
+assembled at the beginning. Figure~\ref{fig:pipeline} shows how the
+mode-specific components are wired. While explaining how the two modes are
+started, this section also follows the path that one ACID or one BASE
+transaction takes, because the hybrid mode reuses that path.
 
-Pure ACID execution is deadlock-free under conservative two-phase locking
-with cautious waiting (Section~\ref{sec:prelim-acid}). The arbiter adds
-exactly one new kind of wait edge: from an ACID transaction to the
-reconciliation of a dirty resource. Reconcilers never wait on ACID
-transactions, because a BASE-side conflict is resolved by yielding rather
-than by blocking. The added edge therefore points one way only, no cycle
-that includes it can be formed, and the arbiter admits no deadlock that
-pure ACID did not already admit.
+At the start of the simulation the runtime assembler (Step 1 in
+Figure~\ref{fig:pipeline}) creates a single wiring, either ACID or BASE. Only
+one path exists in the simulator at a time. For example, when the simulator
+is configured in ACID mode, none of the BASE components are built, and vice
+versa. The assembler is the only place that both modes share.
 
-\subsection{Blocking cost}\label{sec:approach-blocking-cost}
+Admission (Step 2) has two parts, and the rest of this chapter keeps them apart.
+The first part is the same in both modes. The admission controller takes the
+next transaction from the pending queue, but only while the number of
+transactions in flight is below the capacity limit. The second part is the
+\emph{mode admission step}, and it differs between the modes.
 
-The rule is safe but not free, and the cost falls entirely on the ACID
-side. A transaction touches up to $L = 50$ resources
-(\texttt{maxTransactionResources}). If those resources were drawn
-independently and uniformly at dirty fraction $d$, the blocking
-probability follows from asking the opposite question first: what is the
-chance that the transaction gets through \emph{clean}, i.e.\ touches no
-dirty resource at all?
+BASE has no locking step and admits the transaction straight into execution.
+ACID first acquires the whole lock set of a parent transaction at once, or waits
+while holding none of it. A transaction counts as \emph{admitted} only once it
+has passed the mode admission step. A new transaction that arrives from the
+workload is not admitted yet. It only joins the pending queue. The concurrency
+strategy and the transaction executor (Steps 3 and 4) then drive the phases
+\texttt{LOCK}, \texttt{IO}, \texttt{CPU} and \texttt{COMPLETE}, and BASE skips
+\texttt{LOCK}.\label{sec:approach-execution}
 
-A single resource is clean with probability $1-d$. With $L$ resources
-drawn independently, the transaction is clean only if every one of them
-is clean, so the probabilities multiply:
+In BASE mode the processor pool is split into two sets. The first is the
+foreground processors, which handle the initial parent transactions. The second
+is the reconciler pool, which propagates the changes to the other models. The
+simulator allows both the number of foreground IO and CPU processors and the
+number of reconciler processors $R$ to be configured. In BASE, $R$ is subtracted
+from the pool of foreground processors. In ACID the value of $R$ is ignored.
+After a parent transaction is processed, rule expansion (Step 5) decides what
+happens next.\label{sec:approach-completion} ACID parks the parent as waiting
+for its group and spawns its bookkeepers, which have to go through the same
+process of acquiring locks. BASE commits the parent immediately and then starts
+its bookkeepers independently, without waiting for them.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{fig-received-pipeline.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{The received pipeline.}
+  \label{fig:pipeline}
+\end{figure}
+
+One property of the ACID mode is important. The unit of locking is the group and
+not the transaction, because the root preclaims its own set at admission while
+its bookkeepers extend that set afterwards.\label{sec:approach-group-locking}
+Two groups can therefore wait on each other, and the received simulator resolves
+this by aborting one of them.
+
+All five components exist in an ACID form and a BASE form, and the form is fixed
+at assembly. A run therefore inherits one execution mode and keeps it to the
+end.\label{sec:approach-seams}
+
+The idea of the hybrid mode is to keep both modes and to wrap each of these
+components in a dispatcher that holds one collaborator of each kind.
+
+\section{Implementing the hybrid mode}\label{sec:approach-hybrid}
+
+A third execution mode, \texttt{HYBRID}, is added next to ACID and BASE. It
+is not a third set of semantics but a configuration in which both received
+sets are live at the same time. What the hybrid mode adds is the choice of
+which mode a transaction runs in.
+
+\paragraph{Dispatchers wrap both paths.}\label{sec:approach-dispatchers} A third
+runtime assembler builds both mode-specific sets in full and wraps each pair.
+Every component of Section~\ref{sec:approach-pipeline} is then filled by a
+dispatcher that holds one ACID collaborator and one BASE collaborator, and
+forwards each call to the one that the transaction names. Both ACID and BASE
+paths are left unchanged. The two admission controllers share the scheduler, the
+processors, the I/O model, the queue manager and the capacity limit, and the two
+bookkeeper coordinators share the dirty set and the lock table. The dispatchers
+and the arbitration checks are built by the hybrid assembler only, so a pure
+ACID or pure BASE run still executes the received code as in received simulator.
+
+\paragraph{Introduction of tag and mode
+  oracle.}\label{sec:approach-oracle-interface}\label{sec:approach-tag}\label{sec:approach-tagging-point}
+Since both modes are wired into the simulator at the same time, the decision
+which path to take has to move out of the assembler. Our approach introduces a
+tag for each transaction. Only two tags exist: \emph{\{ACID, BASE\}}. Each transaction
+receives its tag once, and the tag is propagated to the bookkeepers of that
+transaction. Choosing an execution mode per transaction at runtime is not new in
+itself. Hybrid Transactional Replication~\cite{kobus2018htr} and
+PolyCert~\cite{couceiro2011polycert} already do it, but there all modes give the
+same consistency, so the choice is never about controling the inconsistency levels
+(Section~\ref{sec:rw-mode-selection}).
+
+The tag is chosen by a component called the \emph{mode oracle}. It is
+implemented as a Java interface with a single method, \texttt{assignMode()}.
+This thesis introduces two mode oracles, which are described in
+Section~\ref{sec:approach-oracles}. The oracle is called between the two parts
+of admission. Once the admission controller has taken an untagged parent
+transaction from the pending queue, the mode oracle returns the mode in which
+the transaction should run, and the dispatcher hands it to the \emph{mode
+  admission step}, either ACID or BASE.
+
+Tags are immutable. They cannot be withdrawn or changed. Once a transaction has
+received its tag, it stays in that mode for its whole life, and so do all of its
+bookkeepers. The same holds when a transaction is aborted. It loses all its
+progress, but not its tag.
+
+\paragraph{Sharing one resource pool, and the limits of the naive
+  design.}\label{sec:approach-resource-layer}\label{sec:approach-mixing-hazard}
+One set of resources is created at the beginning and is never divided again.
+At the baseline that is $5000$ resources, divided equally between the $10$
+models. An ACID-tagged transaction may lock any of the $5000$
+resources, and a BASE-tagged transaction may dirty any of the same $5000$.
+
+Simply wrapping both modes is a naive design here. It separates the path a
+transaction takes, but the resources that transaction needs are still shared. The
+problem is that the lock table used by ACID and the dirty set used by BASE
+do not communicate. As Figure~\ref{fig:hybrid-resources} shows, both modes
+ignore the progress of the other when they work on the same resource. ACID
+locks are visible only to other ACID transactions, and BASE dirty marks only
+to other BASE transactions. This would break the isolation that ACID
+promises, because a locked resource could be overwritten while it is locked.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-hybrid-resources.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{Resource management in the hybrid mode.}
+  \label{fig:hybrid-resources}
+\end{figure}
+
+A resource that is ACID-locked and BASE-dirty at the same time is in an
+undefined state, because each half relies on an assumption that the other
+half breaks. Sharing the pool is therefore only half of what a hybrid run
+needs. The other half is a shared-resource arbiter. It connects the
+bookkeeping of the two pure modes and defines what a mode does when a
+resource it needs is in use by the other mode. The next section addresses this problem.
+
+\section{The shared-resource arbiter}\label{sec:approach-arbiter}
+
+Section~\ref{sec:approach-mixing-hazard} left the hybrid mode with one open
+problem. Both halves write to the same resources and ignore the work of the
+other half. The lock table is asked only whether a lock is free. The dirty
+set is asked only whether a repair is in progress. Nothing in that
+arrangement stops a resource from being locked and dirty at the same time.
+
+This section describes the shared-resource arbiter, the mechanism
+introduced to solve this isolation problem between the ACID and BASE
+bookkeeping.
+
+\paragraph{Arbiter implementation.}\label{sec:approach-arbiter-lookup} The
+arbiter is not a single class that holds references to all resources or
+locks. It reuses two existing records, the lock table and the dirty set,
+and adds a third one, the claim table.
+Figure~\ref{fig:arbiter-layer} shows how the three records are connected.
+Every lookup starts from the same place, the name of a resource in the
+shared pool (column 1). An ACID transaction, a BASE parent and a BASE repair
+all start from that name when they want to use resource $\mathit{res}_k$.
+The name is then mapped to a key (column 2). The lock table and the claim
+table both use the lock id, which the granularity mapping computes from the
+resource. A run may be configured with fewer locks than resources, so one
+lock id can cover several resources. The dirty set uses the dirty key, the
+pair of the owning model and the resource, so it always has one entry per
+resource. Under its key each record keeps one entry (column 3). The lock
+table lists the ACID transactions holding the lock, the claim table lists
+the BASE parents writing under it, and the dirty set holds the
+repair that is still outstanding on the resource. Because both keys are
+computed from the same resource name, any path can look up any record
+without extra bookkeeping.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-arbiter-layer.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{The shared lookup the arbiter is built on.}
+  \label{fig:arbiter-layer}
+\end{figure}
+
+The colours in Figure~\ref{fig:arbiter-layer} show who writes and who reads
+each record. The lock table is written and read by ACID as before, and is
+now also read by both BASE paths. The claim table is written by BASE parents
+and the dirty set by BASE repairs, and both are read by ACID. Each record is
+therefore still written by one side only. What the arbiter adds are reads
+across the two modes.
+
+These reads are placed in the mode admission step (Step 2 in
+Figure~\ref{fig:pipeline}), which is extended to also check the state of the
+opposite mode. For example, when an ACID transaction goes through its mode
+admission step, the arbiter checks whether any resource it needs is dirty or
+claimed, by looking it up in the dirty set and in the claim table. A
+transaction that fails this check is not admitted. It has already left the
+pending queue, but it goes to the waiter registry or to the deferred parent
+queue instead of into execution. BASE repairs are the one
+exception, because they are created later, at rule expansion (Step 5). The
+idea is that every path checks a resource for work of the other mode before
+it uses it.
+
+The components introduced by the arbiter, both to resolve the lookup and to
+handle a mode that finds a resource in use by the other mode, are the
+following.
+
+\begin{bullets}
+  \item[Claim table.]\label{sec:approach-claim-table} One entry per lock
+  under which an admitted BASE parent is currently writing. A parent enters
+  its claims when it is admitted and removes them when it completes.
+
+  \item[Waiter registry.] The ACID transactions parked on a resource they
+  need that is currently dirty or claimed. No locks are acquired and no state
+  is changed.
+
+  \item[Deferred parent queue.] The BASE parents that met an ACID lock at
+  admission.
+
+  \item[Deferred repair queue.] The BASE repairs whose target was
+  ACID-locked when the rule that created them fired.
+\end{bullets}
+
+Only the claim table is a new record. The other three components \emph{Waiter
+  registry}, \emph{Deferred parent queue}, \emph{Deferred repair queue} hold the
+transactions that found a resource in use by the other mode, until that resource
+is free again.
+
+A large simplification is important to mention. The resources are split
+between models, so in a real system a lookup takes time, because each model
+that holds the resource has to be reached. These network calls may be slow
+and can sometimes fail. The simulator sees all resources and models as one
+entity, so a lookup has no latency at all and always succeeds. Modelling the
+real system more closely would add a lot of overhead. The simulator
+therefore implements the mechanism in an ideal setting, and it would be less
+performant in an actual multi-model system.
+
+\paragraph{The invariant.}\label{sec:approach-arbiter-rule} The main goal of
+the hybrid implementation, and of the arbiter itself, is to enforce one
+rule. A resource is never held by ACID and written by BASE at the same time.
+This keeps the guarantees of ACID transactions intact and addresses the idea
+of safe adaptation between ACID and BASE posed by RQ1. Because a resource
+always has one clearly defined state, no work is lost or overwritten.
+Section~\ref{sec:approach-deadlock} covers this in more detail.
+
+\paragraph{Shared arbiter lookup position.}\label{sec:approach-enforcement}
+To enforce the invariant, the pipelines of both ACID and BASE are extended
+with a lookup for work of the opposite mode. An ACID transaction is tested
+before it takes any lock. A BASE parent is tested at admission, before it
+claims anything. A BASE repair is tested at rule expansion, before its
+target is marked dirty.
+
+\paragraph{ACID extended admission step.} In Figure~\ref{fig:hybrid-queueing-acid}
+we can see how the intial ACID path was extended to perform look up for BASE work.  \todo{add note that this disagrm is taken from
+  "Modeling ACID and BASE Semantics for Cross-Model Consistency-Preserving
+  Updates" and extended here} An ACID transaction is tested against the claim table and the dirty
+set together, and both answers have the same effect. If any resource it needs is
+dirty or claimed, the transaction is paused immediately and added as a waiter to
+the waiter registry. It never acquires any locks, which is an important step in
+the later deadlock-freedom argument. The transaction stays in the
+\texttt{PENDING} state, but it is removed from the pending queue.
+Figure~\ref{fig:hybrid-queueing-acid} shows that it enters the waiter registry
+rather than the lock queue, so it holds nothing while it waits.
+
+Two events make a resource available again. A repair that finishes clears
+the dirty entry, and a BASE parent that completes drops its claims. A waiter
+on a dirty resource is registered under the resource, and a waiter on a
+claim under the lock id, because claims are kept per lock. All waiters
+registered under the cleared key are then notified and retried. A root parked at
+admission returns to the pending queue for a fresh attempt, and a bookkeeper
+parked in mid-execution goes through the existing retry path.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{fig-hybrid-queueing-acid.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{ACID meeting a resource it may not touch.}
+  \label{fig:hybrid-queueing-acid}
+  \medskip
+  \begin{figurekeys}
+    \item[1] The transaction is registered as a waiter and taken out of the
+    pending queue. The test runs before the lock phase, so it holds no lock
+    while it waits.
+    \item[2] Once the resources are clean again the registry notifies every
+    transaction waiting on them. Each one returns to the pending queue,
+    where the test is repeated.
+  \end{figurekeys}
+\end{figure}
+
+\paragraph{BASE extended admission step.} The two BASE paths are tested
+separately, because they reach a resource at different times.
+Figure~\ref{fig:hybrid-queueing-base-parent} shows the parent path, and
+Figure~\ref{fig:hybrid-queueing-base-bookkeeper} shows the repair path.
+The parent is the foreground work and is tested at mode admission. Every resource
+it needs is checked before it claims any of them. If one of them is
+ACID-locked, the parent claims nothing and goes on the deferred parent
+queue. Inside this queue a BASE parent does not wait for a specific ACID
+transaction. It is retried on every drain, so if the resource is still
+locked, even by a lock acquired in the meantime, the parent is deferred
+again rather than overrunning the lock.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{fig-hybrid-queueing-base-parent.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{A BASE parent meeting an ACID lock at admission.}
+  \label{fig:hybrid-queueing-base-parent}
+  \medskip
+  \begin{figurekeys}
+    \item[1] A parent whose resources are all free returns to the pending
+    queue and is asked the same question at the next admission step.
+    \item[2] On completion the claims are dropped and every transaction
+    waiting on those resources is notified.
+    \item[3] The queue is retried on every admission. A parent whose resource
+    is still locked stays deferred and goes to the back of the queue.
+  \end{figurekeys}
+\end{figure}
+
+The repair is tested just before it would mark its target dirty. If the
+target is ACID-locked, the repair is not created at all. It goes on the
+deferred repair queue, the resource stays clean, and the transaction that
+triggered it commits. Deferred does not mean waiting. The repair is retried
+systematically, but there is no guarantee of when it can actually proceed.
+This avoids a dependency of a bookkeeper on an ACID transaction, which could
+otherwise lead to a deadlock, and it breaks no promise of eventual
+consistency. When the repair is finally created, it
+is created in full and processed.
+
+The claim table is read only by ACID. A BASE parent never checks it, and a
+dirty resource does not stop it either, so BASE work never waits for other
+BASE work on the same resource. This follows the idea of Salt
+Isolation~\cite{xie2014salt}, where BASE transactions may see each other's
+unfinished work, while ACID transactions are kept apart from it
+(Section~\ref{sec:rw-static}).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{fig-hybrid-queueing-base-bookkeeper.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{A BASE repair meeting an ACID lock at rule expansion.}
+  \label{fig:hybrid-queueing-base-bookkeeper}
+  \medskip
+  \begin{figurekeys}
+    \item[1] Once the lock is gone the target is marked dirty and the repair
+    reconciliation starts.
+    \item[2] On every retry a repair whose target is still locked is kept in
+    the queue.
+  \end{figurekeys}
+\end{figure}
+
+
+Both deferred queues are polled rather than woken. Nothing signals an entry
+when its lock disappears. Parents are retried once per admission step, before
+anything is admitted. Repairs are retried after every batch of repairs, after
+every ACID group completion, and once per simulated tick. The pass per tick
+is the one that matters, because a lock is also released by a group that
+aborts, and an abort is not a completion. Whatever released the lock, the
+entry is retried within one tick.
+
+\paragraph{Hybrid mode limits the parent BASE
+  transactions.}\label{sec:approach-base-cost} Making a BASE parent wait is
+where BASE loses performance, and this cannot be avoided. BASE is meant to be
+the fast mode, which processes the transaction on its own model almost
+immediately and resolves the consequences in the background. In the hybrid
+mode a BASE parent can be held back at admission, so it loses part of that
+speed.
+
+A BASE parent waits only at admission, only for as long as an ACID lock is
+held on one of its resources, and only while holding nothing itself. It
+never blocks after it has been admitted, it never waits on another BASE
+transaction, and it never waits for reconciliation. It therefore stays much
+faster than an ACID transaction, but slower than in a pure BASE run.
+
+\paragraph{Where the arbiter is deliberately
+  over-cautious.}\label{sec:approach-conservatism} Two imprecisions are
+built into the simulator by design.
+
+\begin{bullets}
+  \item[C1. Lock buckets hide free resources.] The two BASE checks and the
+  ACID claim check read the lock of a resource and not the resource itself.
+  Where a run is configured with fewer locks than resources, one lock
+  covers a bucket of them, so BASE work is set aside whenever any
+  resource in that bucket is locked. Transactions therefore wait in cases
+  where they could have proceeded.
+
+  \item[C2. Starvation of deferred work.] A deferred entry whose target
+  stays locked can stay on its queue indefinitely. No entry is
+  forgotten, but there is no ageing rule that eventually gives a
+  long-deferred entry priority over the ACID transaction keeping its
+  resource busy, so under a resource that is hot for a long time
+  that work can starve. This is accepted rather than solved. Eventual
+  consistency places no bound on when a repair runs.
+\end{bullets}
+
+
+\section{Mode oracles}\label{sec:approach-oracles}
+
+Section~\ref{sec:approach-oracle-interface} gave a brief introduction of what an
+oracle is. This section provides the overview of the two that were built during
+the course of the thesis. They share the interface, the arbiter, the tagging
+rules and the dispatchers, and they differ only in one aspect, how decision
+about tag is made.
+
+\paragraph{Short intodcution to both oracles.} During this thesis work two type
+of oracles were implemented. The both have the full hybrid mechanism underneath,
+same arbiter, same tagging and same dispatchers. The difference we focused on
+that one is static and other is dynamic. The static one is
+\texttt{FixedShareModeOracle} it is configured once at the start of the
+simulation and doesn't rely on any more internal or external information. On the
+other hand we have \texttt{AdaptiveModeOracle}, it focuses on leveragin the
+system's incosistency levels $d_k$ sampled at transaction admission to make a
+decision which tag the transaction should receive.
+
+\paragraph{The fixed-share oracle in
+  details.}\label{sec:approach-fixed-share-oracle} The fixed-share oracle returns
+ACID with a configured probability $p_{\mathrm{acid}}$ and BASE otherwise
+$p_{\mathrm{base}} = 1 - p_{\mathrm{acid}}$, from a seeded generator, so that a
+run can be reproduced. The draw is random but the share of ACID/BASE
+transactions is not.
+
+It was first hybrid design that we focused on and for a practical reason. Since
+$p_{\mathrm{acid}}$ can be set from the simulation start, it is easy to
+configure and fixed-share oracle worked as proof of concept for hybrid mode.
+Apaprt from that, we planed to use the this type of oracle in the evaluation, to
+answer the RQ3 and compare if adaptive configuartion can outperform static one.
+It was intented as the ablation baseline.
+
+One design property of this oracle sets how it can be compared with the adaptive
+one. What $p_{\mathrm{acid}}$ fixes is the share of \emph{transactions} tagged
+to be in ACID mode. It fixes nothing about the share of \emph{time} the system
+spends in ACID, because the mode of a transaction decides how long that
+transaction occupies the system.
+
+In short, this fixed-share oracle generates a controlled split of ACID and BASE
+tags assigned to pending incoming transactions.
+
+\paragraph{The adaptive oracle.}\label{sec:approach-adaptive-oracle} The
+adaptive oracle reads the live dirty fraction at the instant of the decision
+and switches between two states.
+
+\todo{static load}
+
+One important detail worth mentioning before diving deeper into design
+descriptoin. All experiments from next section \todo{add reference to the
+  experiments section} run under a stationary workload
+(\texttt{EQUILIBRIUM}), where there is nothing to react to and a well-tuned
+static configuration wins by construction. What the results support is that
+the system can be configured \emph{across deployments}, not that it adapts
+to load \emph{within} one run. The second claim is untested here by
+construction and is listed as future work.
+
+\begin{align}
+  \text{BASE} \rightarrow \text{ACID} \quad & \text{when} \quad d_k \ge c
+  \label{eq:enter-acid}                                                   \\
+  \text{ACID} \rightarrow \text{BASE} \quad & \text{when} \quad d_k \le r
+  \label{eq:leave-acid}
+\end{align}
+
+with the interval $[r, c]$ acting as the hysteresis band
+(Figure~\ref{fig:oracle-fsm}).
+
+The oracle holds one current mode for the whole system, not one mode per
+transaction. Every admission is stamped with whatever that mode is at that
+instant, and a switch changes the tag of later arrivals only. Work that is
+already in flight keeps the mode it was admitted under, by the lifetime
+rules of Section~\ref{sec:approach-tag}. A mode change is therefore not an
+event that the running population experiences. It is a change in what the
+next arrivals become, and the actual composition of the system follows it
+only as the old population drains.
+
+Dirtiness is the only decision signal the oracle has, so every mode
+transition has a single clear cause. Figure~\ref{fig:oracle-fsm} reads the
+band against a schematic trace. Only an upward crossing of $c$ and a
+downward crossing of $r$ move the mode. The return through $c$ and any
+movement inside the band leave it unchanged. A switch does not stop the
+movement that caused it, only its source. Past $c$ no further BASE work is
+admitted and only the BASE transactions already in flight still add dirt,
+and past $r$ only the reconciliations already running carry on. The two
+edges are not symmetric in how far they run. The excursion past $c$ is
+small, but the one past $r$ can be large, because the oracle reads $d_k$
+only at admission (Section~\ref{sec:approach-sampling}) and admissions are
+rare in ACID, so reconciliation keeps draining while nothing is looking
+(Section~\ref{sec:recovery-mechanism}).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{fig-hysteresis-band.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{The hysteresis band against a dirty-fraction trace.}
+  \label{fig:oracle-fsm}
+  \medskip
+  \begin{figurekeys}
+    \item[1] The overshoot past $c$ is small. It is carried by the BASE
+    transactions that were already in flight when the mode changed,
+    because every arrival after the switch is tagged ACID.
+    \item[2] The undershoot past $r$ can be large. The oracle reads $d_k$
+    only at admission (Section~\ref{sec:approach-sampling}) and ACID
+    admissions are rare, so reconciliation keeps draining while nothing
+    is looking (Section~\ref{sec:recovery-mechanism}).
+  \end{figurekeys}
+\end{figure}
+
+\paragraph{The critical and recovery
+  thresholds.}\label{sec:approach-parameters-oracle} The oracle has two
+parameters. The critical threshold $c$ is the fraction of resources that may
+be dirty before the oracle stops issuing BASE tags, and it is the statement
+of the operator about how much inconsistency the deployment is willing to
+hold. The recovery threshold $r$ is the fraction the system must reconcile
+back down to before BASE resumes. Both of them are fractions of the resource
+population $N$, and $r$ is configured directly rather than derived from $c$,
+subject to $0 \le r \le c$.
+
+The two extremes of that range are worth naming, because they are policies
+and not just values. At $r = c$ the band has zero width and the only
+anti-flap mechanism in the design is gone
+(Section~\ref{sec:approach-nofilter}). It is a legal configuration and is
+used as a sweep anchor, not as a recommended setting. At $r = 0$ the rule
+says reconcile everything before resuming BASE, which differs from a small
+$r$ in kind rather than in degree, because an ACID visit then ends only when
+the dirty set is empty, so its length is set by the reconciler pool alone.
+Values in between trade the length of an ACID visit against the margin that
+protects the next one.
+
+\paragraph{The cost of making ACID
+  wait.}\label{sec:approach-blocking-cost} What the operator permits with
+$c$ decides how often an ACID transaction meets a resource it may not touch,
+and then waits for BASE work under the rule of
+Section~\ref{sec:approach-arbiter}. That cost is a design property rather
+than a result, so it is derived here. The measurements that follow are
+quoted from Chapter~\ref{chapter:experiments}, because the derivation alone
+does not predict them.
+
+One qualification belongs before the derivation. $L = 50$
+(\texttt{maxTransactionResources}) is a maximum, not a size. The simulator
+draws the resource count of each transaction uniformly from $1$ to $L$, so
+the average transaction touches about $26$ resources and the smallest one
+touches a single resource. Setting $\ell = L$ below therefore describes the
+largest transaction the workload produces rather than the typical one, and
+the resulting figure is a worst case. Averaging the same expression over the
+actual distribution of $\ell$ lowers it, at $d = 0.05$ from 92\% to 65\% and
+at $d = 0.10$ from 99.5\% to 82\%, which changes the number without changing
+the conclusion. Even for a transaction of average size, meeting a dirty
+resource is the common case rather than the exception once the dirty set is
+at the levels the oracle is configured to permit. The worst case is carried
+below because it is the bound the design has to survive, and because it is
+the form that composes with the durations quoted below.
+
+If the $L$ resources of a transaction were drawn independently and uniformly
+at dirty fraction $d$, the blocking probability follows from asking the
+opposite question first. What is the chance that the transaction gets
+through \emph{clean}, that is, touches no dirty resource at all?
+
+A single resource is clean with probability $1-d$. With $L$ resources drawn
+independently, the transaction is clean only if every one of them is clean,
+so the probabilities multiply.
 
 \begin{equation}
   P_{\text{clean}}(d) \;=\; \underbrace{(1-d)\cdot(1-d)\cdots(1-d)}_{L \text{ resources}}
@@ -108,10 +661,10 @@ is clean, so the probabilities multiply:
   \label{eq:clean-probability}
 \end{equation}
 
-That is the whole meaning of $(1-d)^L$: the probability that all $L$
+That is the whole meaning of $(1-d)^L$. It is the probability that all $L$
 resources touched by the transaction happen to be clean. Blocking is the
-complementary event --- at least one of the $L$ resources is dirty --- so
-its probability is one minus Equation~\ref{eq:clean-probability}:
+complementary event, at least one of the $L$ resources being dirty, so its
+probability is one minus Equation~\ref{eq:clean-probability}.
 
 \begin{equation}
   P_{\text{block}}(d) \;=\; 1 - P_{\text{clean}}(d) \;=\; 1-(1-d)^L,
@@ -119,139 +672,359 @@ its probability is one minus Equation~\ref{eq:clean-probability}:
 \end{equation}
 
 which for $L = 50$ gives 40\% at $d = 0.01$, 64\% at $d = 0.02$, 92\% at
-$d = 0.05$ and 99.5\% at $d = 0.10$. Blocking is thus not a rare event but
-the normal case for an ACID transaction admitted while the dirty set is
-large; across the X2 grid, blocked transactions number 0.59 to 1.12 per
-ACID admission (Table~\ref{tab:blocking}; that ratio is not a probability,
-see Section~\ref{sec:exp-threats}).
+$d = 0.05$ and 99.5\% at $d = 0.10$. Figure~\ref{fig:blocking-probability}
+plots both that worst case and the average over the actual uniform draw of
+$\ell$, which is the typical transaction. Both curves saturate well inside
+the range of $d$ the oracle is configured to permit. Blocking is thus not a rare event but the normal case for an ACID
+transaction admitted while the dirty set is large. Across the X2 grid,
+blocked transactions number 0.59 to 1.12 per ACID admission
+(Table~\ref{tab:blocking}, and that ratio is not a probability). The claim table adds to this in the same
+direction, since a claimed resource stops an ACID transaction for the same
+reason a dirty one does, but its contribution is small next to the dirty
+set. A claim lasts only as long as one BASE parent executes, while a dirty
+entry lasts until a reconciler gets to it.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+        width=0.92\textwidth,
+        height=6.4cm,
+        xlabel={dirty fraction $d$},
+        ylabel={$P_{\text{block}}$},
+        xmin=0, xmax=0.12,
+        ymin=0, ymax=1.05,
+        xtick={0,0.02,0.04,0.06,0.08,0.10,0.12},
+        xticklabel style={/pgf/number format/fixed,
+            /pgf/number format/precision=2},
+        ytick={0,0.2,0.4,0.6,0.8,1.0},
+        yticklabel={\pgfmathparse{100*\tick}\pgfmathprintnumber{\pgfmathresult}\%},
+        grid=both,
+        grid style={draw=TUMDarkGray!20},
+        legend pos=south east,
+        legend cell align=left,
+        legend style={draw=TUMDarkGray!40, font=\small},
+        tick label style={font=\small},
+        label style={font=\small},
+      ]
+      \addplot[TUMBlue, very thick, domain=0:0.12, samples=241]
+      {1-(1-x)^50};
+      \addlegendentry{worst case, $\ell = L = 50$}
+      \addplot[TUMAccentOrange, very thick, dashed, domain=0.0005:0.12,
+        samples=241]
+      {1-(1-x)*(1-(1-x)^50)/(50*x)};
+      \addlegendentry{averaged over $\ell \sim \mathcal{U}\{1,\dots,50\}$}
+      \addplot[only marks, mark=*, mark size=1.6pt, TUMBlue]
+      coordinates {(0.01,0.395) (0.02,0.636) (0.05,0.923) (0.10,0.995)};
+      \node[anchor=north west, font=\scriptsize, TUMBlue]
+      at (axis cs:0.0125,0.385) {40\%};
+      \node[anchor=north west, font=\scriptsize, TUMBlue]
+      at (axis cs:0.0225,0.626) {64\%};
+      \node[anchor=north west, font=\scriptsize, TUMBlue]
+      at (axis cs:0.051,0.918) {92\%};
+      \node[anchor=north east, font=\scriptsize, TUMBlue]
+      at (axis cs:0.099,0.99) {99.5\%};
+      \addplot[only marks, mark=*, mark size=1.6pt, TUMAccentOrange]
+      coordinates {(0.01,0.218) (0.02,0.377) (0.05,0.649) (0.10,0.821)};
+      \node[anchor=north west, font=\scriptsize, TUMAccentOrange]
+      at (axis cs:0.0125,0.208) {22\%};
+      \node[anchor=north west, font=\scriptsize, TUMAccentOrange]
+      at (axis cs:0.0225,0.367) {38\%};
+      \node[anchor=north west, font=\scriptsize, TUMAccentOrange]
+      at (axis cs:0.0525,0.639) {65\%};
+      \node[anchor=north west, font=\scriptsize, TUMAccentOrange]
+      at (axis cs:0.1025,0.811) {82\%};
+    \end{axis}
+  \end{tikzpicture}
+  \captionsetup{format=plain,justification=centering}
+  \caption{Blocking probability against the dirty fraction.}
+  \label{fig:blocking-probability}
+\end{figure}
 
 The measurements also show what this probability cannot explain. Since
 $P_{\text{block}}$ saturates near one over most of the operating range, it
-cannot account for a throughput range spanning a factor of eight. What
-varies over that range --- by a factor of 17, monotonically with $R$ ---
-is not \emph{whether} an ACID transaction blocks but \emph{for how long}.
-The mean blocking time at $c = 0.10$ falls from 392\,s at $R = 1$ to
-22.5\,s at $R = 15$. At $R = 1$ the reconciler pool drains about 0.5
-resources per second while a blocked transaction waits on a mean of 2.9
-dirty resources, so foreground work serialises behind background work. It
-is the product of incidence and duration that produces the throughput
-valley of Section~\ref{sec:x1-engagement}, and the same argument explains
-why raising $c$ helps only sublinearly: a larger $c$ lengthens each
-excursion, and hence each block, while reducing the number of ACID
+cannot account for a throughput range whose top is eight times its bottom.
+What varies over that range, 17 times and monotonically with $R$, is not
+\emph{whether} an ACID transaction blocks but \emph{for how long}. The mean
+blocking time at $c = 0.10$ falls from 392\,s at $R = 1$ to 22.5\,s at
+$R = 15$. At $R = 1$ the reconciler pool drains about 0.5 resources per
+second while a blocked transaction waits on a mean of 2.9 dirty resources,
+so foreground work has to queue behind background work. It is the product of
+how often blocking happens and how long it lasts that produces the
+throughput valley of X1 (Section~\ref{sec:x1-reconciler-sweep}), and the
+same argument
+explains why raising $c$ helps only sublinearly. A larger $c$ lengthens each
+ACID visit, and hence each block, while it reduces the number of ACID
 admissions.
 
-\section{Dispatcher architecture}\label{sec:approach-dispatchers}
+\paragraph{Dirty signal weighted average as one of considered designs}\label{sec:approach-nofilter} One design decision taken along the
+way was to smooth the signal before the oracle looks at it. The thresholds
+were not compared against $d_k$ directly but against an exponentially
+weighted moving average (EWMA) of it, with the smoothing factor as a third
+parameter. The intention was the usual one for a controller. A filtered
+signal is expected to reject measurement noise and to make the mode of the
+system calmer. That decision was reversed, and the oracle now reads the live
+count, which is why the design above has two parameters and not three.
 
-Mode tagging is applied at admission, and a dispatcher per mode routes the
-tagged transaction to the corresponding execution path. Both paths draw on
-the same processor pools, the same lock table and the same CPR expansion;
-they differ in scheduling and bookkeeping, not in the work performed. That
-is what makes the comparison between configurations in
-Chapter~\ref{chapter:experiments} a comparison of policies rather than of
-implementations.
+Three reasons speak against the filter, and they are empirical. A sweep of
+the smoothing factor over its full range gives all of them.
 
-\plannedfigure{fig:dispatchers}{Dispatcher architecture: one admission
-path, two dispatchers, shared processors, lock table, dirty set and
-reconciler pool.}{Internal structure of the server, with components shared
-by both modes drawn once and the two mode-specific dispatchers as the only
-fork. Shading separates received components from those added in this
-thesis, matching Table~\ref{tab:approach-delta}.}
+\begin{bullets}
+  \item[It has nothing to reject.] The dirty count is an exact number
+  maintained by the simulator and not a noisy measurement, so there is
+  no measurement error for a filter to remove. Anti-flap work was
+  already being done by the hysteresis band
+  (Section~\ref{sec:approach-adaptive-oracle}).
 
-\section{Mode oracles}\label{sec:approach-oracles}
+  \item[It gains nothing at the entry edge.] The measured tail of the dirty
+  fraction stays within about one percentage point of $c$ at every
+  setting of the smoothing factor, so the entry threshold behaves the
+  same with the filter and without it.
 
-\subsection{The oracle interface}\label{sec:approach-oracle-interface}
+  \item[It damages the exit edge.] The oracle leaves ACID far too early,
+  because the lagged estimate has not yet caught up with the true
+  value. Configured recovery threshold: 5\%. True dirty fraction at
+  exit: 0.03\% to 2.01\%.
+\end{bullets}
 
-A mode oracle assigns a mode at the admission of a root transaction. The
-tag is frozen for the lifetime of the transaction group: bookkeeper
-transactions inherit their root's tag and never consult the oracle, and a
-transaction that aborts and retries keeps its original mode. Only two
-implementations exist, and they differ solely in what the decision is
-based on.
+Nor does the filter calm the system, which was the main thing expected of
+it. It lowers the raw switch count, but the mean time spent in BASE per
+entry does not move outside the seed dispersion. The switches it removes are
+therefore bought with longer ACID visits rather than with a steadier mode.
+The measurements are reported in the appendix.
 
-\subsection{The random oracle}\label{sec:approach-random-oracle}
+\paragraph{When the oracle reads the
+  signal.}\label{sec:approach-sampling}\label{sec:approach-samplers} The
+oracle reads the dirty fraction inside the call that assigns a mode, that
+is, once per admission of an untagged root transaction. Nothing else
+triggers a reading. The tick of the simulation does not drive it, and no
+reading is taken while the system is busy but admits nothing.
 
-The random oracle returns ACID with a fixed probability $p$ and BASE
-otherwise. It is not a strawman but the ablation baseline: the full hybrid
-machinery --- the same arbiter, the same tagging, the same dispatchers ---
-with exactly one component removed, the feedback signal. Without it, a
-good adaptive result would be equally consistent with ``mixing the two
-modes at all helps'' and would say nothing about the feedback loop. This
-is what makes RQ3 answerable.
+This ties the rate at which the oracle sees the system to the rate at which
+transactions arrive. Under \texttt{EQUILIBRIUM} the transaction population
+is held constant, so admissions track completions and the reading rate of
+the oracle is approximately the throughput of the system, the same
+throughput its own decisions suppress whenever it routes work to ACID. The
+sensor is slowest exactly when the system is slowest, and
+Section~\ref{sec:effective-recovery} measures what that costs.
 
-One property of this baseline shapes the evaluation. The probability $p$
-fixes the share of transactions routed to ACID by construction
-($\phi_{\mathrm{comp}} = 0.4968$ to $0.5003$ at $p = 0.5$, across all
-$R$), but it does not fix the share of \emph{time} spent in ACID, which
-ranges from 0.52 to 0.79 over the same runs, because ACID transactions
-occupy more simulated time when reconciliation is slow. The routing share
-is controlled; the time share is emergent. This asymmetry makes the phrase
-``equal ACID budget'' ambiguous, which is why X3 compares the two oracles
-on a measured outcome --- the $p_{95}$ dirty fraction --- rather than on
-either ACID share.
+It is worth being explicit that this is not how the reported measurements
+are taken, because the two are easy to confuse. The reading of the oracle is
+part of the system under study. It is load-gated, irregular, and taken only
+at admissions. The reported measurements come from a separate reader
+that runs once per simulated second regardless of mode or load. Clocking the instrument the way the sensor is clocked would
+make the two indistinguishable, since a genuine shift in the operating point
+would look the same as the instrument slowing down together with the system
+it measures. Keeping them apart is what allows
+Section~\ref{sec:effective-recovery} to attribute the gap between the
+configured recovery threshold and the observed one to the sensor rather than
+to the system.
 
-\subsection{The adaptive oracle}\label{sec:approach-adaptive-oracle}
+\section{Why the hybrid mode is safe}\label{sec:approach-deadlock}
 
-The adaptive oracle reads the live dirty fraction at the instant of the
-decision and switches between two states:
+RQ1 asks how a system can add a hybrid mode that adapts between ACID and
+BASE \emph{safely}. Safety is not a standard term, so this section first
+says what it means in this work and then argues that the design of
+Section~\ref{sec:approach-arbiter} has it. The argument is made by
+construction. What that buys and what it does not is stated at the end.
 
-\begin{align}
-  \text{BASE} \rightarrow \text{ACID} \quad &\text{when} \quad d_k \ge c
-    \label{eq:enter-acid} \\
-  \text{ACID} \rightarrow \text{BASE} \quad &\text{when} \quad d_k \le r
-    \label{eq:leave-acid}
-\end{align}
+\paragraph{What safe means in this
+  work.}\label{sec:approach-safety-what} Three properties are meant by the
+word. The first one is about the state of a resource. The other two are
+about the progress of the run.
 
-with the interval $[r, c]$ acting as the hysteresis band.
+\begin{bullets}
+  \item[S1. Every resource has one clear state.] A resource is never under
+  an ACID lock and marked dirty by BASE at the same time. This is the
+  invariant of Section~\ref{sec:approach-arbiter-rule}. It is the
+  property that keeps the ACID promise intact, because a lock says
+  that the value is exclusive and current, while a dirty mark says
+  that an update to that value has been accepted and not yet applied.
+  A resource in both states at once would let an ACID transaction
+  commit against a value it was promised was the latest, which is
+  exactly what it was tagged ACID to avoid
+  (Section~\ref{sec:approach-mixing-hazard}).
 
-\plannedfigure{fig:oracle-fsm}{The adaptive oracle as a two-state machine,
-with the entry and exit conditions on the edges.}{Two states, BASE and
-ACID, and two edges labelled with Equations~\ref{eq:enter-acid}
-and~\ref{eq:leave-acid}. An inset plot of the dirty fraction over
-time, with $c$ and $r$ as horizontal lines and the band between them
-shaded, shows the anti-flap role of the band.}
+  \item[S2. Every run is free of deadlock.] The simulator never reaches a
+  state in which work is present and no work can proceed. A run
+  therefore never stalls, and every simulated step moves the system
+  forward.
 
-Dirtiness is the oracle's only decision signal, so every mode transition
-has a single unambiguous cause.
+  \item[S3. No work is thrown away.] Every transaction that is made to wait
+  is looked at again and gets a real chance to run. Nothing that is
+  parked or deferred is forgotten and nothing is silently dropped.
+\end{bullets}
 
-\subsection{Control parameters}\label{sec:approach-parameters-oracle}
+Two things are on purpose not part of this definition. Safety here says
+nothing about how long a wait lasts, so a slow run is still a safe run and
+the cost of waiting is treated separately in
+Section~\ref{sec:approach-blocking-cost}. It says nothing about fairness
+either, so one piece of work can be delayed much longer than another, which
+is case C2 of Section~\ref{sec:approach-conservatism}. What S3
+promises is that the work is still there and is still retried, not that it
+runs soon.
 
-The oracle has two parameters: the critical threshold $c$ and the recovery
-threshold $r$, which together define the hysteresis band. There is no
-third. An earlier version applied an exponentially weighted filter to the
-dirty signal, with a smoothing factor as a third parameter; it was removed
-after the ablation of Section~\ref{sec:alpha-ablation} showed it left the
-bound untouched while lengthening every ACID excursion. Filtering earns
-its cost on a signal carrying measurement noise, and this one carries
-none: $d_k$ is an exact count of a set the simulator maintains.
+\paragraph{S1 holds because neither mode writes without looking
+  first.}\label{sec:approach-safety-defined} In a pure run each mechanism
+reads only its own record, and that is enough because the other record is
+always empty. In a hybrid run both records are in use at once, so each side
+has to be able to read the other. The arbiter makes that possible by keying
+all three records off the same resource name
+(Section~\ref{sec:approach-arbiter-lookup}) and by placing one check on each
+of the three paths that write to a record
+(Section~\ref{sec:approach-enforcement}).
 
-Because the comparison is against the live count, $r = 0$ needs no special
-handling --- $d_k$ reaches zero exactly. What remains is a granularity
-effect rather than an estimator lag: the rule is evaluated only at
-admissions, so the set can drain past $r$ between two consecutive looks.
-Section~\ref{sec:effective-recovery} measures that at every transition.
+Those three checks are what give S1. An ACID transaction reads the dirty set
+and the claim table before it takes any lock, so it never locks a resource
+that BASE is working on. A BASE parent reads the lock table at admission and
+takes either all of its claims or none of them, so it never writes over a
+resource that ACID holds. A BASE repair reads the lock table before it would
+mark its target dirty, so a locked resource is never marked. Every path that
+could produce the forbidden state tests for that state first, so the state
+has no way of being created.
 
-\subsection{Signal sampling}\label{sec:approach-sampling}
+It is worth being clear about how strong this is. The forbidden state is not
+detected and repaired after the fact. It cannot be built at all. That also
+means a transaction of either mode keeps what its own tag promises. An ACID
+transaction gets exclusive access to its resources even while BASE traffic
+runs, which is the reason it was tagged ACID, and a BASE transaction still
+commits without waiting for its own repairs, which is the reason it was
+tagged BASE. What the hybrid mode changes for a BASE transaction is only
+when it is admitted, not what it promises after that
+(Section~\ref{sec:approach-base-cost}).
 
-The oracle samples the dirty fraction inside \texttt{assignMode}, that is,
-once per admission of a root transaction rather than once per unit of
-simulated time. The simulation's own tick does not drive the estimate at
-all.
+\paragraph{S2 needs a cycle, and only one of the three cases has
+  one.}\label{sec:approach-safety-liveness} A deadlock is a cycle in the
+wait relation in which every party is waiting while it holds something that
+the next party needs. Two conditions therefore have to be met at once. There
+has to be a cycle, and each party on it has to hold something.
+Figure~\ref{fig:deadlock-freedom} shows the three ways one transaction can
+end up waiting for another in a hybrid run, and only the first of them has a
+cycle. That first one comes from the base simulator, which already breaks it
+by aborting one group. The two kinds of waiting added by this thesis, the
+waiter registry and the two deferred queues, both park work that holds
+nothing, so neither of them can be part of a cycle.
 
-Under \texttt{EQUILIBRIUM} the transaction population is held constant, so
-admissions track completions and the oracle's sampling rate is
-approximately the system's throughput. The filter's time constant is
-expressed in samples, the quantity it estimates evolves in seconds, and
-the exchange rate between them is the throughput that the oracle itself
-suppresses whenever it routes work to ACID. Across the engaged cells of the
-X2 grid the measured interval between samples ranges from 0.8\,s to
-228\,s, the long end being ACID at one reconciler;
-Table~\ref{tab:sampling-interval} gives the $c = 0.10$ slice. This is a design property of the
-implementation; its consequences are measured in
-Section~\ref{sec:effective-recovery}.
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{fig-deadlock-freedom.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{The three kinds of waiting in a hybrid run.}
+  \label{fig:deadlock-freedom}
+  \medskip
+  \begin{figurekeys}
+    \item[1] The cycle already exists in the received simulator. Cautious
+    waiting detects it and aborts one of the two groups, which releases
+    every lock that group holds.
+    \item[2] The ACID transaction is parked as a waiter before it is admitted
+    and before it takes any lock. No other transaction can wait behind
+    it.
+    \item[3] A deferred entry holds nothing and joins no lock queue. It moves
+    on only once every resource it needs is free again.
+  \end{figurekeys}
+\end{figure}
 
-\section{Implementation notes}\label{sec:approach-implementation}
+\paragraph{ACID waiting for ACID is not new.} The first case is two ACID
+groups that each need a lock the other one holds. This is the situation of
+Section~\ref{sec:approach-group-locking}, and it is present in the base
+simulator before anything in this thesis is added. A group takes its locks
+in two stages, so a cycle between groups can form. The base simulator does
+not prevent it. It detects it and aborts one of the two groups, which
+releases every lock that group held. This thesis changes nothing about that
+mechanism, so this case is neither better nor worse than it was.
 
-Hardening the received code surfaced several defects that would have
-affected the measurements. Each is documented with its symptom, the fix,
-and the metric it would otherwise have distorted, with the detail placed
-in the appendix.
+\paragraph{ACID waiting for BASE work runs in one direction.} The second
+case is the new one. An ACID transaction that meets a dirty or claimed
+resource goes into the waiter registry and waits until the BASE work on that
+resource is done. This edge cannot lie on a cycle, for two reasons.
+
+The first is that the edge has no partner in the other direction. A BASE
+transaction never waits on an ACID transaction. When BASE meets an ACID lock
+it backs off instead, which is the third case below. So there is no edge
+from the BASE side back to the ACID side that could close the loop.
+
+The second is that the chain ends. The thing the ACID transaction is waiting
+for is a repair or a BASE parent, and both of those need only a reconciler
+processor or an execution processor to finish. Neither of them needs
+anything that an ACID transaction could be holding. The last node in the
+chain therefore waits for nobody, and a chain that ends in a node that waits
+for nobody is not a cycle.
+
+One detail is worth naming, because it is the one case where the waiting
+ACID side is not empty handed. A fresh root transaction is tested at
+admission and holds nothing at all. A bookkeeper is tested later, when it
+takes its own locks, and at that moment its group may already hold locks
+from the root. Another ACID group can then wait behind those locks. That
+still does not create a cycle, because the chain from the parked group runs
+on into a reconciler, and the argument above applies unchanged at that
+point. It only makes the chain one step longer.
+
+\paragraph{BASE meeting an ACID lock is a back off, not a wait.} The third
+case is a BASE parent or a BASE repair whose resource is ACID locked. It is
+placed on a deferred queue, and the important part is what it is holding
+while it sits there. A parent takes all of its claims or none of them, so a
+deferred parent has claimed nothing. A deferred repair has marked nothing
+dirty. Neither of them joins a lock queue. Nothing they need is held back
+from anyone else, so no other transaction can end up waiting behind a
+deferred entry. A node that nothing points to cannot be a link in a cycle.
+
+\paragraph{The three cases together.} Adding the arbiter therefore adds
+waiting but no new cycle, which is S2. Two further points follow from that.
+The number of aborts does not change, because the two abort rules of
+Section~\ref{sec:approach-group-locking} read the lock table only, and a
+transaction parked in the waiter registry holds no lock that those rules
+would look at. And the cost of the new waiting shows up as time rather than
+as wasted work, which is what Section~\ref{sec:approach-blocking-cost}
+measures.
+
+\paragraph{S3 holds because every waiting entry is looked at
+  again.}\label{sec:approach-safety-progress} Freedom from deadlock is not
+enough on its own. A run could also lose work if a waiting entry were parked
+and never looked at again. The two waiting structures avoid that in two
+different ways, and the difference is deliberate.
+
+The waiter registry is woken. Two events free a resource for ACID, a repair
+finishing and a BASE parent completing, and both of them notify the
+registry, which then retries every transaction parked on that resource.
+Nothing polls here, because the two events that matter are both visible at
+the moment they happen.
+
+The deferred queues are polled, because the event that matters to them is
+not visible in the same way. Nothing tells a deferred entry that a lock has
+gone away, so each queue is swept and every entry is asked the same question
+again. An entry that is still blocked goes to the back of the queue and is
+asked again on the next sweep, so no entry is tested only once. The sweep
+that runs once per simulated tick is the one that makes this complete. A
+lock is also released when a group aborts, and an abort is not a completion,
+so a sweep tied only to completions could leave an entry deferred after its
+reason for being deferred was already gone. Sweeping every tick removes that
+dependency.
+
+Nothing is dropped on either path. A deferred repair is created in full when
+its turn comes, with the one exception that a sibling repair may have
+dirtied the same resource in the meantime, in which case the deferred one is
+collapsed into it. That is the same fan-out collapse a repair meets in a
+pure BASE run, so it removes duplicated work and not the work itself.
+Together these rules give S3. Whatever the reason a piece of work was made
+to wait, that work is either woken by the event that removed the reason or
+retested within one tick.
+
+\paragraph{What this argument does and does not
+  establish.}\label{sec:approach-safety-limits} The three properties are
+established by construction and not by measurement. S1 holds because the
+three checks sit on the three write paths and there is no fourth path. S2
+and S3 hold because of the shape of the wait relation those checks produce.
+No runtime assertion checks any of this during an experiment, so the claim
+to make is that the unsafe state cannot be built, and not that it was looked
+for and never seen. The run data does record how often each of the two
+checks fired, and Section~\ref{sec:future-work} names reporting those counts
+as the natural way to show that the mixed state was reached and resolved
+constantly rather than never reached at all.
+
+The two known imprecisions of Section~\ref{sec:approach-conservatism} do not
+weaken the three properties, because both of them err in the same direction.
+Under C1 coarse lock granularity makes the BASE checks look at a whole
+bucket of resources instead of one, so work can be deferred that did not
+have to be, which costs time and never breaks S1. Under C2 a deferred entry
+whose resource stays locked for a long time can be delayed for a long time.
+That is a starvation case rather than a deadlock, so S2 and S3 still hold.

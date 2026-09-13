@@ -2,156 +2,298 @@
 
 \chapter{Preliminaries}\label{chapter:preliminaries}
 
-\section{Transactions and concurrency control}\label{sec:prelim-transactions}
+This chapter collects the background the later chapters assume. It is built
+up in one line, and each term is defined before it is used.
+Section~\ref{sec:prelim-transactions} defines a transaction, the ACID
+guarantees, the locking rule the base simulator uses to provide them, and
+BASE, which gives up part of those guarantees.
+Section~\ref{sec:prelim-multimodel} puts those transactions into a
+multi-model system, where a write in one model obliges updates in others.
+That obligation is the work this thesis schedules. The section returns to
+ACID and to BASE to show what the obligation costs under each, and it writes
+the setting down as the formal model the problem definition uses.
+Section~\ref{sec:prelim-hysteresis} covers hysteresis, the control idea the
+adaptive oracle is built on. Section~\ref{sec:prelim-simulator} describes the
+base simulator, its parameters and its workload profiles.
+Section~\ref{sec:prelim-notation} fixes the symbols used from here on. A
+reader familiar with transactions and with the work of Zacouris and Acosta
+can start at Section~\ref{sec:prelim-hysteresis}.
 
-\subsection{Transactions and serialisability}\label{sec:prelim-serialisability}
+\section{Transactions, ACID and BASE}\label{sec:prelim-transactions}
 
-A transaction is a partial order of read and write steps over resources. A
-schedule of concurrently executing transactions is correct if it is
-equivalent to some serial execution of the same
-transactions~\cite{weikum2001transactional}. This is the
-only correctness criterion used in the thesis; the vocabulary is needed
-mainly to state what the ACID execution path guarantees and what the BASE
-path gives up.
+This section fixes the transaction vocabulary the rest of the thesis uses.
+It defines what a transaction is and what serialisability means, then the
+ACID guarantees and the two-phase locking rule that provides them in the
+base simulator, and then BASE, the weaker semantics the hybrid mode chooses
+against ACID. Section~\ref{sec:prelim-multimodel} returns to both semantics
+once the work they have to carry has been defined.
 
-\subsection{ACID and two-phase locking}\label{sec:prelim-acid}
+\paragraph{Transactions.}\label{sec:prelim-serialisability}
+A transaction is a group of read and write steps on resources that takes
+effect as one unit. Either all of its steps are committed, or none of them
+are. Formally it is a partial order over those steps, and this is the
+definition the simulator of Zacouris and Acosta builds
+on~\cite{zacouris2025m2ts,zacouris2026mxs}. When several transactions
+run at the same time, each of them must still leave the same result as if it
+had run alone. The vocabulary is needed mainly to state what the ACID
+execution path guarantees and what the BASE path gives up.
 
-The simulator enforces isolation with conservative two-phase locking and
-cautious waiting~\cite{hsu1992cautious}. A transaction declares the resources it needs before it
-begins, acquires them as a set rather than incrementally, and releases
-them only after its final step. A transaction that would have to wait for
-a resource held by another does not acquire a partial lock set and hold it
-while waiting.
+\paragraph{ACID.}\label{sec:prelim-acid}
+ACID names the four guarantees a transactional system gives for such a unit.
+Atomicity means that all steps take effect or none of them do. Consistency
+means that a committed transaction leaves the data in a valid state.
+Isolation means that concurrent transactions do not see each other's
+unfinished work. Durability means that a committed result is not lost
+afterwards. Isolation is the guarantee that costs the most to provide, and
+it is the one the locking rule below is about.
 
-Three consequences of this scheme are used later. Locks are never acquired
-after the first release, so no transaction can extend its lock set while
-holding one. A waiting transaction holds no locks that another transaction
-is waiting for. Therefore the wait-for relation among ACID transactions
-cannot contain a cycle, and pure ACID execution is deadlock-free by
-construction. Section~\ref{sec:approach-deadlock} shows that the arbiter
-introduced in this thesis preserves that property.
+\paragraph{Two-phase locking.}\label{sec:prelim-2pl}
+The simulator provides isolation with conservative two-phase
+locking~\cite{zacouris2026mxs}. A transaction declares
+the resources it needs before it begins, acquires them as a set rather than
+one by one, and releases them only after its final step. A transaction that
+would have to wait for a resource held by another does not acquire a partial
+lock set and hold it while waiting. Acquiring the whole set in advance is
+called preclaiming. Ries and Stonebraker~\cite{ries1979locking} set it
+against claiming each lock as it is needed, and note that preclaiming on
+its own rules out deadlock.
 
-\subsection{BASE and eventual consistency}\label{sec:prelim-base}
-
+\paragraph{BASE.}\label{sec:prelim-base}
 BASE trades immediate consistency for availability and
-throughput~\cite{pritchett2008base,vogels2009eventually}: a transaction
-commits before all of its consequences have been applied, and the system
-converges afterwards. Two terms recur throughout the thesis. A
-resource is \emph{dirty} when a consistency-preserving update that
-concerns it has not yet been applied. \emph{Reconciliation} is the
-background work that applies those pending updates and clears the
-resources again.
+throughput~\cite{pritchett2008base,vogels2009eventually}. A transaction
+commits and makes its own writes durable as soon as its own work is done. It
+does not wait for the work it owes to the rest of the system. That work is
+left to the background, and the system converges afterwards. A BASE
+transaction does not acquire locks at all, and conflicting writes are settled
+by a last-write-wins rule~\cite{zacouris2026mxs}.
+Section~\ref{sec:prelim-reconciliation} says what the deferred work is in a
+multi-model system and how it is carried out.
 
 \section{Multi-model systems and consistency preservation}\label{sec:prelim-multimodel}
 
-\subsection{Models, semantic overlap and CPRs}\label{sec:prelim-cprs}
+This section describes the setting the transactions run in, and it fixes
+the formal model that Section~\ref{sec:intro-formal} states the problem
+over. It defines a model and semantic overlap, then consistency
+preservation rules and how they expand into further work, then the
+bookkeeper transactions that carry that work. It then returns to the two
+semantics of Section~\ref{sec:prelim-transactions} and shows what the
+induced work does to each of them. The last two paragraphs write the
+execution modes and the inconsistency measure in symbols. This is where
+the inconsistency this thesis measures comes from, because a rule that has
+been triggered and not yet applied leaves a resource out of date.
 
+\paragraph{Models, resources and semantic overlap.}\label{sec:prelim-overlap}
 A model is a set of resources describing one view of the
-product~\cite{klare2021vitruvius}. Two
-models exhibit \emph{semantic overlap} when they contain resources
-representing the same underlying fact; the overlap degree is a
-configuration parameter of the simulator. A consistency preservation rule
-(CPR) states that a write to one resource requires updates to the
-resources that overlap it. Rules compose: an update produced by a rule may
-itself trigger further rules, and the resulting chain is bounded by a
-maximum CPR depth.
+product~\cite{klare2021vitruvius}. A multi-model system is therefore a
+finite set of resources $\mathcal{X}$ with $|\mathcal{X}| = N$, partitioned
+across models $M_1, \dots, M_m$. Two models exhibit \emph{semantic overlap}
+when they contain resources representing the same underlying fact, so
+semantic overlap is a relation on $\mathcal{X}$ that holds between such
+resources. The overlap degree $\sigma$ is the fraction of resources that
+overlap between models, and it is a configuration parameter of the
+simulator~\cite{zacouris2026mxs}.
 
-The transactions that carry this induced work are called \emph{bookkeeper}
-transactions. They are spawned by the root transaction whose write
-triggered the rule and inherit its execution mode. A rule also has a
-referential action: \texttt{ON\_CASCADE} propagates the update, whereas
-\texttt{ON\_RESTRICT} rejects the originating write instead. All
-experiments in this thesis use \texttt{ON\_CASCADE}.
+\paragraph{Consistency preservation rules.}\label{sec:prelim-cprs}
+A consistency preservation rule (CPR) states that a write to one resource
+requires updates to the resources that overlap it. Zacouris and Acosta
+define it as a function that maps a change and a system state to the updates
+the change triggers~\cite{zacouris2026mxs}. In the notation used here, a
+rule maps a write on a resource $x$ to the set
+$\mathrm{cpr}(x) \subseteq \mathcal{X}$ of resources that must be updated in
+consequence. Rules compose. An update
+produced by a rule may itself trigger further rules, and the resulting chain
+is bounded by a maximum CPR depth. A write can therefore reach resources in
+several models at once.
 
-\subsection{The dirty set as a control signal}\label{sec:prelim-dirtyset}
+\paragraph{Rule expansion.}\label{sec:prelim-expansion}
+\emph{Rule expansion} is the act of working out what a write requires, one
+step at a time, as each update completes and reveals what it in turn
+requires. The simulator of Zacouris and
+Acosta~\cite{zacouris2025m2ts,zacouris2026mxs} expands rules this way. The
+expansion is spread over the run rather than computed in advance, because a
+rule's targets depend on what was actually written
+(Section~\ref{sec:approach-completion}).
 
-Under BASE semantics, the resources awaiting a CPR update form the dirty
-set $D_k$, of size $|D_k|$, and the dirty fraction is $d_k = |D_k| / N$
-over the $N$ resources of the system. Reconciler processors drain this set
-in the background; their number $R$ is the main provisioning parameter of
-the system. The dirty fraction is the quantity every result in this thesis
-is about: it is what the adaptive policy observes, what the critical
-threshold bounds, and what the reported percentiles summarise.
+\paragraph{Bookkeeper transactions.}\label{sec:prelim-bookkeeper}
+A transaction that arrives from the workload is called a \emph{root}
+transaction. The updates that its writes induce through the rules are not
+carried by the root itself. They are carried by further transactions, called
+\emph{bookkeeper} transactions. A bookkeeper is spawned by the transaction
+whose write triggered the rule, and it inherits the execution mode of that
+transaction. What happens to it after that is the one place where ACID and
+BASE differ most, and the next three paragraphs give the two cases.
 
-It is also the only signal available for deciding \emph{when} the system
-should stop accumulating inconsistency, which makes it a control signal
-and not merely a metric. The simplest policy over such a signal is a
-single threshold: run BASE below it, ACID above it. A single threshold on
-a fluctuating signal causes flapping, that is, the system switches back
-and forth every time the signal crosses it, paying the cost of a mode
-change without staying in the new mode long enough to benefit from it. The
-standard remedy is a \emph{hysteresis band}: separate thresholds for
-entering and for leaving a state. Here the critical threshold $c$ governs
-entry into ACID and the lower recovery threshold $r$ governs the return to
-BASE, so the interval $[r, c]$ is the margin the signal must traverse
+\paragraph{The transaction group under ACID.}\label{sec:prelim-group}
+Preclaiming holds for a single transaction, but the unit that commits under
+ACID is the \emph{transaction group}, as defined by Zacouris and
+Acosta~\cite{zacouris2026mxs}. A group is a root transaction together with
+all the bookkeepers its rules induce. The bookkeepers add their resources to
+the locks the group already holds, and nothing commits until the last of
+them has finished. If any member of a group is blocked or aborted, the whole
+group is. The induced updates are not known when the root transaction is
+admitted, so they cannot be declared with it. A group therefore acquires its
+locks in two stages rather than in one, and releases them all at once when it
+commits. Preclaiming is conservative within a transaction but not within a
+group, so two groups can wait on each other.
+
+\paragraph{Cautious waiting.}\label{sec:prelim-deadlock}
+Two ACID groups that wait on each other would block forever, so the
+simulator needs a rule for when waiting is allowed at all. That rule is
+cautious waiting~\cite{hsu1992cautious}, which the received simulator pairs
+with conservative locking to keep ACID execution deadlock
+free~\cite{zacouris2026mxs}. A transaction may queue for a lock only if the
+group that holds it is still running. If that group is itself blocked, the
+transaction does not join the queue behind it, and one of the two groups is
+aborted instead. The aborted group releases all of its locks at once and is
+retried later. No chain of waiting groups can form under this rule, so a
+pure ACID run cannot deadlock. The price is aborted work rather than a
+stalled system. Section~\ref{sec:approach-group-locking} develops this, and
+Section~\ref{sec:approach-deadlock} shows that the arbiter introduced in
+this thesis adds no wait that these checks cannot see.
+
+\paragraph{Dirty resources and reconciliation.}\label{sec:prelim-reconciliation}
+Under BASE there is no group. The root transaction commits as soon as its
+own writes are done, and each bookkeeper is queued as repair work of its
+own. Until that work runs, the resource the bookkeeper was meant to update
+is out of date. Two terms for this recur throughout the thesis. A resource is
+\emph{dirty} when a consistency-preserving update that concerns it has not
+yet been applied. \emph{Reconciliation} is the background work that applies
+those pending updates and clears the resources again. It runs on processors
+set aside for it, and a root transaction has usually committed long before
+the last of its bookkeepers is reconciled.
+
+Figures~\ref{fig:cpr-expansion-acid} and~\ref{fig:cpr-expansion-base} put
+the two modes next to each other on the same write. Both show the same
+five models, the same resource in each of them, and the same rules firing
+in the same order. What differs is how many of those resources one
+transaction has to hold at the same time.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-cpr-expansion-acid.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{Rule expansion under ACID.}
+  \label{fig:cpr-expansion-acid}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-cpr-expansion-base.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{Rule expansion under BASE.}
+  \label{fig:cpr-expansion-base}
+\end{figure}
+
+\paragraph{Execution modes.}\label{sec:prelim-modes}
+Write $\mu(t)$ for the mode a root transaction $t$ executes under, with
+$\mu(t) \in \{\textsc{acid}, \textsc{base}\}$. It passes to every bookkeeper
+transaction that $t$ spawns. Under \textsc{acid} the transitive CPR closure
+of the writes of $t$ is applied inside the boundary of $t$, and $t$ commits
+only when that closure is complete. Under \textsc{base} $t$ commits after
+its own writes, and the closure is handed to the background reconcilers. In
+the base simulator $\mu$ is a property of the whole run, so every
+transaction of a run carries the same mode.
+Chapter~\ref{chapter:approach} makes it a property of the individual
+transaction.
+
+\paragraph{Measuring inconsistency.}\label{sec:prelim-inconsistency}
+The dirty set $D_k \subseteq \mathcal{X}$ is the set of resources carrying a
+CPR update that has not yet been applied, and $d_k = |D_k| / N$ is the
+\emph{dirty fraction}. The index $k$ counts successive samples of it. A run
+therefore has an inconsistency profile $\{d_k\}$ over simulated time rather
+than a single inconsistency value, and it is summarised by its 95th
+percentile $p_{95}(d)$. That is the level the dirty fraction stays below for
+at least 95\% of simulated time, and it is the quantity bounded in
+Equation~\ref{eq:problem}. Zacouris and
+Acosta~\cite{zacouris2026mxs} report the same quantity at the median, the
+95th and the 99th percentile. Under pure ACID $d \equiv 0$ by construction,
+because no update is ever left pending. Under pure BASE the level the
+profile settles at is not configured. It follows from the workload and from
+how many processors are given to reconciliation.
+
+\section{Hysteresis}\label{sec:prelim-hysteresis}
+
+A policy that switches a system between two states from one measured signal
+needs a rule for when to switch. The simplest such rule is a single
+threshold. On a signal that fluctuates, a single threshold causes flapping.
+The system switches back and forth every time the signal crosses the
+threshold, and it pays the cost of a switch without staying in the new state
+long enough to benefit from it. The standard approach is a \emph{hysteresis
+  band}, which uses separate thresholds for entering and for leaving a state.
+The gap between the two thresholds is the margin the signal must traverse
 before a second switch can occur. Section~\ref{sec:approach-adaptive-oracle}
-states the resulting rule for the oracle built in this thesis.
-
-Two properties of the dirty fraction make this band cheap to reason about.
-It carries no measurement noise --- $d_k$ is an exact count of a set the
-simulator maintains, not an estimate --- and it is bounded in $[0, 1]$, so
-both thresholds are directly interpretable as fractions of the resource
-population.
+applies this to the oracle built in this thesis.
 
 \section{The base simulator}\label{sec:prelim-simulator}
 
-\subsection{Execution engine and scheduling}\label{sec:prelim-engine}
+This section describes the simulator this thesis extends, as it was
+received. It covers the execution engine and its virtual clock, the
+parameters a run is configured with, and the workload profiles that decide
+how transactions arrive. Chapter~\ref{chapter:approach} states what is
+added to it.
 
-The work extends the discrete-event simulator of a transactional server
-for multi-model systems introduced by Zacouris and
-Acosta~\cite{zacouris2025m2ts,zacouris2026mxs}. Time advances in fixed steps of one
-simulated second. Transactions are admitted, expanded into their CPR
-closure, scheduled onto IO and CPU processor pools, and either commit or
-abort; under BASE the closure is instead queued for the reconciler pool.
-Because the clock is virtual, results do not depend on the speed of the
-host machine.
+\paragraph{The execution engine.}\label{sec:prelim-engine}
+The work extends the discrete-event simulator of a transactional server for
+multi-model systems introduced by Zacouris and
+Acosta~\cite{zacouris2025m2ts,zacouris2026mxs}. Time advances in fixed steps
+of one simulated second. Transactions are admitted, expanded into the
+updates their rules require, scheduled onto IO and CPU processor pools, and
+either commit or abort. Under BASE those updates are queued for the
+reconciler pool instead. Because the clock is virtual, results do not depend
+on the speed of the host machine.
 
-\subsection{Parameters and metrics}\label{sec:prelim-parameters}
-
+\paragraph{Simulator parameters.}\label{sec:prelim-parameters}
 The simulator exposes the workload profile, the number and size of models,
 the semantic overlap degree, the processor and reconciler counts, the lock
-budget, and the maximum number of resources and models per transaction.
-The workload profile decides how root transactions arrive; the closed-loop
-profile \texttt{EQUILIBRIUM} used throughout this thesis holds the number
-of in-flight transactions constant and admits a new one whenever one
-completes, so the load is stationary by construction
-(Section~\ref{sec:exp-workload}). The simulator also generates its own
-workload from seeds, so no external dataset is involved, and it exports
-per-run metrics as CSV. The parameter table
-of~\cite{zacouris2026mxs} is reproduced here, and the configuration used
-in Chapter~\ref{chapter:experiments} is stated as a difference against
-it.
+budget, and the maximum number of resources and models per transaction. The
+parameter table of~\cite{zacouris2026mxs} is reproduced here, and the
+configuration used in Chapter~\ref{chapter:experiments} is stated as a
+difference against it.
+
+\paragraph{Workload profiles.}\label{sec:prelim-workload-profiles}
+The workload profile decides how root transactions arrive. The closed-loop
+profile \texttt{EQUILIBRIUM} used throughout this thesis holds the number of
+in-flight transactions constant and admits a new one whenever one completes,
+so the load is stationary by construction (Section~\ref{sec:exp-workload}).
+A second profile, \texttt{TERMINAL}, lets the in-flight population rise and
+fall instead, and is the one under which a load that varies could be
+studied. It was still under development while these experiments were run and
+is not used (Section~\ref{sec:approach-why-hybrid}).
 
 \section{Notation}\label{sec:prelim-notation}
 
-Table~\ref{tab:notation} fixes the symbols used throughout. Lowercase
-symbols are fractions of the resource population and uppercase symbols are
+Table~\ref{tab:notation} collects the symbols used throughout, most of
+which are defined in Section~\ref{sec:prelim-multimodel}. Lowercase
+symbols are fractions of the resource population. Uppercase symbols are
 absolute counts or configuration values. The index $k$ counts successive
-samples, which are taken once per admission event rather than once per
-unit of simulated time --- a property with consequences of its own
+samples. Samples are taken once per admission event rather than once per
+unit of simulated time, and that has consequences of its own
 (Section~\ref{sec:recovery-mechanism}).
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
-  \caption{Notation used throughout this thesis.}
+  \captionsetup{format=plain,justification=centering}
+  \caption{Notation.}
   \label{tab:notation}
   \small
   \begingroup
   \renewcommand{\arraystretch}{1.3}
   \begin{tabular}{llll}
     \toprule
-    Symbol                 & Meaning                  & Definition                      & Implementation                        \\
+    Symbol                 & Meaning                 & Definition              & Implementation                        \\
     \midrule
-    $R$                    & Reconciler processors    & ---                             & \texttt{numberOfReconcilerProcessors} \\
-    $N$                    & Total resources          & ---                             & \texttt{totalResources}               \\
-    $L$                    & Max resources per txn    & ---                             & \texttt{maxTransactionResources}      \\
-    $D_k$                  & Dirty resources (count)  & ---                             & \texttt{DirtySetManager.size()}       \\
-    $d_k$                  & Dirty fraction           & $D_k / N$                       & \texttt{dirtyFraction}                \\
-    $c$                    & Critical threshold       & ---                             & \texttt{criticalDirtyFraction}        \\
-    $r$                    & Recovery threshold       & --- ($0 \le r \le c$)           & \texttt{recoveryDirtyFraction}        \\
-    $p$                    & Random-oracle ACID prob. & ---                             & \texttt{randomOracleAcidProbability}  \\
-    $\phi_{\mathrm{time}}$ & ACID time-share          & (Section~\ref{sec:exp-metrics}) & \texttt{acid\_fraction\_time}         \\
-    $\phi_{\mathrm{comp}}$ & ACID completion-share    & (Section~\ref{sec:exp-metrics}) & \texttt{acid\_fraction\_completed}    \\
+    $R$                    & Reconciler processors   & ---                     & \texttt{numberOfReconcilerProcessors} \\
+    $N$                    & Total resources         & ---                     & \texttt{totalResources}               \\
+    $L$                    & Max resources per txn   & ---                     & \texttt{maxTransactionResources}      \\
+    $\sigma$               & Semantic overlap degree & ---                     & \texttt{semanticOverlap}              \\
+    $D_k$                  & Dirty resource set      & ---                     & \texttt{DirtySetManager.size()}       \\
+    $d_k$                  & Dirty fraction          & $|D_k| / N$             & \texttt{dirtyFraction}                \\
+    $p_{95}(d)$            & Dirty-fraction tail     & 95th pct.\ of $\{d_k\}$ & \texttt{dirty\_p95\_pct}              \\
+    $c$                    & Critical threshold      & ---                     & \texttt{criticalDirtyFraction}        \\
+    $r$                    & Recovery threshold      & --- ($0 \le r \le c$)   & \texttt{recoveryDirtyFraction}        \\
+    $p_{\mathrm{acid}}$    & Configured ACID share   & ---                     & \texttt{fixedAcidShare}               \\
+    $\phi_{\mathrm{time}}$ & ACID time-share         & ---                     & \texttt{acid\_fraction\_time}         \\
+    $\phi_{\mathrm{comp}}$ & ACID completion-share   & ---                     & \texttt{acid\_fraction\_completed}    \\
     \bottomrule
   \end{tabular}
   \endgroup

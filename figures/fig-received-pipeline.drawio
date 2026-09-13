@@ -1,0 +1,173 @@
+<mxfile host="Electron" agent="claude">
+  <diagram name="received-pipeline" id="received-pipeline">
+    <mxGraphModel dx="1747" dy="810" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1200" pageHeight="520" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="laneACIDbg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0f5fc;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="176" width="985" x="190" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="laneBASEbg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fdf5ec;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="204" width="985" x="190" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="laneACIDlabel" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=21;fontColor=#3a5f8f;fontFamily=Helvetica;" value="&lt;b&gt;ACID wiring&lt;/b&gt;" vertex="1">
+          <mxGeometry height="26" width="180" x="200" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="laneBASElabel" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=21;fontColor=#a86a13;fontFamily=Helvetica;" value="&lt;b&gt;BASE wiring&lt;/b&gt;" vertex="1">
+          <mxGeometry height="26" width="180" x="200" y="286" as="geometry" />
+        </mxCell>
+        <mxCell id="workload" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Helvetica;fontSize=20;" value="Workload" vertex="1">
+          <mxGeometry height="52" width="145" x="-11" y="189" as="geometry" />
+        </mxCell>
+        <mxCell id="assembler" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8e8e8;strokeColor=#333333;strokeWidth=2;fontFamily=Helvetica;fontSize=19;" value="&lt;b&gt;1. Runtime&lt;br&gt;assembler&lt;/b&gt;" vertex="1">
+          <mxGeometry height="76" width="145" x="-11" y="265" as="geometry" />
+        </mxCell>
+        <mxCell id="forknote" parent="1" style="text;html=1;align=center;verticalAlign=top;fontSize=16;fontColor=#333333;fontFamily=Helvetica;" value="&lt;i&gt;one wiring is built&lt;br&gt;here, and is fixed&lt;br&gt;for the whole run&lt;/i&gt;" vertex="1">
+          <mxGeometry height="70" width="165" x="-21" y="351" as="geometry" />
+        </mxCell>
+        <mxCell id="a_admission" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=18;" value="&lt;b&gt;2. Admission&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;preclaims &lt;b&gt;all&lt;/b&gt; locks&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="210" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="a_phasegrp" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#6c8ebf;dashed=1;dashPattern=1 3;" value="" vertex="1">
+          <mxGeometry height="104" width="315" x="365" y="91" as="geometry" />
+        </mxCell>
+        <mxCell id="a_phaselabel" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#3a5f8f;fontFamily=Helvetica;" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;&lt;b&gt;3.&lt;/b&gt; strategy · &lt;b&gt;4.&lt;/b&gt;&amp;nbsp;executor&lt;/font&gt;" vertex="1">
+          <mxGeometry height="20" width="302" x="378" y="93" as="geometry" />
+        </mxCell>
+        <mxCell id="a_lock" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=18;" value="LOCK" vertex="1">
+          <mxGeometry height="62" width="92" x="374" y="119" as="geometry" />
+        </mxCell>
+        <mxCell id="a_io" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=18;" value="IO" vertex="1">
+          <mxGeometry height="62" width="80" x="485" y="119" as="geometry" />
+        </mxCell>
+        <mxCell id="a_cpu" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=18;" value="CPU" vertex="1">
+          <mxGeometry height="62" width="80" x="582" y="119" as="geometry" />
+        </mxCell>
+        <mxCell id="a_completion" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=18;" value="Completion&lt;br&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;&lt;b&gt;not&lt;/b&gt; committed&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="125" x="705" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="a_expansion" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=18;fontStyle=0" value="&lt;span&gt;5. Rule&lt;br&gt;expansion&lt;/span&gt;" vertex="1">
+          <mxGeometry height="70" width="130" x="855" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="a_commit" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=18;" value="&lt;b&gt;Group commits&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;all locks released&lt;br&gt;together&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="149" x="1014" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="ae1" edge="1" parent="1" source="a_admission" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#6c8ebf;strokeWidth=2;" target="a_lock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae2" edge="1" parent="1" source="a_lock" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#6c8ebf;strokeWidth=2;" target="a_io">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae3" edge="1" parent="1" source="a_io" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#6c8ebf;strokeWidth=2;" target="a_cpu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae4" edge="1" parent="1" source="a_cpu" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#6c8ebf;strokeWidth=2;" target="a_completion">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae5" edge="1" parent="1" source="a_completion" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#6c8ebf;strokeWidth=2;" target="a_expansion">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ae6" edge="1" parent="1" source="a_expansion" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#6c8ebf;strokeWidth=2;labelBackgroundColor=#f0f5fc;verticalAlign=bottom;" target="a_commit" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-3" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ae_loop" edge="1" parent="1" source="a_expansion" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#6c8ebf;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;labelBackgroundColor=#f0f5fc;verticalAlign=top;" target="a_admission" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;bookkeepers join the &lt;b&gt;same group&lt;/b&gt;; the root waits &lt;b&gt;still holding its locks&lt;/b&gt; until no rules remain&lt;/font&gt;">
+          <mxGeometry relative="1" x="0.001" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="920" y="203.71" />
+              <mxPoint x="280" y="203.71" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="b_admission" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Helvetica;fontSize=18;" value="&lt;b&gt;2. Admission&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;no locking step&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="210" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="b_phasegrp" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#d79b00;dashed=1;dashPattern=1 3;" value="" vertex="1">
+          <mxGeometry height="104" width="315" x="365" y="317" as="geometry" />
+        </mxCell>
+        <mxCell id="b_phaselabel" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#a86a13;fontFamily=Helvetica;" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;&lt;b&gt;3.&lt;/b&gt; strategy · &lt;b&gt;4.&lt;/b&gt;&amp;nbsp;executor&lt;/font&gt;" vertex="1">
+          <mxGeometry height="20" width="302" x="378" y="319" as="geometry" />
+        </mxCell>
+        <mxCell id="b_lock" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#bbbbbb;dashed=1;fontFamily=Helvetica;fontSize=18;" value="&lt;font color=&quot;#aaaaaa&quot;&gt;LOCK&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#aaaaaa&quot; style=&quot;font-size: 14px;&quot;&gt;never&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#aaaaaa&quot; style=&quot;font-size: 14px;&quot;&gt;confgured&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="62" width="74" x="378" y="346" as="geometry" />
+        </mxCell>
+        <mxCell id="b_io" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Helvetica;fontSize=18;" value="IO" vertex="1">
+          <mxGeometry height="62" width="80" x="482.5" y="345" as="geometry" />
+        </mxCell>
+        <mxCell id="b_cpu" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Helvetica;fontSize=18;" value="CPU" vertex="1">
+          <mxGeometry height="62" width="80" x="582" y="345" as="geometry" />
+        </mxCell>
+        <mxCell id="b_completion" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Helvetica;fontSize=18;" value="Completion" vertex="1">
+          <mxGeometry height="70" width="125" x="705" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="b_expansion" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Helvetica;fontSize=18;fontStyle=0" value="&lt;span&gt;5. Rule&lt;br&gt;expansion&lt;/span&gt;" vertex="1">
+          <mxGeometry height="70" width="130" x="855" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="b_commit" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=18;" value="&lt;b&gt;Commits&lt;br&gt;immediately&lt;/b&gt;" vertex="1">
+          <mxGeometry height="62" width="135" x="1028" y="294" as="geometry" />
+        </mxCell>
+        <mxCell id="b_dirty" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Helvetica;fontSize=18;" value="&lt;b&gt;Dirty set&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;reconciler repairs&lt;br&gt;in the background&lt;/font&gt;" vertex="1">
+          <mxGeometry height="72" width="135" x="1028" y="384" as="geometry" />
+        </mxCell>
+        <mxCell id="be1" edge="1" parent="1" source="b_admission" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=#fdf5ec;" target="b_io" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;&lt;i&gt;bypass LOCK&lt;/i&gt;&lt;/font&gt;">
+          <mxGeometry relative="1" x="0.0007" y="-13" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="359.67" y="375.05" />
+              <mxPoint x="359.67" y="438.57" />
+              <mxPoint x="469.19" y="438.57" />
+              <mxPoint x="469.19" y="376" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be2" edge="1" parent="1" source="b_io" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;strokeWidth=2;" target="b_cpu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="be3" edge="1" parent="1" source="b_cpu" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;strokeWidth=2;" target="b_completion">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="be4" edge="1" parent="1" source="b_completion" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;strokeWidth=2;" target="b_expansion">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="be5" edge="1" parent="1" source="b_expansion" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;strokeWidth=2;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="b_commit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="be6" edge="1" parent="1" source="b_expansion" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;strokeWidth=2;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=#fdf5ec;verticalAlign=bottom;" target="b_dirty" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fe0" edge="1" parent="1" source="workload" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#333333;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="assembler">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fe1" edge="1" parent="1" source="assembler" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#6c8ebf;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="a_admission">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="163.48" y="304" />
+              <mxPoint x="163.48" y="150" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fe2" edge="1" parent="1" source="assembler" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="b_admission">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="164.43" y="304" />
+              <mxPoint x="164.43" y="375.05" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="be_loop" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;repairs re-enter at &lt;b&gt;IO&lt;/b&gt; (or a dedicated reconciler), &lt;b&gt;never through admission&lt;/b&gt;&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;labelBackgroundColor=#fdf5ec;verticalAlign=bottom;" edge="1" parent="1" source="b_dirty" target="b_io">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint as="offset" y="-3" />
+            <Array as="points">
+              <mxPoint x="1095" y="470" />
+              <mxPoint x="522" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

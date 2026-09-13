@@ -2,85 +2,99 @@
 
 \chapter{Conclusion and Future Work}\label{chapter:conclusion}
 
-\section{Summary}\label{sec:concl-summary}
+\begin{comment}
+\todo{summary --- to be written once the remaining work is finished; the
+  RQ1--RQ3 answers below are drafted from Chapters~\ref{chapter:approach}
+  and~\ref{chapter:experiments} and are kept commented out until then}
 
-\subsection{RQ1: making the hybrid mode well defined}\label{sec:concl-rq1}
-
-ACID's lock table and BASE's dirty set are independent mechanisms that
-never coexist in a pure run. Selecting the mode per transaction allows a
-resource to be locked and dirty at the same time, which is contradictory.
-The locked-XOR-dirty arbiter resolves this by making ACID wait on dirty
-and BASE yield on locked. Because the only cross-mode wait edge points one
-way, no cross-mode wait cycle can form, and the arbiter introduces no
-deadlock that pure ACID did not already admit. The resolution is not free;
-its cost is quantified under RQ2.
-
-\subsection{RQ2: performance and tunability}\label{sec:concl-rq2}
-
-The hybrid mode offers a configurable inconsistency budget and charges for
-it.
-
-The adaptive oracle engages only inside an interior band of reconciler
-provisioning, $1 \le R \le 15$ at the baseline configuration, and is inert
-outside it; at $R = 0$ and $R \ge 25$ every statistic is identical to pure
-BASE in every seed. Inside that band, throughput does not interpolate
-between the two pure modes but falls below a time-weighted mixture of them
-by a factor of 2.8 to 12.3, with the gap widening as reconciliation slows.
-
-The critical dirty fraction $c$ nonetheless behaves as a configurable
-bound on the tail. Across $c$ from 2\% to 30\% and $R$ from 1 to 15,
-measured $p_{95}$ never departs from configured $c$ by more than
-0.74 percentage points, with a median seed-to-seed coefficient of variation
-of 0.25\%. X4 and X5 extend the same result across two workload axes: it
-spans 1.04\,pp across semantic overlap from 0.20 to 0.50 and
-0.78\,pp as the resources per transaction grow by a factor of 20, in
-both
-cases straddling the configured value. It stops applying in two predictable and detectable ways: once
-$c$ exceeds the BASE steady-state dirtiness at that $R$, and once
-reconciliation capacity falls below the dirtying rate the workload
-imposes, at which point the oracle saturates in ACID and misses the budget
-regardless of configuration.
-
-\subsection{RQ3: is the feedback necessary?}\label{sec:concl-rq3}
-
-The answer depends on what is being asked for, and the two halves point
-in opposite directions.
-
-On the trade-off itself, feedback is not necessary --- or at least, no
-advantage for it can be established here. Compared at the same measured
-inconsistency, the two oracles turn in the same throughput wherever an
-adaptive run lands close enough to a measured random run for the
-comparison to be nearly direct. Where the data hints at a difference, the
-random sweep is too coarse to support the hint, and recomputing those rows
-against the nearest measured run moves several of them substantially and
-reverses one. Reading the system's own metrics buys no throughput
-advantage over a coin flip that can be demonstrated, and costs none
-either.
-
-That result should be read with the workload in mind. Every run in this
-thesis is executed under a stationary load, and an adaptive controller has
-nothing to adapt to when the operating point never moves; the experiment
-was always going to be a poor place for feedback to show its value.
-Running the same comparison under a workload that changes while the run is
-in progress is the single most valuable extension of this work
-(Section~\ref{sec:future-work}), and until it is done, RQ3 is answered
-only for the stationary case.
-
-The other half is not a throughput result at all. Each oracle holds fixed
-the quantity it reads and lets the other float: the random probability
-realises its configured ACID share to within 9\% across the whole
-reconciler range while its measured $p_{95}$ moves by up to a factor of
-43.9, and the adaptive threshold is the mirror image, holding $p_{95}$
-within 0.74 percentage points of the configured $c$ while its realised
-ACID share varies by a factor of 4.4. Only one of those two quantities is
-the one an operator wants to bound. Holding a 10\% tail takes $p = 0.15$
-at $R = 1$ and about $0.06$ at $R = 15$, a setting that has to be found
-again for every deployment; $c = 0.10$ holds it everywhere.
-
-The adaptive oracle therefore does not make the ACID/BASE trade-off
-cheaper. It makes it addressable, and it does so for free.
+% ---------------------------------------------------------------------
+% Summary, hidden for now. Restore by uncommenting the block below.
+% ---------------------------------------------------------------------
+% \section{Summary}\label{sec:concl-summary}
+%
+% \subsection{RQ1: making the hybrid mode well defined}\label{sec:concl-rq1}
+%
+% ACID's lock table and BASE's dirty set are independent mechanisms that
+% never coexist in a pure run. Selecting the mode per transaction allows a
+% resource to be locked and dirty at the same time, which is contradictory.
+% The shared-resource arbiter resolves this by making ACID wait on dirty
+% while BASE defers its repair on locked. Because the only cross-mode wait edge points one
+% way, no cross-mode wait cycle can form, and the arbiter introduces no
+% deadlock that pure ACID did not already admit. The resolution is not free;
+% its cost is quantified under RQ2.
+%
+% \subsection{RQ2: performance and tunability}\label{sec:concl-rq2}
+%
+% The hybrid mode offers a configurable inconsistency budget and charges for
+% it.
+%
+% The adaptive oracle engages only inside an interior band of reconciler
+% provisioning, $1 \le R \le 15$ at the baseline configuration, and is inert
+% outside it; at $R = 0$ and $R \ge 25$ every statistic is identical to pure
+% BASE in every seed. Inside that band, throughput does not interpolate
+% between the two pure modes but falls below a time-weighted mixture of them
+% by 2.8 to 12.3 times, with the gap widening as reconciliation slows.
+%
+% The critical dirty fraction $c$ nonetheless behaves as a configurable
+% bound on the tail. Across $c$ from 2\% to 30\% and $R$ from 1 to 15,
+% measured $p_{95}$ never departs from configured $c$ by more than
+% 0.74 percentage points, with a median seed-to-seed coefficient of variation
+% of 0.25\%. X4 and X5 extend the same result across two workload axes: it
+% spans 1.04\,pp across semantic overlap from 0.20 to 0.50 and
+% 0.78\,pp as the resources per transaction grow 20 times, in
+% both
+% cases straddling the configured value. It stops applying in two predictable and detectable ways: once
+% $c$ exceeds the BASE steady-state dirtiness at that $R$, and once
+% reconciliation capacity falls below the dirtying rate the workload
+% imposes, at which point the oracle saturates in ACID and misses the budget
+% regardless of configuration.
+%
+% \subsection{RQ3: is the feedback necessary?}\label{sec:concl-rq3}
+%
+% The answer depends on what is being asked for, and the two halves point
+% in opposite directions.
+%
+% On the trade-off itself, feedback is not necessary and it is not free.
+% Compared at the same measured inconsistency, the two oracles are level at
+% $R = 1$ and $R = 5$, and the adaptive one is between a tenth and a fifth
+% slower at $R = 10$ and $R = 15$ (Section~\ref{sec:x3-frontier}). The cause
+% is measured rather than guessed. The adaptive oracle enters ACID at the
+% moment the dirty fraction has just crossed $c$, so it admits its expensive
+% transactions when the dirty set is at its largest, and a higher share of
+% them block on a resource waiting to be repaired. Where repair is the limit
+% that costs nothing, and where capacity is the limit it costs throughput.
+%
+% That result should be read with the workload in mind. Every run in this
+% thesis is executed under a stationary load, and an adaptive controller has
+% nothing to adapt to when the operating point never moves; the experiment
+% was always going to be a poor place for feedback to show its value.
+% Running the same comparison under a workload that changes while the run is
+% in progress is the single most valuable extension of this work
+% (Section~\ref{sec:future-work}), and until it is done, RQ3 is answered
+% only for the stationary case.
+%
+% The other half is not a throughput result at all. Each oracle holds fixed
+% the quantity it reads and lets the other float. The fixed-share oracle
+% realises its configured ACID share to within 6\% across the whole
+% reconciler range while its measured $p_{95}$ moves by up to 38.8 times,
+% and the adaptive threshold is the mirror image, holding $p_{95}$ within
+% 1.5 percentage points of the configured $c$ while its realised ACID share
+% varies by 2.8 times. Only one of those two quantities is the one an
+% operator wants to bound. A fixed share reaches a 10\% tail too, but the
+% setting that does it depends on the provisioning and has to be found by
+% measurement for each one; $c = 0.10$ holds it everywhere.
+%
+% The adaptive oracle therefore does not make the ACID/BASE trade-off
+% cheaper. It makes it addressable, and at high reconciler counts that
+% costs some throughput.
+\end{comment}
 
 \section{Lessons learned}\label{sec:concl-lessons}
+
+This section collects the methodological lessons of the work. They are
+about how the results had to be produced and read, rather than about the
+hybrid mode itself, and each of them cost something before it was
+understood.
 
 \begin{itemize}
 \item A HYBRID run with zero mode switches \emph{is} pure BASE with a
@@ -98,7 +112,7 @@ cost is the weighted average of theirs.
 
 \item A metric with three plausible definitions needs all three named
 before any of them is reported. Choosing one and describing another
-produced a headline number that was wrong by a factor of six, and the
+produced a headline number that was wrong by six times, and the
 error survived several readings because both quantities are fractions and
 both were plausible in size.
 
@@ -121,26 +135,31 @@ residual mismatch as large as the effect being measured.
 
 \section{Future work}\label{sec:future-work}
 
+This section lists the extensions the thesis leaves open, ordered roughly by
+how much they would add. The first ones address limits of the evaluation,
+the later ones address limits of the design itself.
+
 \begin{enumerate}
 \item \textbf{Non-stationary workloads} (terminal-based arrivals,
 phase-changing overlap). This is the setting in which adaptive control
-would be expected to show the advantage that RQ3 could not find at fixed
-provisioning under stationary load, and it is the most valuable single
+would be expected to earn back the throughput it costs under stationary
+load (Section~\ref{sec:x3-frontier}), and it is the most valuable single
 extension.
 
-\item \textbf{A finer grid of random probabilities.} The random arm is
-sampled at five values of $p$, and most of the X3 comparisons fall too far
-from any of them to be conclusive (Section~\ref{sec:x3-frontier}).
-Sampling between $p = 0.10$ and $p = 0.25$, and below $p = 0.05$ where the
-trade-off is steepest, would turn those readings into measurements.
+\item \textbf{A finer grid of ACID shares.} The fixed-share arm is
+sampled at five values of $p_{\mathrm{acid}}$, and a third of the X3 comparisons fall too
+far from any of them to be read on their own
+(Section~\ref{sec:x3-frontier}). Sampling between $p_{\mathrm{acid}} = 0.10$ and
+$p_{\mathrm{acid}} = 0.25$, and below $p_{\mathrm{acid}} = 0.05$ where the trade-off is steepest, would
+turn those readings into measurements.
 
 \item \textbf{Tick-driven signal sampling}, to decouple the filter's time
 constant from the load it measures. Because admissions track completions
 under \texttt{EQUILIBRIUM}, the oracle's sampling rate is approximately
 the throughput its own decisions suppress, and the measured interval
-varies by a factor of 60 across the sweep.
+varies by 60 times across the sweep.
 
-\item \textbf{Within-excursion sampling analysis.} The undershoot of the
+\item \textbf{Within-visit sampling analysis.} The undershoot of the
 recovery threshold at exit is measured, but the mechanism that makes it
 grow with $R$ is not established, and the aggregate sample counts rule out
 the obvious explanation. The tick timelines record per-tick state and
@@ -157,7 +176,8 @@ small systems.
 \item \textbf{Predictive switching}, on the dirty \emph{trend} rather than
 the level.
 
-\item \textbf{Lock-granularity aliasing} in the BASE yield check.
+\item \textbf{Lock-granularity aliasing} in the check that defers a
+BASE repair.
 
 \item \textbf{Real-system validation} against the Vitruvius case-study
 parameters under HYBRID.
@@ -169,16 +189,16 @@ block duration rather than incidence carries the cost, $L$ should move the
 number of dirty resources waited on, and therefore the block duration,
 roughly linearly.
 
-\item \textbf{Closing the random-split frontier at small $p$.} The
-interval $p \in (0, 0.05)$ is unsampled and contains the steepest part of
+\item \textbf{Closing the fixed-share frontier at small $p_{\mathrm{acid}}$.} The
+interval $p_{\mathrm{acid}} \in (0, 0.05)$ is unsampled and contains the steepest part of
 the trade-off.
 
 \item \textbf{Reporting the arbiter invariant empirically.} The
-locked-XOR-dirty invariant and the deadlock-freedom argument
+arbiter's invariant and the deadlock-freedom argument
 (Sections~\ref{sec:approach-arbiter-rule} and~\ref{sec:approach-deadlock})
 are established by construction and on paper; no measurement of them is
 reported. The evidence already exists in the run data and would need no new
-runs. Both arbiter paths are counted per run as
+runs. Both sides of the rule are counted per run as
 \texttt{acid\_txn\_blocked\_on\_dirty\_count} and
 \texttt{base\_txn\_yielded\_on\_locked\_count}, and both are exactly zero in
 every pure ACID and pure BASE run and at the degenerate adaptive points

@@ -1,0 +1,58 @@
+% caption-bodylike.sty -- captions typeset as ordinary body paragraphs.
+%
+% Motivation
+%   KOMA-Script (scrbook/scrreprt/scrartcl) sets captions with a hanging
+%   indent: the label "Figure 4.1:" sits at the left margin and every
+%   continuation line is indented to align under the caption text. On a
+%   full-width figure this produces a caption block whose left edge does not
+%   agree with the surrounding body text, which reads as a second column.
+%
+%   This package restores the plainest possible relationship between a
+%   caption and the text around it: a caption is a paragraph. It is indented
+%   on its first line like any paragraph, its continuation lines return to
+%   the left margin, it is justified, and it is set at the body size.
+%
+% Usage
+%   \usepackage{caption-bodylike}
+%
+%   Load it after the document class. It pulls in `caption' itself, so a
+%   separate \usepackage{caption} is unnecessary (harmless if present, as
+%   long as it comes first and carries no conflicting format= option).
+%
+%   Every \caption in the document is affected, floats and tables alike.
+%   That is intentional: a document with two caption styles looks like an
+%   accident. To exempt a single float, issue a local override inside it,
+%   e.g. \captionsetup{format=plain} before the \caption.
+%
+% Dependencies
+%   caption (v3.x). No other package is required.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{caption-bodylike}[2026/09/06 v1.0
+  Captions set as body paragraphs]
+
+\RequirePackage{caption}
+
+% The body-text indent, remembered for use inside captions.
+%
+% \parindent is zeroed while a caption is being set, so referring to it
+% directly inside a caption format yields a zero-width indent. The value is
+% therefore captured at \begin{document}, which is late enough that the
+% class and any geometry or font packages have settled it.
+\newlength{\captionbodyindent}
+\AtBeginDocument{\setlength{\captionbodyindent}{\parindent}}
+
+% #1 label ("Figure 4.1")   #2 separator (": ")   #3 caption text
+%
+% \hspace* rather than \hspace so the indent survives at the start of the
+% line, where an ordinary \hspace would be discarded.
+\DeclareCaptionFormat{bodylike}{\hspace*{\captionbodyindent}#1#2#3\par}
+
+\captionsetup{%
+  format=bodylike,
+  justification=justified,
+  singlelinecheck=false, % do not centre captions that fit on one line
+  font=normalsize,       % match the body size, not KOMA's default
+}
+
+\endinput

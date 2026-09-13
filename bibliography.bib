@@ -23,9 +23,9 @@
 % the available copy is an anonymised submission.
 @unpublished{zacouris2026mxs,
   author = {Zacouris, Zenon and Acosta, Maribel},
-  title  = {A Transaction Simulator for Updates in Consistency-Aware
-            Multi-Model Systems},
-  note   = {Under submission},
+  title  = {Modeling {ACID} and {BASE} Semantics for Cross-Model
+            Consistency-Preserving Updates},
+  note   = {Under submission to ACM SIGMETRICS 2026},
   year   = {2026}
 }
 
@@ -42,16 +42,8 @@
   year    = {2021}
 }
 
-% ------------------------------------------- transactions and locking
+% ------------------------------------- concurrency control and locking
 % [verified] via the base-simulator reference list.
-@book{weikum2001transactional,
-  author    = {Weikum, Gerhard and Vossen, Gottfried},
-  title     = {Transactional Information Systems: Theory, Algorithms, and
-               the Practice of Concurrency Control and Recovery},
-  publisher = {Elsevier},
-  year      = {2001}
-}
-
 @article{hsu1992cautious,
   author  = {Hsu, Meichun and Zhang, Bin},
   title   = {Performance evaluation of cautious waiting},
@@ -74,14 +66,17 @@
   doi     = {10.1145/320071.320078}
 }
 
+% [verified] via Crossref. The base-simulator reference list gives
+% 268--269; IEEE records 268--277, which matches the ten-page article.
 @inproceedings{dandamudi1991locking,
   author    = {Dandamudi, Sivarama and Au, Siu-Lung},
   title     = {Locking granularity in multiprocessor database systems},
-  booktitle = {Proceedings of the Seventh International Conference on
+  booktitle = {[1991] Proceedings. Seventh International Conference on
                Data Engineering},
-  pages     = {268--269},
+  pages     = {268--277},
   publisher = {IEEE},
-  year      = {1991}
+  year      = {1991},
+  doi       = {10.1109/ICDE.1991.131474}
 }
 
 % -------------------------------------------------------- ACID / BASE
@@ -118,7 +113,7 @@
   year      = {2014}
 }
 
-% [to verify] page numbers.
+% [verified] via DBLP.
 @article{kraska2009rationing,
   author  = {Kraska, Tim and Hentschel, Martin and Alonso, Gustavo and
              Kossmann, Donald},
@@ -127,7 +122,8 @@
   volume  = {2},
   number  = {1},
   pages   = {253--264},
-  year    = {2009}
+  year    = {2009},
+  doi     = {10.14778/1687627.1687657}
 }
 
 % [verified] via the reference list of Kraska et al.
@@ -141,25 +137,89 @@
   year      = {2000}
 }
 
-% [to verify] author list and pages.
+% [verified] via DBLP. USENIX proceedings pagination; the paper has no DOI.
 @inproceedings{li2012redblue,
   author    = {Li, Cheng and Porto, Daniel and Clement, Allen and
-               Gehrke, Johannes and Pregui{\c{c}}a, Nuno and
+               Gehrke, Johannes and Pregui{\c{c}}a, Nuno M. and
                Rodrigues, Rodrigo},
   title     = {Making Geo-Replicated Systems Fast as Possible, Consistent
                when Necessary},
   booktitle = {10th USENIX Symposium on Operating Systems Design and
                Implementation (OSDI 12)},
+  publisher = {USENIX Association},
+  pages     = {265--278},
   year      = {2012}
 }
 
-% [to verify] author list and pages.
-@inproceedings{chihoub2012harmony,
-  author    = {Chihoub, Houssem-Eddine and Ibrahim, Shadi and
-               Antoniu, Gabriel and P{\'e}rez, Mar{\'i}a S.},
-  title     = {Harmony: Towards Automated Self-Adaptive Consistency in
-               Cloud Storage},
-  booktitle = {IEEE International Conference on Cluster Computing
-               (CLUSTER)},
-  year      = {2012}
+% ------------------------------- bounded inconsistency in transactions
+% [verified] via DBLP / ACM DL.
+@inproceedings{pu1991esr,
+  author    = {Pu, Calton and Leff, Avraham},
+  title     = {Replica Control in Distributed Systems: An Asynchronous
+               Approach},
+  booktitle = {Proceedings of the 1991 ACM SIGMOD International Conference
+               on Management of Data},
+  pages     = {377--386},
+  year      = {1991}
+}
+
+% [verified] via DBLP / IEEE Xplore.
+@inproceedings{wu1992divergence,
+  author    = {Wu, Kun-Lung and Yu, Philip S. and Pu, Calton},
+  title     = {Divergence Control for Epsilon-Serializability},
+  booktitle = {Proceedings of the Eighth International Conference on Data
+               Engineering (ICDE 1992)},
+  pages     = {506--515},
+  year      = {1992}
+}
+
+% ------------------------------ runtime selection of an execution mode
+% [verified] via DBLP / IEEE Xplore.
+@article{kobus2018htr,
+  author  = {Kobus, Tadeusz and Kokoci{\'n}ski, Maciej and
+             Wojciechowski, Pawe{\l} T.},
+  title   = {Hybrid Transactional Replication: State-Machine and
+             Deferred-Update Replication Combined},
+  journal = {IEEE Transactions on Parallel and Distributed Systems},
+  volume  = {29},
+  number  = {7},
+  pages   = {1499--1514},
+  year    = {2018},
+  doi     = {10.1109/TPDS.2018.2796079}
+}
+
+% [verified] via DBLP / Springer.
+@inproceedings{couceiro2011polycert,
+  author    = {Couceiro, Maria and Romano, Paolo and Rodrigues, Lu{\'i}s},
+  title     = {{PolyCert}: Polymorphic Self-Optimizing Replication for
+               In-Memory Transactional Grids},
+  booktitle = {Middleware 2011},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {7049},
+  pages     = {309--328},
+  publisher = {Springer},
+  year      = {2011}
+}
+
+% [verified] via DBLP / IEEE Xplore.
+@inproceedings{couceiro2013morphr,
+  author    = {Couceiro, Maria and Ruivo, Pedro and Romano, Paolo and
+               Rodrigues, Lu{\'i}s},
+  title     = {Chasing the Optimum in Replicated In-Memory Transactional
+               Platforms via Protocol Adaptation},
+  booktitle = {43rd Annual IEEE/IFIP International Conference on Dependable
+               Systems and Networks (DSN 2013)},
+  year      = {2013}
+}
+
+% [verified] via DBLP.
+@inproceedings{sidhanta2016optcon,
+  author    = {Sidhanta, Subhajit and Golab, Wojciech M. and
+               Mukhopadhyay, Supratik and Basu, Saikat},
+  title     = {{OptCon}: An Adaptable {SLA}-Aware Consistency Tuning
+               Framework for Quorum-Based Stores},
+  booktitle = {16th IEEE/ACM International Symposium on Cluster, Cloud and
+               Grid Computing (CCGrid 2016)},
+  pages     = {388--397},
+  year      = {2016}
 }

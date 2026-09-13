@@ -25,7 +25,12 @@
 \usepackage{booktabs} % for better looking table creations, but bad with vertical lines by design (package creator despises vertical lines)
 \usepackage[final]{microtype}
 \usepackage{caption}
+% Captions set as ordinary body paragraphs: first line indented, continuation
+% lines flush to the margin, justified, at the body size. See the header of
+% caption-bodylike.sty for the rationale and the exact rules.
+\usepackage{caption-bodylike}
 \usepackage{float}% [H]: pin a figure exactly where it is written
+\usepackage{comment} % for commenting out whole sections/chapters with \begin{comment}...\end{comment}
 
 % Discourage float-only pages: let a large table share a page with text
 % instead of being deferred to a page of its own.
@@ -66,6 +71,11 @@
 
 \setkomafont{disposition}{\normalfont\bfseries} % use serif font for headings
 \linespread{1.05} % adjust line spread for mathpazo font
+
+% The thesis uses \paragraph{} as an inline run-in header before many blocks
+% of body text. KOMA's default vertical space before it (3.25ex) reads as an
+% oversized gap when it appears this often; keep a visible gap but shrink it.
+\RedeclareSectionCommand[beforeskip=1.8ex plus .4ex minus .2ex]{paragraph}
 
 % Add table of contents to PDF bookmarks
 \BeforeTOCHead[toc]{{\cleardoublepage\pdfbookmark[0]{\contentsname}{toc}}}
@@ -132,14 +142,14 @@
 
 % Settings for search order of pictures
 \graphicspath{
-    {logos/}
-    {figures/}
+  {logos/}
+  {figures/}
 }
 
 % Set up hyphenation rules for the language package when mistakes happen
 \babelhyphenation[english]{
-an-oth-er
-ex-am-ple
+  an-oth-er
+  ex-am-ple
 }
 
 % Decide between
@@ -169,13 +179,98 @@ ex-am-ple
 % Usage: \plannedfigure{label}{caption}{what the figure will show}
 \newcommand{\plannedfigure}[3]{%
   \begin{figure}[htbp]
-  \centering
-  \fbox{\begin{minipage}{0.88\textwidth}
-    \vspace{6mm}
-    \centering\footnotesize\sffamily
-    #3
-    \vspace{6mm}
-  \end{minipage}}
-  \caption{#2}
-  \label{#1}
+    \centering
+    \fbox{\begin{minipage}{0.88\textwidth}
+        \vspace{6mm}
+        \centering\footnotesize\sffamily
+        #3
+        \vspace{6mm}
+      \end{minipage}}
+    \caption{#2}
+    \label{#1}
   \end{figure}}
+
+% A standalone heading that marks the findings block of an experiment
+% section. Same weight as a \paragraph run-in header, but on its own line
+% and without a number or a table-of-contents entry.
+% \@afterheading is what keeps the heading attached to the list that
+% follows: a list normally opens with the negative \@beginparpenalty, which
+% makes a page break right after the heading attractive and can strand it at
+% the foot of a page.
+\makeatletter
+\newcommand{\findingshead}{%
+  \par\addvspace{2.4ex plus .4ex minus .2ex}%
+  \noindent{\normalfont\bfseries Findings}\par
+  \nobreak\smallskip\@afterheading}
+\makeatother
+
+% =====================================================================
+%  Related-work entry break
+% =====================================================================
+
+% Separates one discussed publication from the next in the related-work
+% chapter. The document leaves \parskip at zero and marks a paragraph by
+% indentation alone, so consecutive entries otherwise run together.
+% \addvspace rather than \vspace, for two reasons: it does not stack with
+% the space a following heading already brings, and it collapses with an
+% adjacent skip instead of adding to it. \bigskipamount carries stretch,
+% so the space still helps rather than hinders vertical justification.
+\newcommand{\paperbreak}{\par\addvspace{\bigskipamount}}
+
+% =====================================================================
+%  Bullet lists
+% =====================================================================
+
+% A bullet list that keeps the body text margins: the bullet sits on the
+% left margin and wrapped lines return to it, instead of hanging under
+% the text of the item. An optional \item[Lead-in.] sets a bold lead-in.
+% Usage: \begin{bullets} \item[S1. Lead-in.] text ... \end{bullets}
+\newenvironment{bullets}{%
+  \begin{list}{}{%
+    \setlength{\labelwidth}{0pt}%
+    \setlength{\labelsep}{0pt}%
+    \setlength{\leftmargin}{0pt}%
+    \setlength{\rightmargin}{0pt}%
+    \setlength{\itemindent}{0pt}%
+    \setlength{\listparindent}{0pt}%
+    \setlength{\itemsep}{6pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\topsep}{6pt}%
+    \setlength{\partopsep}{0pt}%
+    \renewcommand{\makelabel}[1]{%
+      \textbullet\enspace
+      \if\relax\detokenize{##1}\relax\else\normalfont\bfseries ##1\enspace\fi}}%
+}{\end{list}}
+
+% A numbered marker that matches the circles drawn inside the figures, and
+% a list that uses it as the item label. The circle is drawn rather than
+% taken from Zapf Dingbats, because a drawn one can be given a diameter of
+% its own and still hold a digit set in the body font. \figkeysize is that
+% diameter. The number is given explicitly so the list can follow the order
+% used in the drawing.
+% Usage: \begin{figurekeys} \item[1] text ... \end{figurekeys}
+\newlength{\figkeysize}
+\setlength{\figkeysize}{1.1em}
+\newcommand{\figkey}[1]{%
+  \tikz[baseline=(fk.base)]{%
+    \node[draw, circle, line width=0.4pt, inner sep=0pt,
+      minimum size=\figkeysize, font=\footnotesize] (fk) {#1};}}
+\newenvironment{figurekeys}{%
+  \begin{list}{}{%
+    \setlength{\labelwidth}{0pt}%
+    \setlength{\labelsep}{0pt}%
+    \setlength{\leftmargin}{0pt}%
+    \setlength{\rightmargin}{0pt}%
+    \setlength{\itemindent}{0pt}%
+    \setlength{\listparindent}{0pt}%
+    \setlength{\itemsep}{5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\topsep}{6pt}%
+    \setlength{\partopsep}{0pt}%
+    % The list sits inside the figure float, under \centering. Undo the
+    % centering skips so the items are set as justified body text.
+    \setlength{\leftskip}{0pt}%
+    \setlength{\rightskip}{0pt}%
+    \setlength{\parfillskip}{0pt plus 1fil}%
+    \renewcommand{\makelabel}[1]{\figkey{##1}\enspace}}%
+}{\end{list}}

@@ -2,29 +2,194 @@
 
 \chapter{Related Work}\label{chapter:related-work}
 
+This chapter is ordered by how close the work sits to this thesis, nearest
+first. Section~\ref{sec:rw-simulators} covers simulation as a method for
+studying concurrency control, and the base simulator this thesis extends,
+which supplies the platform, the workload model and the two results the
+evaluation starts from.
+Section~\ref{sec:rw-mode-selection} covers the systems that already tag
+each transaction with an execution mode at runtime and hand the decision to
+an oracle, which is the mechanism used here as well. The work after those
+is near on one axis each. Section~\ref{sec:rw-acid-base} covers running
+ACID and BASE together, changing a consistency guarantee while the system
+runs, and stating inconsistency as a number to be bounded.
+Section~\ref{sec:rw-multimodel} covers the modelling framework the setting
+comes from, and Section~\ref{sec:rw-gap} states what none of it reaches.
+
+\section{Simulation of transactional systems}\label{sec:rw-simulators}
+
+This section covers the simulators that this thesis builds its method on.
+The first two are single-model studies that establish the method itself.
+The last two are the multi-model simulator this thesis extends.
+
+Transaction simulators have a long history in single-model settings. Ries
+and Stonebraker~\cite{ries1979locking} used one to study locking
+granularity under a workload held in equilibrium, and Dandamudi and
+Au~\cite{dandamudi1991locking} extended that analysis to multiprocessor
+database systems.
+
+Both establish the method this thesis relies on: comparing
+concurrency-control policies under identical synthetic workloads, in
+virtual time, so that the comparison is not confounded by the host
+machine. Neither concerns itself with the object of study here. Both
+assume a single model and a single execution semantics, and the parameter
+they vary, lock granularity or processor count, is a property of the
+concurrency-control implementation, not a choice about how much
+inconsistency the system is allowed to carry.
+
+\paperbreak
+Zacouris and Acosta~\cite{zacouris2025m2ts} carry that method into
+multi-model systems. Their simulator models a transactional server in which
+an update to one model triggers consistency-preserving updates in the
+models that overlap it, executed by bookkeeper transactions. It runs under
+ACID only, with strong strict two-phase locking, preclaiming and cautious
+waiting, and it lets the user vary concurrency, transaction size, model
+count, lock granularity and CPR structure. Its result is that throughput
+collapses as the number of models grows, and that lock acquisition rather
+than processing is the bottleneck, which is what motivates relaxing ACID at
+all.
+
+The subsequent study~\cite{zacouris2026mxs} does that. It adds BASE, in
+which a transaction takes no locks, conflicting writes are settled by last
+write wins, and the consistency-preserving updates are deferred to a
+reconciliation queue served by dedicated reconciler processors. It adds
+semantic overlap as a parameter and the inconsistency metric this thesis
+controls, that is the percentage of resources awaiting repair, reported at
+the median, the 95th and the 99th percentile. Its comparison is
+where this thesis starts. Under ACID the consistency-preserving work runs
+inside the triggering transaction, and throughput degrades sharply as
+semantic overlap and CPR density grow. Under BASE it is deferred, and
+foreground throughput becomes largely insensitive to both, at the price of
+transient inconsistency whose level depends on the processors allocated to
+reconciliation.
+
+That work provides the platform, the workload model and two results that
+are the direct starting point here. The first is the
+throughput/consistency trade-off governed by reconciler provisioning: too
+few reconcilers leave inconsistency high, too many starve foreground
+execution. Section~\ref{sec:x1-validation} reproduces its shape and uses
+it to validate the extended simulator. The second is that the best
+allocation depends on the configuration of the multi-model system, which
+is what makes reconciler provisioning an awkward control: a knob whose
+correct setting must be found again for every deployment.
+
+Its stated assumptions are inherited here as well, and they are the reason
+several questions are out of scope in this thesis. Execution is fully
+centralised, so availability is not modelled, there is no fault tolerance
+and no network delay. The system is of constant size, since writes change
+resources but never create or destroy them. The workload holds a constant
+number of transactions in flight, and a terminal-based workload is named
+there as future work. That terminal workload is the \texttt{TERMINAL}
+profile of Section~\ref{sec:prelim-workload-profiles}, which was still
+being built while these experiments ran and is the reason the adaptation
+claim of Section~\ref{sec:approach-why-hybrid} is left untested.
+
+What that work does not provide is a way to select the execution semantics
+\emph{per transaction} and \emph{at runtime}. There, ACID and BASE are
+alternative configurations of a whole run. Here they coexist within one
+run, which requires the arbiter of Section~\ref{sec:approach-arbiter} and
+makes the tolerated inconsistency a configurable parameter rather than an
+outcome of the provisioning.
+
+\section{Choosing an execution mode at runtime}\label{sec:rw-mode-selection}
+
+Closest after the base simulator is a line of work that already does what
+this thesis does mechanically. It tags each transaction with one of two
+execution modes while the system runs, and routes it accordingly. It is
+kept apart from the sections that follow because the choice it makes is
+never a choice about consistency.
+
+Hybrid Transactional Replication~\cite{kobus2018htr} copies a service onto
+several machines and runs each transaction in one of two modes. In
+\emph{deferred-update} mode a single replica runs the transaction on its own
+copy without locking anything and tells the other replicas what it read and
+wrote only at the end, so they may reject it and force a retry. In
+\emph{state-machine} mode every replica runs the same transaction on its own
+copy in one agreed order, so nothing can conflict and no transaction is ever
+aborted. Deferred update therefore buys parallelism at the risk of wasted
+work, and the state machine buys freedom from aborts at the cost of doing
+the same work on every replica and in sequence. Which mode a transaction
+gets is decided at runtime by a component the authors also call an
+\emph{oracle}, and their oracle learns from the behaviour of past
+transactions. PolyCert~\cite{couceiro2011polycert} makes the same kind of
+per-transaction choice between certification protocols in a replicated
+in-memory store, using a learned model. MorphR~\cite{couceiro2013morphr}
+switches the replication protocol of the whole system rather than of one
+transaction, and contributes the machinery for changing protocol safely
+while work is in flight.
+
+Together these establish that a per-transaction mode tag issued at runtime
+is a workable design, and that a narrow oracle interface is the right way
+to keep the policy separate from the execution paths, which is the shape
+adopted in Section~\ref{sec:approach-oracle-interface}. What they do not
+contribute is the thing being traded. All of their modes deliver the same
+consistency, so their oracles optimise throughput and latency alone and no
+operator can ask for a consistency level at all. There is no dirty state to
+read, no inconsistency to bound, and therefore no equivalent of the mixed
+state that Section~\ref{sec:approach-arbiter} has to make well defined.
+
 \section{Combining ACID and BASE}\label{sec:rw-acid-base}
+
+The three subsections below take one axis each: running the two semantics
+side by side, changing a guarantee while the system runs, and stating
+inconsistency as a number that can be bounded.
 
 \subsection{Static classification of transactions}\label{sec:rw-static}
 
-Salt~\cite{xie2014salt} is the closest neighbour of this work. It lets a
-developer convert the few performance-critical ACID transactions of an
-application into BASE transactions, split into smaller steps, while the
-remaining ACID transactions keep their guarantees through an additional
-isolation level. The mixture of the two semantics is therefore explicit
-and intended, as it is here.
+Salt~\cite{xie2014salt} is the nearest work on running ACID and BASE side
+by side in one system. A developer picks the few performance-critical ACID
+transactions of an application and rewrites them as BASE transactions, each
+split into smaller steps. Every other transaction stays ACID. What keeps
+that mixture safe is a rule the authors call Salt Isolation. BASE
+transactions are allowed to see each other's unfinished work at defined
+points, which is where their speed comes from, while ACID transactions are
+held apart from that unfinished work and get the same isolation they would
+have had in a system with no BASE transactions in it.
 
-Two differences separate it from this thesis. Salt decides \emph{which}
-transactions are BASE, statically, when the application is written,
-whereas this thesis decides \emph{when} to use each mode, at runtime, from
-measured system state. And Salt targets single-schema replicated storage,
-whereas the setting here is a multi-model system in which inconsistency is
-produced by automatic propagation between models.
+What Salt provides for this thesis is the argument that the two semantics
+can coexist in one system without collapsing into the weaker one, together
+with the precedent for the rule that achieves it. Keeping ACID transactions
+away from BASE work that is still in flight is also what the claim table of
+Section~\ref{sec:approach-claim-table} does here.
 
+What Salt does not provide is the decision this thesis is about. It fixes
+\emph{which} transactions are BASE statically, in the application source,
+whereas the question here is \emph{when} to use each mode, at runtime, from
+measured system state. Salt also has no background repair work, so no
+resource is ever left carrying an update that still has to be applied, and
+the direction in which ACID waits for reconciliation has no counterpart
+there. Nor does the setting match. The prototype is one relational schema
+split over the partitions of a distributed database, so the inconsistency
+that automatic propagation between overlapping models creates, which is the
+only kind in this thesis, cannot arise at all.
+
+\paperbreak
 RedBlue consistency~\cite{li2012redblue} makes a similar classification at
 a finer granularity: operations labelled blue execute without coordination
 and operations labelled red require it, with the labelling fixed at design
-time and constrained by commutativity requirements. The same contrast
-applies, one level down.
+time and constrained by commutativity requirements.
+
+It contributes the finer unit of classification, an operation rather
+than a transaction, and a criterion for when weak execution is safe at
+all. It does not contribute a runtime element: the labels are a property
+of the program, not of the current state of the system, and the
+commutativity requirement that justifies them has no counterpart here,
+where the deferred work is a consistency-preserving update whose effect is
+visible in the dirty fraction rather than a commuting operation.
+
+% Closes the subsection: what the two entries above have in common.
+\paperbreak
+Both classifications are applied by hand. In Salt a developer decides which
+transactions are worth rewriting as BASE ones and rewrites them. In RedBlue
+a programmer splits every operation into its execution paths and then
+labels each path, which first requires the invariants of the application to
+be written down, because an operation has to be red if it fails to commute
+with another or if it could break one of those invariants. The marking is a
+property of the source code in both cases. It is made once, before the
+system runs, by someone reasoning about the whole application, and it cannot
+answer to anything the system does afterwards. Removing that last
+limitation is what the mode oracle of Chapter~\ref{chapter:approach} is
+for.
 
 \subsection{Runtime-adaptive consistency}\label{sec:rw-adaptive}
 
@@ -32,118 +197,126 @@ Consistency Rationing~\cite{kraska2009rationing} is the closest
 methodological precedent. Data is divided into categories that receive
 different guarantees, and the middle category switches its consistency
 level at runtime according to a policy driven by monitored statistics and
-expected cost. The mode oracle of this thesis is the same idea applied to
-a different signal: the measured dirty fraction rather than an economic
-estimate.
+expected cost.
 
-Harmony~\cite{chihoub2012harmony} adapts the number of replicas consulted
-per read in a cloud storage system based on an estimate of the probability
-of returning stale data, which is again a runtime decision driven by a
-monitored proxy.
+What it gives this thesis is the shape of the mechanism: monitor
+something, compare it against a policy, and change the guarantee while the
+system is running. The mode oracle of Chapter~\ref{chapter:approach} is
+the same idea applied to a different signal. What it does not give is the
+signal itself. Rationing steers by an expected monetary cost, so the
+consistency that results is whatever the cost model happens to produce,
+and the categories are assigned to data items rather than decided per
+transaction at admission.
+
+\paperbreak
+OptCon~\cite{sidhanta2016optcon} lets the operator name the target instead
+of a proxy for it. A user gives a staleness bound and a latency bound in a
+service level agreement, and a learned model predicts, for each operation,
+which consistency setting of the underlying quorum store will meet them.
+
+This is the nearest precedent for the framing of RQ2, that an operator
+states a level and the system delivers it, and OptCon takes its setting in
+the units of the quantity it bounds, as $c$ does. What it does not give is
+the unit of the decision. OptCon chooses how a single read is served, not
+whether a whole transaction and the repairs it triggers run atomically. It
+is also best-effort against the stated bound rather than measured against
+it, and it has no notion of work owed by one model to another.
 
 \subsection{Bounded inconsistency}\label{sec:rw-bounded}
 
+Epsilon-serializability~\cite{pu1991esr} is the oldest statement of the
+idea this thesis depends on. A transaction that can tolerate some
+inconsistency is allowed to run non-serialisably, up to a bound
+$\varepsilon$ that is stated in advance, and it gains concurrency in
+exchange. The bound is held by \emph{divergence control}, a family of
+algorithms that stands to the bound as concurrency control stands to
+serialisability. Wu, Yu and Pu~\cite{wu1992divergence} give versions of it
+built on two-phase locking, on timestamp ordering and on optimistic
+execution.
+
+This is the closest ancestor of the critical threshold, and closer than
+the replication work below, because it puts a numerical inconsistency
+budget inside a transactional system and enforces it with the locking
+machinery that system already has. What it does not offer is the shape of
+the budget. Its bound is per transaction and concerns how far the values
+one transaction reads may be from the current ones, whereas $c$ is a
+single bound over the whole resource population, and the work it bounds is
+repair owed by one model to another rather than reads taken out of order.
+Nothing in that line adapts the bound, or the mode, while the system runs.
+
+\paperbreak
 Yu and Vahdat~\cite{yu2000conit} treat consistency as a continuous
 quantity and allow applications to bound the divergence they tolerate
-along several axes through conits. The critical dirty fraction used here
-is a conit-style numerical bound, and the tracking result of
-Section~\ref{sec:x2-critical-sweep} is direct evidence that it behaves as
-one in this setting.
+along several axes through conits.
+
+This supplies the vocabulary used throughout this thesis: inconsistency as
+a number that an application may bound, rather than a property that is
+either held or lost. The critical dirty fraction is a conit-style
+numerical bound, and the tracking result of
+Section~\ref{sec:x2-critical-sweep} is evidence that it behaves as one
+here. What conits do not supply is a way to hold such a bound in a
+multi-model system. The enforcement mechanisms are those of replicated
+state, that is pushing writes between replicas to keep divergence within
+the declared limits, and they have no equivalent for inconsistency created
+by consistency-preserving updates between models.
 
 \section{Multi-model consistency preservation}\label{sec:rw-multimodel}
 
 Vitruvius~\cite{klare2021vitruvius} and the line of work on consistency
 preservation rules provide the setting itself: automated propagation of
 updates between models that represent the same system from different
-viewpoints. That work treats propagation as a correctness mechanism to be
-specified and executed, rather than as a source of transient inconsistency
-to be measured and bounded.
+viewpoints.
 
-\section{Simulating transactional multi-model systems}\label{sec:rw-simulators}
+The name stands for view-centric engineering using a virtual underlying
+single model. Rather than merging the models of a project into one
+redundancy-free model, Vitruvius keeps them as they are and makes them
+behave as if they were one, by writing the rules that tie them together
+down explicitly. Engineers work through views, and a change made in a view
+is propagated by those rules into every other model that shares the
+affected information.
 
-This thesis extends an existing simulator, and the work behind it is the
-most directly relevant related work of all.
-
-Transaction simulators have a long history in single-model settings. Ries
-and Stonebraker~\cite{ries1979locking} used one to study locking
-granularity under a workload held in equilibrium, and Dandamudi and
-Au~\cite{dandamudi1991locking} extended that analysis to multiprocessor
-database systems. Both establish the method this thesis relies on:
-comparing concurrency-control policies under identical synthetic
-workloads, in virtual time, so that the comparison is not confounded by
-the host machine.
-
-Zacouris and Acosta~\cite{zacouris2025m2ts} carry that method into
-multi-model systems. Their simulator models a transactional server in
-which an update to one model triggers consistency-preserving updates in
-the models that overlap it, executed by bookkeeper transactions, and lets
-the user vary concurrency, transaction size, semantic overlap and CPR
-structure. The subsequent study~\cite{zacouris2026mxs} adds the second
-execution semantics and the comparison this thesis starts from: under
-ACID, the consistency-preserving work runs inside the triggering
-transaction, and throughput degrades sharply as semantic overlap and CPR
-density grow; under BASE, the work is deferred to background
-reconciliation, and foreground throughput becomes largely insensitive to
-both, at the price of transient inconsistency whose level depends on how
-many processors are allocated to reconciliation.
-
-Two results of that work are the direct starting point here. The first is
-the throughput/consistency trade-off governed by reconciler provisioning:
-too few reconcilers leave inconsistency high, too many starve foreground
-execution. Section~\ref{sec:x1-validation} reproduces its shape and uses
-it to validate the extended simulator. The second is the observation that
-the best allocation depends on the configuration of the multi-model
-system, which is precisely the property that makes reconciler provisioning
-an awkward control: it is a knob whose correct setting must be found again
-for every deployment.
-
-What that work does not provide, and what this thesis adds, is a way to
-select the execution semantics \emph{per transaction} and \emph{at
-runtime}. In the base simulator, ACID and BASE are alternative
-configurations of a whole run; here they coexist within one run, which
-requires the arbiter of Section~\ref{sec:approach-arbiter} and makes the
-tolerated inconsistency a configurable parameter rather than an outcome of
-the provisioning.
+It defines what a consistency-preserving rule is, how such rules are
+specified, and how they are executed when a model changes. That is the
+machinery which generates the workload studied here. It is also where the
+numbers come from: the base simulator is calibrated with measurements taken
+from multi-model systems built in Vitruvius~\cite{zacouris2026mxs}, so the
+parameter values of Chapter~\ref{chapter:experiments} trace back to it.
+What it does not do is treat the propagation as something with a cost or a
+delay. There are no transactions, no concurrent access to arbitrate and no
+option to defer a rule. Propagation is a correctness mechanism to be
+specified and executed, not a source of transient inconsistency to be
+measured and bounded, so questions of scheduling, deferral and the
+resulting dirty fraction fall outside it.
 
 \section{Discussion and delimitation}\label{sec:rw-gap}
 
-Table~\ref{tab:rw-comparison} states the differentiation on the dimensions
-that actually separate the work, rather than by topic.
+Three lines of delimitation run through the work above. It is worth being
+precise about the first, because the obvious way to state it would claim
+too much. Tagging each transaction with an execution mode at runtime is not
+new. Hybrid Transactional Replication and PolyCert already do it, and they
+do it with a learned policy rather than a threshold. Against those systems
+the difference is not the mechanism but what the two modes are. Their modes
+differ in how a transaction is executed and agree on what it guarantees, so
+there is one quantity to optimise and none to bound. Here the two modes
+differ in what they guarantee, which is what creates both the inconsistency
+to be bounded and the mixed state that
+Section~\ref{sec:approach-arbiter} has to define. Against the base
+simulator, where ACID and BASE do differ in what they guarantee, the
+difference is granularity and timing instead: the semantics are chosen per
+transaction at admission rather than per run at configuration time.
 
-\begin{table}[htbp]
-\centering
-\caption{Differentiation from related work.}
-\label{tab:rw-comparison}
-\footnotesize
-\begin{tabular}{l l l >{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{2.4cm}}
-\toprule
-Work & What is decided & When & Target system & Knob is stated in \\
-\midrule
-Salt~\cite{xie2014salt}              & which txn is BASE    & authoring time & single schema, replicated & code annotations \\
-RedBlue~\cite{li2012redblue}         & which op is weak     & authoring time & single schema, replicated & operation labels \\
-Cons.\ Rationing~\cite{kraska2009rationing} & consistency level & runtime   & single schema, replicated & expected cost \\
-Harmony~\cite{chihoub2012harmony}    & replicas read        & runtime        & key-value store & staleness estimate \\
-Yu \& Vahdat~\cite{yu2000conit}      & divergence allowance & runtime        & replicated state & conit bounds \\
-Vitruvius~\cite{klare2021vitruvius}  & --- (always applied) & ---            & multi-model & --- \\
-Base simulator~\cite{zacouris2025m2ts,zacouris2026mxs} & semantics per run & configuration time & multi-model, CPR-driven & reconciler count \\
-\midrule
-\textbf{This thesis}                 & mode per transaction & admission time & multi-model, CPR-driven & the controlled quantity \\
-\bottomrule
-\end{tabular}
-\end{table}
+Against the systems that do adapt consistency at runtime, the difference is
+what the operator actually sets. Consistency Rationing is steered by an
+expected cost and the base simulator by a reconciler count. Each is a
+proxy: the operator sets one quantity and observes another. OptCon does
+take a target in the right units, but it aims that target at how one read
+is served, not at whether a transaction and the repairs it triggers run
+atomically. Here $c$ is stated in the units of
+the quantity it bounds and applies to the whole run, and the RQ3 result,
+not the literature, is what supports that.
 
-Two rows carry the delimitation. Against the base simulator, the
-difference is granularity and timing: semantics chosen per transaction at
-admission rather than per run at configuration time. Against everything
-above it, the difference is the last column, and it follows from the RQ3
-result rather than from the literature. The existing runtime-adaptive
-systems are steered by a proxy --- an expected cost, a staleness estimate,
-a reconciler count --- so the consistency they achieve is emergent,
-whereas $c$ is set in the units of the quantity it bounds.
-
-Beyond the base simulator, all of the work above targets distributed
-replicated storage under a single schema, where inconsistency means
-divergence between copies of the same datum. None of it addresses
-inconsistency generated by automatic consistency-preserving updates
-between semantically overlapping models. That is the gap this thesis
-fills.
+Beyond the base simulator, all of this work targets replicated or
+partitioned storage under a single schema, where inconsistency means
+divergence between copies of a datum. None of it addresses the
+inconsistency that consistency-preserving updates create between
+overlapping models. That is the gap this thesis fills.
