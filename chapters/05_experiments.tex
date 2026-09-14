@@ -3,17 +3,16 @@
 \chapter{Experiments}\label{chapter:experiments}
 
 To evaluate the hybrid mode, we ran five experiments on the extended simulator.
-Section~\ref{sec:exp-setup} first describes the setup that all of them share.
-X1 and X2 answer RQ2, and X3 answers RQ3. RQ1 is covered only partially by the
+Section~\ref{sec:exp-setup} first describes the setup that all of them share. X1
+and X2 answer RQ2, and X3 answers RQ3. RQ1 is covered only partially by the
 experiments, since it is a design question rather than an experimental one. It
 is answered in Chapter~\ref{chapter:approach}, which defines a safe system and
-argues why the design achieves it. The experiments add only weak evidence for
-it (O1). X4 and X5 extend the answer to RQ2. They give further insight into the
+argues why the design achieves it. The experiments add only weak evidence for it
+(O1). X4 and X5 extend the answer to RQ2. They give further insight into the
 system, into the critical dirty threshold $c$, and into how well $c$ holds under
 different loads. Section~\ref{sec:effective-recovery} reports no new runs. It
 takes a closer look at the X2 runs and shows where the oracle returns to BASE.
-Section~\ref{sec:exp-summary} closes the chapter and maps the findings to the
-research questions.
+Section~\ref{sec:exp-threats} closes the chapter with the threats to validity.
 
 \begin{itemize}
   \item \textbf{X1: Reconciler-processor sweep}
@@ -32,8 +31,8 @@ research questions.
   \item \textbf{X3: Fixed-share oracle ACID/BASE split sweep}
         (Section~\ref{sec:x3-fixed-share-baseline}). This experiment studies how
         the system behaves when a fixed ACID/BASE split is configured at the
-        start of the simulation. It compares this with the adaptive oracle, where
-        the system chooses ACID or BASE at runtime.
+        start of the simulation. It compares this with the adaptive oracle,
+        where the system chooses ACID or BASE at runtime.
 
   \item \textbf{X4: Semantic overlap sweep}
         (Section~\ref{sec:x4-overlap-sweep}). This experiment sweeps the
@@ -68,42 +67,66 @@ measured dirty fraction is reported in percent.
   \caption{Baseline configuration.}
   \label{tab:exp-baseline}
   \small
-  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l l >{\raggedright\arraybackslash}p{0.40\textwidth}@{}}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l l
+      >{\raggedright\arraybackslash}p{0.40\textwidth}@{}}
     \toprule
-    Parameter                        & Baseline value       & What it controls \\
+    Parameter                        & Baseline value       & What it controls
+    \\
     \midrule
     \multicolumn{3}{l}{\emph{System}} \\
-    Resources $N$                    & 5000                 & Size of the data set \\
-    Models                           & 10                   & Number of models \\
-    Semantic overlap $\sigma$        & 0.30                 & How much information the models share (X4) \\
-    IO processors                    & $30 - R$             & Capacity for IO work \\
-    CPU processors                   & $30 - R$             & Capacity for CPU work \\
+    Resources $N$                    & 5000                 & Size of the data
+    set \\
+    Models                           & 10                   & Number of models
+    \\
+    Semantic overlap $\sigma$        & 0.30                 & How much
+    information the models share (X4) \\
+    IO processors                    & $30 - R$             & Capacity for IO
+    work \\
+    CPU processors                   & $30 - R$             & Capacity for CPU
+    work \\
     Locks                            & 5000                 & Available locks \\
-    Reconcilers $R$                  & 1, 5, 10, 15         & Reconciliation processors, used in every experiment ($0$ to $25$ in X1) \\
-    Referential action               & \texttt{ON\_CASCADE} & How a cross-model repair is handled (cascade, not restrict) \\
-    Bookkeeper depth                 & 5                    & How far a repair may propagate \\
+    Reconcilers $R$                  & 1, 5, 10, 15         & Reconciliation
+    processors, used in every experiment ($0$ to $25$ in X1) \\
+    Referential action               & \texttt{ON\_CASCADE} & How a cross-model
+    repair is handled (cascade, not restrict) \\
+    Bookkeeper depth                 & 5                    & How far a repair
+    may propagate \\
     \midrule
     \multicolumn{3}{l}{\emph{Timing}} \\
-    IO time per resource             & 200\,ms              & IO work of one resource \\
-    CPU time per resource            & 100\,ms              & CPU work of one resource \\
-    Lock IO time per resource        & 200\,ms              & IO cost of acquiring one lock \\
-    Lock CPU time per resource       & 100\,ms              & CPU cost of acquiring one lock \\
-    Step length                      & 1\,s                 & Simulated time of one simulator step \\
+    IO time per resource             & 200\,ms              & IO work of one
+    resource \\
+    CPU time per resource            & 100\,ms              & CPU work of one
+    resource \\
+    Lock IO time per resource        & 200\,ms              & IO cost of
+    acquiring one lock \\
+    Lock CPU time per resource       & 100\,ms              & CPU cost of
+    acquiring one lock \\
+    Step length                      & 1\,s                 & Simulated time of
+    one simulator step \\
     \midrule
     \multicolumn{3}{l}{\emph{Workload}} \\
-    Profile                          & \texttt{EQUILIBRIUM} & Number of in-flight transactions always the same \\
-    In-flight transactions           & 30                   & How many transactions are in flight \\
-    Resources per transaction $L$    & 50                   & Maximum resources one transaction touches (X5) \\
-    Models per transaction           & up to 4              & Maximum number of models reached by one transaction \\
+    Profile                          & \texttt{EQUILIBRIUM} & Number of
+    in-flight transactions always the same \\
+    In-flight transactions           & 30                   & How many
+    transactions are in flight \\
+    Resources per transaction $L$    & 50                   & Maximum resources
+    one transaction touches (X5) \\
+    Models per transaction           & up to 4              & Maximum number of
+    models reached by one transaction \\
     \midrule
     \multicolumn{3}{l}{\emph{Oracle}} \\
-    Critical threshold $c$           & 0.10                 & Critical dirty threshold (\texttt{BASE} $\rightarrow$ \texttt{ACID}) (X2) \\
-    Recovery threshold $r$           & 0.05                 & Dirty recovery threshold (\texttt{ACID} $\rightarrow$ \texttt{BASE}) (Sec.~\ref{sec:effective-recovery}) \\
-    Fixed ACID share $p_{\mathrm{acid}}$ & 0.50             & Share of transactions the fixed-share oracle starts in ACID (X3) \\
+    Critical threshold $c$           & 0.10                 & Critical dirty
+    threshold (\texttt{BASE} $\rightarrow$ \texttt{ACID}) (X2) \\
+    Recovery threshold $r$           & 0.05                 & Dirty recovery
+    threshold (\texttt{ACID} $\rightarrow$ \texttt{BASE})
+    (Sec.~\ref{sec:effective-recovery}) \\
+    Fixed ACID share $p_{\mathrm{acid}}$ & 0.50             & Share of
+    transactions the fixed-share oracle starts in ACID (X3) \\
     \midrule
     \multicolumn{3}{l}{\emph{Run}} \\
     Duration                         & 50\,000\,s           & Simulated time \\
-    Seed pairs                       & 5                    & Replicates per configuration cell \\
+    Seed pairs                       & 5                    & Replicates per
+    configuration cell \\
     \bottomrule
   \end{tabular*}
 \end{table}
@@ -120,20 +143,20 @@ keeps the number of in-flight transactions constant. Whenever one transaction
 finishes, a new one is created at the next step. In HYBRID runs the new
 transaction may still wait for admission. The load is therefore stationary by
 design. This allows the throughput to be compared across different experiment
-configurations, but it also means that the adaptive oracle is never tested
-under a load that changes (Section~\ref{sec:approach-stationary-load}).
+configurations, but it also means that the adaptive oracle is never tested under
+a load that changes (Section~\ref{sec:approach-stationary-load}).
 
 \paragraph{Deviations from the reference configuration.} Two new entries were
 added to the configuration, the critical dirty threshold $c$ and the recovery
 dirty threshold $r$. Both are needed by the adaptive oracle. A third new entry,
 $p_{\mathrm{acid}}$, is needed by the fixed-share oracle. Three values differ
-from the reference table. First, the number of simulated seconds was raised
-from 10\,000\,s to 50\,000\,s. The reason is that switches between \texttt{ACID}
-and \texttt{BASE} take time. More simulated time is therefore needed to let
-enough switches happen for a reliable comparison. Second, the reference uses
-one reconciliation processor by default, while here $R$ is part of every sweep.
-Third, the reference table has no entry for the number of models one
-transaction reaches. It is set to 4 here.
+from the reference table. First, the number of simulated seconds was raised from
+10\,000\,s to 50\,000\,s. The reason is that switches between \texttt{ACID} and
+\texttt{BASE} take time. More simulated time is therefore needed to let enough
+switches happen for a reliable comparison. Second, the reference uses one
+reconciliation processor by default, while here $R$ is part of every sweep.
+Third, the reference table has no entry for the number of models one transaction
+reaches. It is set to 4 here.
 
 \paragraph{Seeds.} The simulator provides the \emph{transaction-sampling seed}.
 It fixes the sequence of generated transactions for a given configuration, that
@@ -159,10 +182,10 @@ These averaged results are the ones used in the experiment data tables. Every
 cell is the mean over the five seeds. Percentiles are computed per run first and
 then averaged, so they are not percentiles of the pooled samples.
 
-\paragraph{Spread across seeds.} The seeds move the results very little. For
-the adaptive oracle the seed standard deviation of $p_{95}$ is between 0.02 and
-0.19 percentage points in every engaged cell of X2, and the standard deviation
-of throughput is at most 3.3\,\% of the mean. The fixed-share oracle of X3 is
+\paragraph{Spread across seeds.} The seeds move the results very little. For the
+adaptive oracle the seed standard deviation of $p_{95}$ is between 0.02 and 0.19
+percentage points in every engaged cell of X2, and the standard deviation of
+throughput is at most 3.3\,\% of the mean. The fixed-share oracle of X3 is
 noisier. The median coefficient of variation of its $p_{95}$ is 8.6\,\%, against
 0.7\,\% for the adaptive oracle.
 
@@ -179,17 +202,17 @@ evaluation.
 
 \begin{bullets}
   \item[Throughput (\texttt{throughput\_tps}).] Root transactions completed per
-  second of simulated time. Bookkeepers are not counted. This is the
-  performance side.
+  second of simulated time. Bookkeepers are not counted. This is the performance
+  side.
 
   \item[$p_{50}$ dirty fraction (\texttt{dirty\_p50\_pct}).] The median share of
   resources that are inconsistent. This describes the typical state of the
   system.
 
   \item[$p_{95}$ dirty fraction (\texttt{dirty\_p95\_pct}).] The 95th percentile
-  of the same quantity. Within one run, inconsistency stays below this value
-  for 95\% of the simulated time. This describes the bad case, and it is the
-  number a threshold is supposed to bound.
+  of the same quantity. Within one run, inconsistency stays below this value for
+  95\% of the simulated time. This describes the bad case, and it is the number
+  a threshold is supposed to bound.
 \end{bullets}
 
 The resource dirty fraction is sampled at the end of every simulator step, that
@@ -268,8 +291,8 @@ three modes are started under the same conditions.
 \paragraph{Experiment configuration.} The sweep covers $R \in
   \{0,1,5,10,15,20,25\}$ for four configurations, pure ACID, pure BASE,
 \texttt{HYBRID\_ADAPTIVE} and \texttt{HYBRID\_FIXED\_SHARE}, with five seeds,
-so 140 runs in total. The fixed-share oracle runs at $p_{\mathrm{acid}} = 0.5$,
-so it starts every second transaction in ACID. Everything else is at the
+so 140 runs in total. The fixed-share oracle runs at $p_{\mathrm{acid}} =
+  0.5$, so it starts every second transaction in ACID. Everything else is at the
 baseline of Table~\ref{tab:exp-baseline}.
 
 Table~\ref{tab:x1-summary} reports one row per configuration and reconciler
@@ -289,62 +312,107 @@ between foreground and background work.
 \begin{table}[!htb]
   \centering
   \captionsetup{format=plain,justification=centering}
-  \caption{X1: results by reconciler count and configuration.}
+  \caption{X1: results.}
   \label{tab:x1-summary}
   \small
   \begin{tabular}{r l r r r r r r}
     \toprule
-    $R$                    & Mode                 & Thr.\ (tps)                             & $\phi_{\mathrm{time}}$ &
-    $\phi_{\mathrm{comp}}$ & Switch.              & $p_{50}$ (\%)                           &
-    $p_{95}$ (\%)                                                                                                             \\
+    $R$           & Mode                                    & Thr.\ (tps)
+                  & $\phi_{\mathrm{time}}$                  & $\phi_{\mathrm{comp}}$ & Switch. &
+    $p_{50}$ (\%) & $p_{95}$ (\%)
+    \\
     \midrule
-    --                     & ACID (all $R$)       & 0.0418                                  & 1.0000                 & 1.0000
-                           & 0.0                  & \multicolumn{2}{c}{n/a by construction}                                   \\
+    --            & ACID (all $R$)                          & 0.0418
+                  & 1.0000                                  & 1.0000                 & 0.0
+                  & \multicolumn{2}{c}{n/a by construction}
+    \\
     \midrule
-    0                      & BASE                 & 1.9536                                  & 0.0000                 & 0.0000
-                           & 0.0                  & 3.17                                    & 3.87                            \\
-    1                      & BASE                 & 3.8685                                  & 0.0000                 & 0.0000
-                           & 0.0                  & 29.50                                   & 29.64                           \\
-    5                      & BASE                 & 3.3344                                  & 0.0000                 & 0.0000
-                           & 0.0                  & 27.19                                   & 27.52                           \\
-    10                     & BASE                 & 2.6681                                  & 0.0000                 & 0.0000
-                           & 0.0                  & 23.38                                   & 23.93                           \\
-    15                     & BASE                 & 2.0013                                  & 0.0000                 & 0.0000
-                           & 0.0                  & 17.73                                   & 18.46                           \\
-    20                     & BASE                 & 1.3343                                  & 0.0000                 & 0.0000
-                           & 0.0                  & 8.10                                    & 8.91                            \\
-    25                     & BASE                 & 0.6665                                  & 0.0000                 & 0.0000
-                           & 0.0                  & 0.16                                    & 0.50                            \\
+    0             & BASE                                    & 1.9536
+                  & 0.0000                                  & 0.0000                 & 0.0
+                  & 3.17                                    & 3.87
+    \\
+    1             & BASE                                    & 3.8685
+                  & 0.0000                                  & 0.0000                 & 0.0
+                  & 29.50                                   & 29.64
+    \\
+    5             & BASE                                    & 3.3344
+                  & 0.0000                                  & 0.0000                 & 0.0
+                  & 27.19                                   & 27.52
+    \\
+    10            & BASE                                    & 2.6681
+                  & 0.0000                                  & 0.0000                 & 0.0
+                  & 23.38                                   & 23.93
+    \\
+    15            & BASE                                    & 2.0013
+                  & 0.0000                                  & 0.0000                 & 0.0
+                  & 17.73                                   & 18.46
+    \\
+    20            & BASE                                    & 1.3343
+                  & 0.0000                                  & 0.0000                 & 0.0
+                  & 8.10                                    & 8.91
+    \\
+    25            & BASE                                    & 0.6665
+                  & 0.0000                                  & 0.0000                 & 0.0
+                  & 0.16                                    & 0.50
+    \\
     \midrule
-    0                      & HYBRID\_ADAPTIVE     & 1.9536                                  & 0.0000                 & 0.0000
-                           & 0.0                  & 3.17                                    & 3.87                            \\
-    1                      & HYBRID\_ADAPTIVE     & 0.0711                                  & 0.4998                 & 0.1221
-                           & 46.4                 & 5.73                                    & 10.47                           \\
-    5                      & HYBRID\_ADAPTIVE     & 0.2793                                  & 0.3290                 & 0.1336
-                           & 137.4                & 3.00                                    & 10.62                           \\
-    10                     & HYBRID\_ADAPTIVE     & 0.3560                                  & 0.1974                 & 0.1183
-                           & 144.4                & 0.17                                    & 9.80                            \\
-    15                     & HYBRID\_ADAPTIVE     & 0.4188                                  & 0.1377                 & 0.1003
-                           & 138.0                & 0.02                                    & 9.13                            \\
-    20                     & HYBRID\_ADAPTIVE     & 1.3161                                  & 0.0016                 & 0.0006
-                           & 2.4                  & 8.07                                    & 8.90                            \\
-    25                     & HYBRID\_ADAPTIVE     & 0.6665                                  & 0.0000                 & 0.0000
-                           & 0.0                  & 0.16                                    & 0.50                            \\
+    0             & HYBRID\_ADAPTIVE                        & 1.9536
+                  & 0.0000                                  & 0.0000                 & 0.0
+                  & 3.17                                    & 3.87
+    \\
+    1             & HYBRID\_ADAPTIVE                        & 0.0711
+                  & 0.4998                                  & 0.1221                 & 46.4
+                  & 5.73                                    & 10.47
+    \\
+    5             & HYBRID\_ADAPTIVE                        & 0.2793
+                  & 0.3290                                  & 0.1336                 & 137.4
+                  & 3.00                                    & 10.62
+    \\
+    10            & HYBRID\_ADAPTIVE                        & 0.3560
+                  & 0.1974                                  & 0.1183                 & 144.4
+                  & 0.17                                    & 9.80
+    \\
+    15            & HYBRID\_ADAPTIVE                        & 0.4188
+                  & 0.1377                                  & 0.1003                 & 138.0
+                  & 0.02                                    & 9.13
+    \\
+    20            & HYBRID\_ADAPTIVE                        & 1.3161
+                  & 0.0016                                  & 0.0006                 & 2.4
+                  & 8.07                                    & 8.90
+    \\
+    25            & HYBRID\_ADAPTIVE                        & 0.6665
+                  & 0.0000                                  & 0.0000                 & 0.0
+                  & 0.16                                    & 0.50
+    \\
     \midrule
-    0                      & HYBRID\_FIXED\_SHARE & 0.0877                                  & 0.6048                 & 0.4986
-                           & 2207.2               & 0.00                                    & 0.06                            \\
-    1                      & HYBRID\_FIXED\_SHARE & 0.0844                                  & 0.6122                 & 0.4985
-                           & 2123.0               & 1.08                                    & 3.10                            \\
-    5                      & HYBRID\_FIXED\_SHARE & 0.0880                                  & 0.5966                 & 0.4983
-                           & 2212.2               & 0.00                                    & 0.29                            \\
-    10                     & HYBRID\_FIXED\_SHARE & 0.0877                                  & 0.5966                 & 0.4987
-                           & 2206.4               & 0.00                                    & 0.12                            \\
-    15                     & HYBRID\_FIXED\_SHARE & 0.0883                                  & 0.5908                 & 0.4982
-                           & 2220.2               & 0.00                                    & 0.08                            \\
-    20                     & HYBRID\_FIXED\_SHARE & 0.0935                                  & 0.5297                 & 0.4985
-                           & 2344.4               & 0.00                                    & 0.07                            \\
-    25                     & HYBRID\_FIXED\_SHARE & 0.0986                                  & 0.5122                 & 0.5007
-                           & 2468.0               & 0.00                                    & 0.07                            \\
+    0             & HYBRID\_FIXED\_SHARE                    & 0.0877
+                  & 0.6048                                  & 0.4986                 & 2207.2
+                  & 0.00                                    & 0.06
+    \\
+    1             & HYBRID\_FIXED\_SHARE                    & 0.0844
+                  & 0.6122                                  & 0.4985                 & 2123.0
+                  & 1.08                                    & 3.10
+    \\
+    5             & HYBRID\_FIXED\_SHARE                    & 0.0880
+                  & 0.5966                                  & 0.4983                 & 2212.2
+                  & 0.00                                    & 0.29
+    \\
+    10            & HYBRID\_FIXED\_SHARE                    & 0.0877
+                  & 0.5966                                  & 0.4987                 & 2206.4
+                  & 0.00                                    & 0.12
+    \\
+    15            & HYBRID\_FIXED\_SHARE                    & 0.0883
+                  & 0.5908                                  & 0.4982                 & 2220.2
+                  & 0.00                                    & 0.08
+    \\
+    20            & HYBRID\_FIXED\_SHARE                    & 0.0935
+                  & 0.5297                                  & 0.4985                 & 2344.4
+                  & 0.00                                    & 0.07
+    \\
+    25            & HYBRID\_FIXED\_SHARE                    & 0.0986
+                  & 0.5122                                  & 0.5007                 & 2468.0
+                  & 0.00                                    & 0.07
+    \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -363,17 +431,17 @@ shows the same shape. At $R = 1$: inconsistency reaches $29.50\,\%$ against an
 overlap of 30\,\%. From there both curves fall together, and they keep falling
 up to $R = 25$, where only 5 foreground processors are left.
 
-One claim does not reproduce exactly. The reference has throughput falling
-below its $R = 0$ baseline once ten or more reconcilers are used, while here
-the drop sits between $R = 15$ and $R = 20$. The size of the mismatch can be
-read from the relative throughput. Read from Figure~12a of the reference, $R =
-1$ gives about 1.35 times the baseline and $R = 25$ about 0.4 times. Here $R =
-1$ gives 1.98 times and $R = 25$ gives 0.34 times. For $R \ge 1$ our BASE
-throughput is almost exactly linear in the foreground processors, with 0.133
-tps for each of them. The crossing point is therefore fixed by the $R = 0$
-value, $1.954 / 0.133 = 14.6$ foreground processors, that is $R \approx 15.4$.
-So the gap lies in the $R = 0$ baseline, which is lower relative to the other
-rows than in the reference. The cause is not tested. The run duration, 50\,000\,s here against
+One claim does not reproduce exactly. The reference has throughput falling below
+its $R = 0$ baseline once ten or more reconcilers are used, while here the drop
+sits between $R = 15$ and $R = 20$. The size of the mismatch can be read from
+the relative throughput. Read from Figure~12a of the reference, $R = 1$ gives
+about 1.35 times the baseline and $R = 25$ about 0.4 times. Here $R = 1$ gives
+1.98 times and $R = 25$ gives 0.34 times. For $R \ge 1$ our BASE throughput is
+almost exactly linear in the foreground processors, with 0.133 tps for each of
+them. The crossing point is therefore fixed by the $R = 0$ value, $1.954 / 0.133
+  = 14.6$ foreground processors, that is $R \approx 15.4$. So the gap lies in the
+$R = 0$ baseline, which is lower relative to the other rows than in the
+reference. The cause is not tested. The run duration, 50\,000\,s here against
 10\,000\,s there (Section~\ref{sec:exp-setup}), and the different seeds are
 possible reasons.
 
@@ -381,8 +449,8 @@ possible reasons.
 contradictory at first. With no reconciler processors it combines a low dirty
 fraction with a high throughput, which no other row of the BASE block does. The
 reason is that repairs are queued on the foreground processors and run there
-once the transaction that caused them has committed~\cite[Section~4.5]{zacouris2026mxs}.
-So the simulator has two cases.
+once the transaction that caused them has
+committed~\cite[Section~4.5]{zacouris2026mxs}. So the simulator has two cases.
 
 \begin{bullets}
   \item[No dedicated reconcilers ($R = 0$).] Repairs are distributed over all 30
@@ -400,12 +468,12 @@ repair work share one pool.
 
 \paragraph{Pure ACID/BASE compared to HYBRID.} Table~\ref{tab:x1-summary} shows
 that both hybrid configurations take the middle ground between pure ACID and
-pure BASE. O3 below discusses this in detail.
-\texttt{HYBRID\_FIXED\_SHARE} has low levels of inconsistency, which can be
-explained by the amount of time it spends in the slow ACID mode. Its throughput
-rises slightly with the number of reconciliation processors, from 0.084 to
-0.099 tps. Figure~\ref{fig:x1-all-modes} puts all four configurations on one
-log-scale axis, so the order between them can be read directly.
+pure BASE. O3 below discusses this in detail. \texttt{HYBRID\_FIXED\_SHARE} has
+low levels of inconsistency, which can be explained by the amount of time it
+spends in the slow ACID mode. Its throughput rises slightly with the number of
+reconciliation processors, from 0.084 to 0.099 tps.
+Figure~\ref{fig:x1-all-modes} puts all four configurations on one log-scale
+axis, so the order between them can be read directly.
 
 \begin{figure}[H]
   \centering
@@ -447,21 +515,30 @@ blocked. At $R = 25$: 110 blocked.
   BASE. The $R = 20$ row of Table~\ref{tab:x1-summary} therefore shows almost
   the same values for the BASE and the adaptive modes. Throughput of both modes
   is compared in Figure~\ref{fig:x1-throughput-valley}.
+\end{bullets}
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{x1_o2_throughput_valley.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{X1: adaptive and pure BASE throughput against reconciler count.}
+  \label{fig:x1-throughput-valley}
+\end{figure}
+
+\begin{bullets}
   \item[O3. Hybrid throughput lands between ACID and BASE.]
   For \texttt{HYBRID\_ADAPTIVE} at $R = 1$ to $15$ throughput falls far below
   pure BASE, as Figure~\ref{fig:x1-all-modes} shows. At $R = 15$: 0.419 tps
   against 2.001 tps. Against pure ACID the same runs are ahead everywhere. In
-  absolute tps the adaptive oracle stays closer to ACID and buys back only part of
-  the throughput that BASE offers. On the log scale of
+  absolute tps the adaptive oracle stays closer to ACID and buys back only part
+  of the throughput that BASE offers. On the log scale of
   Figure~\ref{fig:x1-all-modes} it sits below the middle at $R = 1$ and $R = 5$,
-  and slightly above it at $R = 10$ and $R = 15$. The fixed-share
-  throughput is nearly flat over the same range, which indicates that the
-  throughput valley we see in Figure~\ref{fig:x1-throughput-valley} comes from
-  the adaptive oracle reacting to levels of inconsistency. Throughput does not
-  simply follow the time spent in ACID across the two oracles. At $R = 1$ the
-  fixed-share oracle spends more time in ACID than the adaptive one and is still
-  faster.
+  and slightly above it at $R = 10$ and $R = 15$. The fixed-share throughput is
+  nearly flat over the same range, which indicates that the throughput valley we
+  see in Figure~\ref{fig:x1-throughput-valley} comes from the adaptive oracle
+  reacting to levels of inconsistency. Throughput does not simply follow the
+  time spent in ACID across the two oracles. At $R = 1$ the fixed-share oracle
+  spends more time in ACID than the adaptive one and is still faster.
 
   \item[O4. The configured threshold bounds inconsistency.]
   With $c$ held at 0.10 the adaptive $p_{95}$ never rises more than 0.62
@@ -473,18 +550,6 @@ blocked. At $R = 25$: 110 blocked.
   3.00\,\%. Figure~\ref{fig:x1-tail-bound} draws the spread against $c$.
 \end{bullets}
 
-O1 gives weak evidence for RQ1. O2 to O4 answer the first part of RQ2 for $c =
-  0.10$. The adaptive hybrid mode is faster than pure ACID and slower than pure
-BASE, and its $p_{95}$ stays near the configured $c$.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.6\textwidth]{x1_o2_throughput_valley.pdf}
-  \captionsetup{format=plain,justification=centering}
-  \caption{X1: adaptive and pure BASE throughput against reconciler count.}
-  \label{fig:x1-throughput-valley}
-\end{figure}
-
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.6\textwidth]{x1_o3_tail_bound.pdf}
@@ -493,6 +558,10 @@ BASE, and its $p_{95}$ stays near the configured $c$.
     $15$ (O4).}
   \label{fig:x1-tail-bound}
 \end{figure}
+
+O1 gives weak evidence for RQ1. O2 to O4 answer the first part of RQ2 for $c =
+  0.10$. The adaptive hybrid mode is faster than pure ACID and slower than pure
+BASE, and its $p_{95}$ stays near the configured $c$.
 
 \section{X2: Dirty resource fraction threshold
   sweep}\label{sec:x2-critical-sweep}
@@ -504,18 +573,18 @@ the measured dirty resource fraction follows it.
 
 \paragraph{Experiment configuration.} The grid covers $c \in \{0.02, 0.05, 0.10,
   0.15, 0.20, 0.30\}$ against $R \in \{1, 5, 10, 15\}$ with five seeds, so 120
-runs in total, all \texttt{HYBRID\_ADAPTIVE}. The recovery threshold is held at
-$r = 0.5c$, which lets the hysteresis band scale with $c$. Otherwise we could
-configure values like $c = 0.02$ and $r = 0.05$, which the simulator rejects as
-an error.
+runs in total, all \texttt{HYBRID\_ADAPTIVE}. The recovery threshold is held
+at $r = 0.5c$, which lets the hysteresis band scale with $c$. Otherwise we
+could configure values like $c = 0.02$ and $r = 0.05$, which the simulator
+rejects as an error.
 
 The values $R \in \{0, 20, 25\}$ are left out, because X1 shows that the
 adaptive oracle degrades to BASE at $R = 0$ and $R = 25$ and is near-degenerate
 at $R = 20$.
 
-One detail of this experiment is important. It is the semantic overlap
-$\sigma$, configured to $\sigma = 0.30$. So only 30\,\% of the 5000 resources
-carry a CPR and the rest can never be dirty. That gives a hard ceiling on how inconsistent
+One detail of this experiment is important. It is the semantic overlap $\sigma$,
+configured to $\sigma = 0.30$. So only 30\,\% of the 5000 resources carry a CPR
+and the rest can never be dirty. That gives a hard ceiling on how inconsistent
 the system can become. A run can be at most 30\,\% dirty.
 
 Table~\ref{tab:x2-grid} gives every cell of the sweep with its throughput,
@@ -527,39 +596,50 @@ switch.
 \begin{table}[!htb]
   \centering
   \captionsetup{format=plain,justification=centering}
-  \caption{X2: the full sweep grid.}
+  \caption{X2: sweep grid.}
   \label{tab:x2-grid}
   \small
   \setlength{\tabcolsep}{3.5pt}
   \begin{tabular}{r r r c r r c r r c r r c}
     \toprule
-                                 & \multicolumn{3}{c}{$R = 1$}  & \multicolumn{3}{c}{$R = 5$} &
-    \multicolumn{3}{c}{$R = 10$} & \multicolumn{3}{c}{$R = 15$}
-    \\
+                                & \multicolumn{3}{c}{$R = 1$}  &
+    \multicolumn{3}{c}{$R = 5$} & \multicolumn{3}{c}{$R = 10$} &
+    \multicolumn{3}{c}{$R = 15$}                                                               \\
     \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}
-    $c$                          & Thr.                         & $p_{95}$                    &
-    Switch.                      & Thr.                         & $p_{95}$                    &
-    Switch.                      & Thr.                         & $p_{95}$                    & Switch. & Thr.   & $p_{95}$
-                                 & Switch.                                                                                    \\
-    \midrule
-    0.02                         & 0.0907                       & 3.31                        & 164
-                                 & 0.1885                       & 3.11                        & 259     & 0.2345 & 2.54     &
-    252                          & 0.2650                       & 1.96                        & 225                           \\
-    0.05                         & 0.0732                       & 6.09                        & 93
-                                 & 0.2308                       & 6.23                        & 172     & 0.2885 & 5.40     &
-    184                          & 0.3319                       & 4.68                        & 174                           \\
-    0.10                         & 0.0711                       & 10.47                       & 46
-                                 & 0.2793                       & 10.62                       & 137     & 0.3560 & 9.80     &
-    144                          & 0.4188                       & 9.13                        & 138                           \\
-    0.15                         & 0.0788                       & 14.92                       & 30
-                                 & 0.3310                       & 14.90                       & 109     & 0.4509 & 14.18    &
-    123                          & 0.5915                       & 14.10                       & 116                           \\
-    0.20                         & 0.0908                       & 19.14                       & 21
-                                 & 0.3994                       & 19.20                       & 85      & 0.5881 & 18.89    &
-    106                          & \multicolumn{3}{c}{deg.}                                                                   \\
-    0.30                         & \multicolumn{3}{c}{deg.}     & \multicolumn{3}{c}{deg.}    &
-    \multicolumn{3}{c}{deg.}     & \multicolumn{3}{c}{deg.}
+    $c$                         & Thr.                         & $p_{95}$
+                                & Switch.                      & Thr.     & $p_{95}$
+                                & Switch.                      & Thr.     & $p_{95}$
+                                & Switch.                      & Thr.     & $p_{95}$ & Switch.
     \\
+    \midrule
+    0.02                        & 0.0907                       & 3.31
+                                & 164                          & 0.1885   & 3.11
+                                & 259                          & 0.2345   & 2.54     & 252
+                                & 0.2650                       & 1.96
+                                & 225                                                          \\
+    0.05                        & 0.0732                       & 6.09
+                                & 93                           & 0.2308   & 6.23
+                                & 172                          & 0.2885   & 5.40     & 184
+                                & 0.3319                       & 4.68
+                                & 174                                                          \\
+    0.10                        & 0.0711                       & 10.47
+                                & 46                           & 0.2793   & 10.62
+                                & 137                          & 0.3560   & 9.80     & 144
+                                & 0.4188                       & 9.13
+                                & 138                                                          \\
+    0.15                        & 0.0788                       & 14.92
+                                & 30                           & 0.3310   & 14.90
+                                & 109                          & 0.4509   & 14.18    & 123
+                                & 0.5915                       & 14.10
+                                & 116                                                          \\
+    0.20                        & 0.0908                       & 19.14
+                                & 21                           & 0.3994   & 19.20
+                                & 85                           & 0.5881   & 18.89    & 106
+                                & \multicolumn{3}{c}{deg.}
+    \\
+    0.30                        & \multicolumn{3}{c}{deg.}     &
+    \multicolumn{3}{c}{deg.}    & \multicolumn{3}{c}{deg.}     &
+    \multicolumn{3}{c}{deg.}                                                                   \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -567,26 +647,20 @@ switch.
 \begin{table}[!htb]
   \centering
   \captionsetup{format=plain,justification=centering}
-  \caption{X2: measured deviation against the configured threshold.}
+  \caption{X2: threshold tracking.}
   \label{tab:x2-tracking}
   \small
   \begin{tabular}{r r r r r r}
     \toprule
-    Configured $c$      & $R = 1$ & $R = 5$ & $R = 10$ & $R = 15$ & Range (pp)
+    Configured $c$ & $R = 1$ & $R = 5$ & $R = 10$ & $R = 15$ & Range (pp)
     \\
     \midrule
-    0.02                & $+1.31$ & $+1.11$ & $+0.54$  & $-0.04$  & 1.35
-    \\
-    0.05                & $+1.09$ & $+1.23$ & $+0.40$  & $-0.32$  & 1.55
-    \\
-    0.10                & $+0.47$ & $+0.62$ & $-0.20$  & $-0.87$  & 1.49
-    \\
-    0.15                & $-0.08$ & $-0.10$ & $-0.82$  & $-0.90$  & 0.82
-    \\
-    0.20                & $-0.86$ & $-0.80$ & $-1.11$  & deg.     & 0.31
-    \\
-    0.30                & deg.    & deg.    & deg.     & deg.     & --
-    \\
+    0.02           & $+1.31$ & $+1.11$ & $+0.54$  & $-0.04$  & 1.35       \\
+    0.05           & $+1.09$ & $+1.23$ & $+0.40$  & $-0.32$  & 1.55       \\
+    0.10           & $+0.47$ & $+0.62$ & $-0.20$  & $-0.87$  & 1.49       \\
+    0.15           & $-0.08$ & $-0.10$ & $-0.82$  & $-0.90$  & 0.82       \\
+    0.20           & $-0.86$ & $-0.80$ & $-1.11$  & deg.     & 0.31       \\
+    0.30           & deg.    & deg.    & deg.     & deg.     & --         \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -594,8 +668,9 @@ switch.
 \paragraph{The critical dirty threshold $c$ sets the inconsistency
   level.}\label{sec:x2-tracking} Table~\ref{tab:x2-tracking} gives the same
 $p_{95}$ column as its distance from the configured $c$, in percentage points
-and averaged over the five seeds. A positive entry means the $p_{95}$ overshoots
-the threshold $c$, and a negative one means the run stayed under it.
+and averaged over the five seeds. A positive entry means the $p_{95}$
+overshoots the threshold $c$, and a negative one means the run stayed under
+it.
 
 This is the central result of the thesis. The threshold is varied from 2\,\% to
 30\,\% and the reconciler count from 1 to 15, and in every cell where the oracle
@@ -611,54 +686,237 @@ inconsistency level.
 \paragraph{The deviation from the threshold is two-sided.} Reading
 Table~\ref{tab:x2-tracking} we see that the averaged $p_{95}$ turns from a
 positive to a negative value as $R$ grows, and the same happens as the critical
-dirty threshold $c$ grows. The following explanation is an interpretation of
-the data, not a measured cause. The switch into ACID is not late. At $c =
-  0.10$ the oracle enters ACID at a median reading of 10.10 to 10.14\,\% at every
-$R$ (Section~\ref{sec:effective-recovery}). The sign change more likely comes
-from what happens after the switch. The transactions already in flight keep
-their BASE tag and keep dirtying resources, so the dirty fraction overshoots
-$c$ for a while. At $c = 0.10$ the highest dirty fraction of a run reaches
-13.3\,\% at $R = 1$ and 11.5\,\% at $R = 15$. The reconcilers then drain the
-dirty set down to $r$. With few reconcilers the overshoot lasts long and pushes
-the run above $c$. With many reconcilers the overshoot is short, the drain is
-fast, and the run lands below. The trend with $c$ fits the hysteresis band.
-Since $r = 0.5c$, a larger $c$ also gives a wider band below $c$, so a larger
-part of each cycle is spent under the threshold. At $c = 0.02$ the band is 1
-percentage point wide. At $c = 0.20$ it is 10 percentage points wide. What an operator can rely on is
+dirty threshold $c$ grows. The following explanation is an interpretation of the
+data, not a measured cause. The switch into ACID is not late. At $c = 0.10$ the
+oracle enters ACID at a median reading of 10.10 to 10.14\,\% at every $R$
+(Section~\ref{sec:effective-recovery}). The sign change more likely comes from
+what happens after the switch. The transactions already in flight keep their
+BASE tag and keep dirtying resources, so the dirty fraction overshoots $c$ for a
+while. At $c = 0.10$ the highest dirty fraction of a run reaches 13.3\,\% at $R
+  = 1$ and 11.5\,\% at $R = 15$. The reconcilers then drain the dirty set down to
+$r$. With few reconcilers the overshoot lasts long and pushes the run above $c$.
+With many reconcilers the overshoot is short, the drain is fast, and the run
+lands below. The trend with $c$ fits the hysteresis band. Since $r = 0.5c$, a
+larger $c$ also gives a wider band below $c$, so a larger part of each cycle is
+spent under the threshold. At $c = 0.02$ the band is 1 percentage point wide. At
+$c = 0.20$ it is 10 percentage points wide. What an operator can rely on is
 therefore a magnitude. It is $|p_{95} - c| \le 1.5$\,pp.
 
 \paragraph{A high number of ACID transactions lowers
   throughput.}\label{sec:x2-mechanism} The throughput column of
-Table~\ref{tab:x2-grid} is surprising at first. A transaction touches up to $L =
-  50$ resources, so by Equation~\ref{eq:blocking-probability} its chance of
+Table~\ref{tab:x2-grid} is surprising at first. A transaction touches up to $L
+  = 50$ resources, so by Equation~\ref{eq:blocking-probability} its chance of
 meeting at least one dirty resource, and waiting on it, climbs fast with the
 dirty fraction. A small critical threshold $c$ should therefore be the faster
 setting, since an ACID transaction can start its work without that wait. The
-measurements show a different reality. For $R \ge 5$ the runs with a small value
-of $c$ are the slow ones. $R = 1$ behaves differently and is discussed at the
-end of this part.
+measurements show a different reality. For $R \ge 5$ the runs with a small
+value of $c$ are the slow ones. $R = 1$ behaves differently and is discussed
+at the end of this part.
 
 The reason is that a small $c$ forces the system to tag more transactions as
 ACID, because it has to keep the inconsistency level low. As a result the
-throughput drops towards pure ACID, which gives 0.0418\,tps. The small-$c$
-cells are still well above it. At $c = 0.02$ and $R = 5$: 0.1885\,tps. The
-throughput differences between the cells are far larger than the seed spread,
-which is at most 3.3\,\% of the mean.
-Table~\ref{tab:blocking} adds the metrics that show this. They are the number of
-admitted ACID transactions, the mean ACID wait, the committed counts of ACID and
-BASE transactions, and the mean transaction latency from creation to commit. As
-in the previous experiments, all values are averaged across the five seeds.
+throughput drops towards pure ACID, which gives 0.0418\,tps. The small-$c$ cells
+are still well above it. At $c = 0.02$ and $R = 5$: 0.1885\,tps. The throughput
+differences between the cells are far larger than the seed spread, which is at
+most 3.3\,\% of the mean. Table~\ref{tab:blocking} adds the metrics that show
+this. They are the number of admitted ACID transactions, the mean ACID wait, the
+committed counts of ACID and BASE transactions, and the mean transaction latency
+from creation to commit. As in the previous experiments, all values are averaged
+across the five seeds.
 
-Figures~\ref{fig:x2-panels-r1-top} to~\ref{fig:x2-panels-bottom} plot the same
-metrics against $c$, with three panels each. Figures~\ref{fig:x2-panels-r1-top}
-and~\ref{fig:x2-panels-top} show the mean ACID wait, the ACID admissions and
-$\phi_{\mathrm{time}}$. Figures~\ref{fig:x2-panels-r1-bottom}
-and~\ref{fig:x2-panels-bottom} show $\phi_{\mathrm{comp}}$, the BASE commits and
-the throughput. The first two are for $R = 1$. The last two have one line for
-each of $R = 5$, 10 and 15.
+\begin{table}[!htb]
+  \centering
+  \captionsetup{format=plain,justification=centering}
+  \caption{X2: transaction mix and latency.}
+  \label{tab:blocking}
+  \small
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{r r r r r c r r r r r}
+    \toprule
+                                              &
+                                              & \multicolumn{3}{c}{ACID
+                                                  transactions}        &                   &
+    \multicolumn{5}{c}{The run as a
+      whole}                                                                   \\
+    \cmidrule(lr){3-5}\cmidrule(lr){7-11} $R$ & $c$
+                                              & Adm.\ $A$                      & \shortstack{Mean
+                                                                                   ACID\\wait (s)} &
+    $\mathrm{ACID}_{\mathrm{cmt}}$            &
+                                              & $\mathrm{BASE}_{\mathrm{cmt}}$
+                                              & $\phi_{\mathrm{time}}$         &
+    $\phi_{\mathrm{comp}}$
+                                              & Txn latency (s)
+                                              & Thr.\ (tps)
+    \\
+    \midrule
+    1                                         & 0.02
+                                              & 2633
+                                              & 109.1                          & 2162
+                                              &
+                                              & 2371                           & 0.696
+                                              & 0.477
+                                              & 239.9                          & 0.0907
+    \\
+    1                                         & 0.05
+                                              & 1171
+                                              & 214.3                          & 989
+                                              &
+                                              & 2671                           & 0.625
+                                              & 0.270
+                                              & 316.5                          & 0.0732
+    \\
+    1                                         & 0.10
+                                              & 498
+                                              & 344.3                          & 434
+                                              &
+                                              & 3123                           & 0.500
+                                              & 0.122
+                                              & 340.5                          & 0.0711
+    \\
+    1                                         & 0.15
+                                              & 327
+                                              & 447.2                          & 294
+                                              &
+                                              & 3645                           & 0.434
+                                              & 0.075
+                                              & 298.9                          & 0.0788
+    \\
+    1                                         & 0.20
+                                              & 253
+                                              & 549.1                          & 218
+                                              &
+                                              & 4321                           & 0.372
+                                              & 0.048
+                                              & 262.6                          & 0.0908
+    \\
+    \midrule
+    5                                         & 0.02
+                                              & 2731
+                                              & 23.2                           & 2229
+                                              &
+                                              & 7197                           & 0.332
+                                              & 0.237
+                                              & 116.6                          & 0.1885
+    \\
+    5                                         & 0.05
+                                              & 2652
+                                              & 43.1                           & 2254
+                                              &
+                                              & 9286                           & 0.309
+                                              & 0.195
+                                              & 98.6                           & 0.2308
+    \\
+    5                                         & 0.10
+                                              & 2136
+                                              & 67.8                           & 1864
+                                              &
+                                              & 12099                          & 0.329
+                                              & 0.134
+                                              & 85.5                           & 0.2793
+    \\
+    5                                         & 0.15
+                                              & 1612
+                                              & 88.7                           & 1430
+                                              &
+                                              & 15120                          & 0.320
+                                              & 0.086
+                                              & 75.0                           & 0.3310
+    \\
+    5                                         & 0.20
+                                              & 1298
+                                              & 107.3                          & 1153
+                                              &
+                                              & 18816                          & 0.308
+                                              & 0.058
+                                              & 63.7                           & 0.3994
+    \\
+    \midrule
+    10                                        & 0.02
+                                              & 2709
+                                              & 11.7                           & 2203
+                                              &
+                                              & 9522                           & 0.239
+                                              & 0.188
+                                              & 93.7                           & 0.2345
+    \\
+    10                                        & 0.05
+                                              & 2689
+                                              & 21.1                           & 2238
+                                              &
+                                              & 12188                          & 0.203
+                                              & 0.155
+                                              & 77.7                           & 0.2885
+    \\
+    10                                        & 0.10
+                                              & 2487
+                                              & 34.1                           & 2105
+                                              &
+                                              & 15695                          & 0.197
+                                              & 0.118
+                                              & 65.1                           & 0.3560
+    \\
+    10                                        & 0.15
+                                              & 2160
+                                              & 45.5                           & 1825
+                                              &
+                                              & 20722                          & 0.201
+                                              & 0.081
+                                              & 52.9                           & 0.4509
+    \\
+    10                                        & 0.20
+                                              & 1859
+                                              & 55.5                           & 1583
+                                              &
+                                              & 27824                          & 0.195
+                                              & 0.054
+                                              & 41.7                           & 0.5881
+    \\
+    \midrule
+    15                                        & 0.02
+                                              & 2695
+                                              & 7.0                            & 2255
+                                              &
+                                              & 10997                          & 0.170
+                                              & 0.170
+                                              & 84.8                           & 0.2650
+    \\
+    15                                        & 0.05
+                                              & 2644
+                                              & 14.0                           & 2241
+                                              &
+                                              & 14353                          & 0.149
+                                              & 0.135
+                                              & 68.7                           & 0.3319
+    \\
+    15                                        & 0.10
+                                              & 2463
+                                              & 23.7                           & 2101
+                                              &
+                                              & 18839                          & 0.138
+                                              & 0.100
+                                              & 55.7                           & 0.4188
+    \\
+    15                                        & 0.15
+                                              & 2091
+                                              & 31.6                           & 1782
+                                              &
+                                              & 27791                          & 0.130
+                                              & 0.060
+                                              & 40.9                           & 0.5915
+    \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
-Table~\ref{tab:blocking} and Figures~\ref{fig:x2-panels-top}
-and~\ref{fig:x2-panels-bottom} show two further details. The mean ACID wait
+Figures~\ref{fig:x2-panels} and~\ref{fig:x2-panels-r1} plot the same metrics
+against $c$. In both figures the top row shows the mean ACID wait, the ACID
+admissions and $\phi_{\mathrm{time}}$, and the bottom row shows
+$\phi_{\mathrm{comp}}$, the BASE commits and the throughput.
+Figure~\ref{fig:x2-panels} has one line for each of $R = 5$, 10 and 15, while
+Figure~\ref{fig:x2-panels-r1} is for $R = 1$.
+
+Table~\ref{tab:blocking} and Figure~\ref{fig:x2-panels} show two further
+details. The mean ACID wait
 grows with the dirty fraction threshold, because more resources are allowed to
 be dirty, so ACID transactions wait longer on dirty or BASE-claimed resources.
 At the same time the share of completed ACID transactions $\phi_{\mathrm{comp}}$
@@ -670,18 +928,26 @@ how long each ACID visit takes to drain the dirty set from $c$ to $r$, and not
 by how many ACID transactions are admitted. The mean lock time also falls as $c$
 grows. At $R = 5$ and $c = 0.02$: 2.6\,s. At $R = 5$ and $c = 0.20$: 0.6\,s.
 
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.76\textwidth]{x2_o7_budget_panels.pdf}
+  \captionsetup{format=plain,justification=centering}
+  \caption{X2: ACID and BASE work at $R = 5$ to $15$.}
+  \label{fig:x2-panels}
+\end{figure}
+
 A further insight is that the mean transaction latency falls as $R$ grows,
 although fewer foreground processors are left. The most likely reason is that
 more reconcilers clear the dirty resources faster. ACID transactions then wait
 less, and the system spends less of the run in ACID, so more of the committed
 transactions are fast BASE ones. The time until a dirty resource is cleared is a
-different metric and is not shown in the table. It falls with $R$ as well, but it
-rises with $c$. At $R = 1$: from 173\,s at $c = 0.02$ to 991\,s at $c = 0.20$.
+different metric and is not shown in the table. It falls with $R$ as well, but
+it rises with $c$. At $R = 1$: from 173\,s at $c = 0.02$ to 991\,s at $c =
+  0.20$.
 
-At $R = 1$ the picture is different (Figures~\ref{fig:x2-panels-r1-top}
-and~\ref{fig:x2-panels-r1-bottom}). Throughput is U-shaped in $c$. At $c =
-  0.02$: 0.0907\,tps. At $c = 0.10$: 0.0711\,tps. At $c = 0.20$: 0.0908\,tps.
-Here $\phi_{\mathrm{time}}$ does fall, from 0.696 to 0.372. A single reconciler
+At $R = 1$ the picture is different (Figure~\ref{fig:x2-panels-r1}).
+Throughput is U-shaped in $c$. At $c = 0.02$: 0.0907\,tps. At $c = 0.10$: 0.0711\,tps. At $c = 0.20$: 0.0908\,tps. Here
+$\phi_{\mathrm{time}}$ does fall, from 0.696 to 0.372. A single reconciler
 drains the dirty set slowly, so every ACID visit is long and every ACID
 transaction waits long. ACID admissions fall from 2633 to 253 and ACID commits
 from 2162 to 218, while BASE commits rise from 2371 to 4321. In between, BASE
@@ -689,142 +955,15 @@ commits grow more slowly than ACID commits disappear. At $c = 0.10$: 434 ACID
 and 3123 BASE commits. Throughput therefore first falls, and it returns to its
 $c = 0.02$ level only at $c = 0.20$.
 
-\begin{table}[!htb]
-  \centering
-  \captionsetup{format=plain,justification=centering}
-  \caption{X2: ACID and BASE transaction counts, shares and latency.}
-  \label{tab:blocking}
-  \small
-  \setlength{\tabcolsep}{3pt}
-  \begin{tabular}{r r r r r c r r r r r}
-    \toprule
-                                              &                                        & \multicolumn{3}{c}{ACID transactions} &
-                                              & \multicolumn{5}{c}{The run as a whole}
-    \\
-    \cmidrule(lr){3-5}\cmidrule(lr){7-11} $R$ & $c$                                    & Adm.\ $A$
-                                              & \shortstack{Mean ACID\\wait (s)}       & $\mathrm{ACID}_{\mathrm{cmt}}$
-                                              &                                        & $\mathrm{BASE}_{\mathrm{cmt}}$        & $\phi_{\mathrm{time}}$ &
-    $\phi_{\mathrm{comp}}$                    & Txn latency (s)                        & Thr.\ (tps)                                                      \\
-    \midrule
-    1                                         & 0.02                                   & 2633                                  & 109.1
-                                              & 2162                                   &                                       & 2371
-                                              & 0.696                                  & 0.477                                 & 239.9                  &
-    0.0907                                                                                                                                                \\
-    1                                         & 0.05                                   & 1171                                  & 214.3
-                                              & 989                                    &                                       & 2671
-                                              & 0.625                                  & 0.270                                 & 316.5                  &
-    0.0732                                                                                                                                                \\
-    1                                         & 0.10                                   & 498                                   & 344.3
-                                              & 434                                    &                                       & 3123
-                                              & 0.500                                  & 0.122                                 & 340.5                  &
-    0.0711                                                                                                                                                \\
-    1                                         & 0.15                                   & 327                                   & 447.2
-                                              & 294                                    &                                       & 3645
-                                              & 0.434                                  & 0.075                                 & 298.9                  &
-    0.0788                                                                                                                                                \\
-    1                                         & 0.20                                   & 253                                   & 549.1
-                                              & 218                                    &                                       & 4321
-                                              & 0.372                                  & 0.048                                 & 262.6                  &
-    0.0908                                                                                                                                                \\
-    \midrule
-    5                                         & 0.02                                   & 2731                                  & 23.2
-                                              & 2229                                   &                                       & 7197
-                                              & 0.332                                  & 0.237                                 & 116.6                  &
-    0.1885                                                                                                                                                \\
-    5                                         & 0.05                                   & 2652                                  & 43.1
-                                              & 2254                                   &                                       & 9286
-                                              & 0.309                                  & 0.195                                 & 98.6                   &
-    0.2308                                                                                                                                                \\
-    5                                         & 0.10                                   & 2136                                  & 67.8
-                                              & 1864                                   &                                       & 12099
-                                              & 0.329                                  & 0.134                                 & 85.5                   &
-    0.2793                                                                                                                                                \\
-    5                                         & 0.15                                   & 1612                                  & 88.7
-                                              & 1430                                   &                                       & 15120
-                                              & 0.320                                  & 0.086                                 & 75.0                   &
-    0.3310                                                                                                                                                \\
-    5                                         & 0.20                                   & 1298                                  & 107.3
-                                              & 1153                                   &                                       & 18816
-                                              & 0.308                                  & 0.058                                 & 63.7                   &
-    0.3994                                                                                                                                                \\
-    \midrule
-    10                                        & 0.02                                   & 2709                                  & 11.7
-                                              & 2203                                   &                                       & 9522
-                                              & 0.239                                  & 0.188                                 & 93.7                   &
-    0.2345                                                                                                                                                \\
-    10                                        & 0.05                                   & 2689                                  & 21.1
-                                              & 2238                                   &                                       & 12188
-                                              & 0.203                                  & 0.155                                 & 77.7                   &
-    0.2885                                                                                                                                                \\
-    10                                        & 0.10                                   & 2487                                  & 34.1
-                                              & 2105                                   &                                       & 15695
-                                              & 0.197                                  & 0.118                                 & 65.1                   &
-    0.3560                                                                                                                                                \\
-    10                                        & 0.15                                   & 2160                                  & 45.5
-                                              & 1825                                   &                                       & 20722
-                                              & 0.201                                  & 0.081                                 & 52.9                   &
-    0.4509                                                                                                                                                \\
-    10                                        & 0.20                                   & 1859                                  & 55.5
-                                              & 1583                                   &                                       & 27824
-                                              & 0.195                                  & 0.054                                 & 41.7                   &
-    0.5881                                                                                                                                                \\
-    \midrule
-    15                                        & 0.02                                   & 2695                                  & 7.0
-                                              & 2255                                   &                                       & 10997
-                                              & 0.170                                  & 0.170                                 & 84.8                   &
-    0.2650                                                                                                                                                \\
-    15                                        & 0.05                                   & 2644                                  & 14.0
-                                              & 2241                                   &                                       & 14353
-                                              & 0.149                                  & 0.135                                 & 68.7                   &
-    0.3319                                                                                                                                                \\
-    15                                        & 0.10                                   & 2463                                  & 23.7
-                                              & 2101                                   &                                       & 18839
-                                              & 0.138                                  & 0.100                                 & 55.7                   &
-    0.4188                                                                                                                                                \\
-    15                                        & 0.15                                   & 2091                                  & 31.6
-                                              & 1782                                   &                                       & 27791
-                                              & 0.130                                  & 0.060                                 & 40.9                   &
-    0.5915                                                                                                                                                \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
 \begin{figure}[!htb]
   \centering
-  \includegraphics[width=0.97\textwidth]{x2_o7_budget_panels_r1_top.pdf}
+  \includegraphics[width=0.76\textwidth]{x2_o7_budget_panels_r1.pdf}
   \captionsetup{format=plain,justification=centering}
-  \caption{X2: ACID wait, admissions and time share at one reconciler.}
-  \label{fig:x2-panels-r1-top}
+  \caption{X2: ACID and BASE work at $R = 1$.}
+  \label{fig:x2-panels-r1}
 \end{figure}
 
-\begin{figure}[!htb]
-  \centering
-  \includegraphics[width=0.91\textwidth]{x2_o7_budget_panels_r1_bottom.pdf}
-  \captionsetup{format=plain,justification=centering}
-  \caption{X2: completed share, BASE commits and throughput at one reconciler.}
-  \label{fig:x2-panels-r1-bottom}
-\end{figure}
-
-\begin{figure}[!htb]
-  \centering
-  \includegraphics[width=0.91\textwidth]{x2_o7_budget_panels_top.pdf}
-  \captionsetup{format=plain,justification=centering}
-  \caption{X2: ACID wait, admissions and time share at five to fifteen
-    reconcilers.}
-  \label{fig:x2-panels-top}
-\end{figure}
-
-\begin{figure}[!htb]
-  \centering
-  \includegraphics[width=0.91\textwidth]{x2_o7_budget_panels_bottom.pdf}
-  \captionsetup{format=plain,justification=centering}
-  \caption{X2: completed share, BASE commits and throughput at five to fifteen
-    reconcilers.}
-  \label{fig:x2-panels-bottom}
-\end{figure}
-
-\clearpage
-
+\FloatBarrier
 \findingshead
 
 \begin{bullets}
@@ -838,11 +977,11 @@ $c = 0.02$ level only at $c = 0.20$.
   stays within $\varepsilon = 1.5$\,pp.
 
   \item[O6. A high $c$ switches the oracle off.] O5 holds only while the oracle
-  actually engages. It stops engaging once the inconsistency that BASE
-  produces on its own stays below the configured threshold $c$. Those are the
-  cells marked ``deg.'' in Table~\ref{tab:x2-grid}. The configurable range of
-  RQ2 therefore has an upper limit, which is set by how dirty the system becomes
-  on its own. That limit is set by the semantic overlap $\sigma$ and by $R$
+  actually engages. It stops engaging once the inconsistency that BASE produces
+  on its own stays below the configured threshold $c$. Those are the cells
+  marked ``deg.'' in Table~\ref{tab:x2-grid}. The configurable range of RQ2
+  therefore has an upper limit, which is set by how dirty the system becomes on
+  its own. That limit is set by the semantic overlap $\sigma$ and by $R$
   together. Pure BASE reaches a $p_{95}$ of 29.6\,\% at $R = 1$ but only
   18.5\,\% at $R = 15$, so $R = 15$ is already degenerate at $c = 0.20$. A lower
   $\sigma$ caps the dirty fraction earlier, so the oracle switches off at a
@@ -851,13 +990,14 @@ $c = 0.02$ level only at $c = 0.20$.
   \item[O7. A higher $c$ moves work from ACID to BASE.]
   For $R \ge 5$, raising the critical threshold $c$ makes ACID work slower. It
   admits fewer ACID transactions and makes each one wait longer
-  (Table~\ref{tab:blocking}), because more of the system is dirty when they
-  run. $\phi_{\mathrm{time}}$ barely moves while $\phi_{\mathrm{comp}}$
-  collapses (Figures~\ref{fig:x2-panels-top} and~\ref{fig:x2-panels-bottom}).
-  The extra throughput is BASE work done inside the BASE time the run already
-  had. What frees it is likely the locks the missing ACID transactions no longer
-  hold. The mean lock time falls as $c$ grows, which fits this reading, but no
-  metric measures the freed locks directly. At $R = 1$ the exchange is weaker and throughput is U-shaped.
+  (Table~\ref{tab:blocking}), because more of the system is dirty when they run.
+  $\phi_{\mathrm{time}}$ barely moves while $\phi_{\mathrm{comp}}$ collapses
+  (Figure~\ref{fig:x2-panels}). The extra
+  throughput is BASE work done inside the BASE time the run already had. What
+  frees it is likely the locks the missing ACID transactions no longer hold. The
+  mean lock time falls as $c$ grows, which fits this reading, but no metric
+  measures the freed locks directly. At $R = 1$ the exchange is weaker and
+  throughput is U-shaped.
 \end{bullets}
 
 \section{X3: Fixed-share oracle ACID/BASE split
@@ -877,12 +1017,13 @@ same hybrid machinery with only the feedback signal removed.
 
 \paragraph{Experiment configuration.} The ACID share $p_{\mathrm{acid}}$ takes
 the values 0.05, 0.10, 0.15, 0.25 and 0.50. Each of them is run against $R \in
-  \{1, 5, 10, 15\}$, with five seeds per cell. That gives 100 runs, with everything else at the baseline of
-Table~\ref{tab:exp-baseline}. The $p_{\mathrm{acid}} = 0.50$ rows are the same
-runs as the fixed-share rows of X1 at the same $R$, so 20 of the 100 runs repeat
-X1. The Switch.\ column of Table~\ref{tab:x3-summary} counts changes between
-two consecutive draws and cannot be compared with the switches of the adaptive
-oracle (Section~\ref{sec:exp-metrics}).
+  \{1, 5, 10, 15\}$, with five seeds per cell. That gives 100 runs, with
+everything else at the baseline of Table~\ref{tab:exp-baseline}. The
+$p_{\mathrm{acid}} = 0.50$ rows are the same runs as the fixed-share rows of X1
+at the same $R$, so 20 of the 100 runs repeat X1. The Switch.\ column of
+Table~\ref{tab:x3-summary} counts changes between two consecutive draws and
+cannot be compared with the switches of the adaptive oracle
+(Section~\ref{sec:exp-metrics}).
 
 Every run in this thesis is executed under \texttt{EQUILIBRIUM}, a stationary
 load. The comparison below is therefore run in a setting that is not ideal for
@@ -891,79 +1032,100 @@ the adaptive oracle (Section~\ref{sec:approach-stationary-load}).
 \begin{table}[htbp]
   \centering
   \captionsetup{format=plain,justification=centering}
-  \caption{X3: results by ACID probability and reconciler count.}
+  \caption{X3: results.}
   \label{tab:x3-summary}
   \small
   \setlength{\tabcolsep}{4pt}
   \begin{tabular}{r r r r r r r r r r}
     \toprule
-    $R$                            & $p_{\mathrm{acid}}$    & Thr.\ (tps)   & $\mathrm{ACID}_{\mathrm{cmt}}$ &
-    $\mathrm{BASE}_{\mathrm{cmt}}$ & $\phi_{\mathrm{time}}$ &
-    $\phi_{\mathrm{comp}}$         & Switch.                & $p_{50}$ (\%) & $p_{95}$ (\%)                    \\
+    $R$                            & $p_{\mathrm{acid}}$            & Thr.\ (tps)   &
+    $\mathrm{ACID}_{\mathrm{cmt}}$ & $\mathrm{BASE}_{\mathrm{cmt}}$ &
+    $\phi_{\mathrm{time}}$         & $\phi_{\mathrm{comp}}$         & Switch.
+                                   & $p_{50}$ (\%)                  & $p_{95}$ (\%)                \\
     \midrule
-    1                              & 0.05                   & 0.1036        & 238                            &
-    4940                           & 0.3341                 & 0.0461
-                                   & 491.2                  & 9.50          & 21.73                            \\
-                                   & 0.10                   & 0.0777        & 369                            &
-    3516                           & 0.3225                 & 0.0950
-                                   & 713.8                  & 6.80          & 14.73                            \\
-                                   & 0.15                   & 0.0720        & 512                            &
-    3086                           & 0.3460                 & 0.1423
-                                   & 909.4                  & 5.38          & 11.16                            \\
-                                   & 0.25                   & 0.0728        & 883                            &
-    2757                           & 0.4206                 & 0.2426
-                                   & 1366.4                 & 3.87          & 7.73                             \\
-                                   & 0.50                   & 0.0844        & 2104                           &
-    2117                           & 0.6122                 & 0.4985
-                                   & 2123.0                 & 1.08          & 3.10                             \\
+    1                              & 0.05                           & 0.1036        &
+    238                            & 4940                           & 0.3341
+                                   & 0.0461                         & 491.2         & 9.50 & 21.73
+    \\
+                                   & 0.10                           & 0.0777        &
+    369                            & 3516                           & 0.3225
+                                   & 0.0950                         & 713.8         & 6.80 & 14.73
+    \\
+                                   & 0.15                           & 0.0720        &
+    512                            & 3086                           & 0.3460
+                                   & 0.1423                         & 909.4         & 5.38 & 11.16
+    \\
+                                   & 0.25                           & 0.0728        &
+    883                            & 2757                           & 0.4206
+                                   & 0.2426                         & 1366.4        & 3.87 & 7.73
+    \\
+                                   & 0.50                           & 0.0844        &
+    2104                           & 2117                           & 0.6122
+                                   & 0.4985                         & 2123.0        & 1.08 & 3.10
+    \\
     \midrule
-    5                              & 0.05                   & 0.4228        & 1030                           &
-    20107                          & 0.1289                 & 0.0488
-                                   & 2004.6                 & 8.23          & 20.25                            \\
-                                   & 0.10                   & 0.3171        & 1576                           &
-    14277                          & 0.1864                 & 0.0994
-                                   & 2865.8                 & 4.60          & 13.72                            \\
-                                   & 0.15                   & 0.2650        & 1955                           &
-    11296                          & 0.2344                 & 0.1476
-                                   & 3338.2                 & 2.06          & 10.32                            \\
-                                   & 0.25                   & 0.1800        & 2219                           &
-    6780                           & 0.3392                 & 0.2467
-                                   & 3360.4                 & 0.10          & 3.49                             \\
-                                   & 0.50                   & 0.0880        & 2191                           &
-    2208                           & 0.5966                 & 0.4983
-                                   & 2212.2                 & 0.00          & 0.29                             \\
+    5                              & 0.05                           & 0.4228        &
+    1030                           & 20107                          & 0.1289
+                                   & 0.0488                         & 2004.6        & 8.23 & 20.25
+    \\
+                                   & 0.10                           & 0.3171        &
+    1576                           & 14277                          & 0.1864
+                                   & 0.0994                         & 2865.8        & 4.60 & 13.72
+    \\
+                                   & 0.15                           & 0.2650        &
+    1955                           & 11296                          & 0.2344
+                                   & 0.1476                         & 3338.2        & 2.06 & 10.32
+    \\
+                                   & 0.25                           & 0.1800        &
+    2219                           & 6780                           & 0.3392
+                                   & 0.2467                         & 3360.4        & 0.10 & 3.49
+    \\
+                                   & 0.50                           & 0.0880        &
+    2191                           & 2208                           & 0.5966
+                                   & 0.4983                         & 2212.2        & 0.00 & 0.29
+    \\
     \midrule
-    10                             & 0.05                   & 0.6225        & 1520                           &
-    29602                          & 0.0743                 & 0.0489
-                                   & 2921.2                 & 5.37          & 17.04                            \\
-                                   & 0.10                   & 0.4233        & 2105                           &
-    19059                          & 0.1456                 & 0.0995
-                                   & 3811.2                 & 0.78          & 11.15                            \\
-                                   & 0.15                   & 0.3052        & 2271                           &
-    12992                          & 0.2120                 & 0.1488
-                                   & 3868.4                 & 0.07          & 5.31                             \\
-                                   & 0.25                   & 0.1810        & 2229                           &
-    6821                           & 0.3387                 & 0.2464
-                                   & 3377.0                 & 0.00          & 1.00                             \\
-                                   & 0.50                   & 0.0877        & 2186                           &
-    2201                           & 0.5966                 & 0.4987
-                                   & 2206.4                 & 0.00          & 0.12                             \\
+    10                             & 0.05                           & 0.6225        &
+    1520                           & 29602                          & 0.0743
+                                   & 0.0489                         & 2921.2        & 5.37 & 17.04
+    \\
+                                   & 0.10                           & 0.4233        &
+    2105                           & 19059                          & 0.1456
+                                   & 0.0995                         & 3811.2        & 0.78 & 11.15
+    \\
+                                   & 0.15                           & 0.3052        &
+    2271                           & 12992                          & 0.2120
+                                   & 0.1488                         & 3868.4        & 0.07 & 5.31
+    \\
+                                   & 0.25                           & 0.1810        &
+    2229                           & 6821                           & 0.3387
+                                   & 0.2464                         & 3377.0        & 0.00 & 1.00
+    \\
+                                   & 0.50                           & 0.0877        &
+    2186                           & 2201                           & 0.5966
+                                   & 0.4987                         & 2206.4        & 0.00 & 0.12
+    \\
     \midrule
-    15                             & 0.05                   & 0.7324        & 1780                           &
-    34838                          & 0.0711                 & 0.0486
-                                   & 3418.8                 & 2.30          & 14.09                            \\
-                                   & 0.10                   & 0.4582        & 2274                           &
-    20634                          & 0.1387                 & 0.0993
-                                   & 4119.4                 & 0.10          & 7.37                             \\
-                                   & 0.15                   & 0.3090        & 2299                           &
-    13150                          & 0.2154                 & 0.1489
-                                   & 3913.0                 & 0.00          & 1.91                             \\
-                                   & 0.25                   & 0.1817        & 2237                           &
-    6847                           & 0.3392                 & 0.2464
-                                   & 3388.2                 & 0.00          & 0.38                             \\
-                                   & 0.50                   & 0.0883        & 2199                           &
-    2217                           & 0.5908                 & 0.4982
-                                   & 2220.2                 & 0.00          & 0.08                             \\
+    15                             & 0.05                           & 0.7324        &
+    1780                           & 34838                          & 0.0711
+                                   & 0.0486                         & 3418.8        & 2.30 & 14.09
+    \\
+                                   & 0.10                           & 0.4582        &
+    2274                           & 20634                          & 0.1387
+                                   & 0.0993                         & 4119.4        & 0.10 & 7.37
+    \\
+                                   & 0.15                           & 0.3090        &
+    2299                           & 13150                          & 0.2154
+                                   & 0.1489                         & 3913.0        & 0.00 & 1.91
+    \\
+                                   & 0.25                           & 0.1817        &
+    2237                           & 6847                           & 0.3392
+                                   & 0.2464                         & 3388.2        & 0.00 & 0.38
+    \\
+                                   & 0.50                           & 0.0883        &
+    2199                           & 2217                           & 0.5908
+                                   & 0.4982                         & 2220.2        & 0.00 & 0.08
+    \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -980,8 +1142,8 @@ The share $p_{\mathrm{acid}}$ works on what the system is asked to do. Under
 replaces fast BASE transactions with slow ACID ones. Throughput falls, fewer
 transactions are admitted per second, and less dirtying work enters the system.
 That is what we see in the cases with $R \ge 5$, where a $p_{\mathrm{acid}}$
-increase drops the throughput but drops the inconsistency level as well. At $R
-  = 1$ the inconsistency level also falls, from 21.73\,\% to 3.10\,\%, but
+increase drops the throughput but drops the inconsistency level as well. At $R =
+  1$ the inconsistency level also falls, from 21.73\,\% to 3.10\,\%, but
 throughput does not fall steadily.
 
 $R$ works on a different part. Reconcilers do not change what is submitted or
@@ -1035,6 +1197,127 @@ cleaner side and $13.72 / 10.62 = 1.29$ towards the dirtier one, so $d = 1.03$.
 The adaptive run sits 3\,\% away from a measured fixed-share run, which is the
 value in the $R = 5$, $c = 0.10$ row of Table~\ref{tab:x3-matched}.
 
+\begin{table}[!htbp]
+  \centering
+  \captionsetup{format=plain,justification=centering}
+  \caption{X3: matched throughput.}
+  \label{tab:x3-matched}
+  \small
+  \setlength{\tabcolsep}{4.5pt}
+  \begin{tabular}{r r r r r r r c r r c}
+    \toprule
+        &
+        & adaptive                 &
+    \multicolumn{2}{c}{\shortstack{cleaner\\neighbour}}
+        &
+    \multicolumn{2}{c}{\shortstack{dirtier\\neighbour}}
+        & \shortstack{To\\nearest} &
+    \multicolumn{2}{c}{Thr.\ (tps)}
+        &                                                           \\
+    \cmidrule(lr){3-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-8}\cmidrule(lr){9-10}
+    $R$ & $c$
+        & $p_{95}$                 & $p_{\mathrm{acid}}$ & $p_{95}$
+        & $p_{\mathrm{acid}}$      & $p_{95}$
+        & $d$                      & adaptive
+        & fixed                    & Ratio                          \\
+    \midrule
+    1   & 0.02
+        & 3.31                     & 0.50                & 3.10
+        & 0.25                     & 7.73
+        & 1.07                     & 0.0907
+        & 0.0839                   & 1.08                           \\
+        & 0.05
+        & 6.09                     & 0.50                & 3.10
+        & 0.25                     & 7.73
+        & 1.27                     & 0.0732
+        & 0.0769                   & 0.95                           \\
+        & 0.10
+        & 10.47                    & 0.25                & 7.73
+        & 0.15                     & 11.16
+        & 1.07                     & 0.0711
+        & 0.0721                   & 0.99                           \\
+        & 0.15
+        & 14.92                    & 0.10                & 14.73
+        & 0.05                     & 21.73
+        & 1.01                     & 0.0788
+        & 0.0784                   & 1.01                           \\
+        & 0.20
+        & 19.14                    & 0.10                & 14.73
+        & 0.05                     & 21.73
+        & 1.14                     & 0.0908
+        & 0.0940                   & 0.97                           \\
+    \midrule
+    5   & 0.02
+        & 3.11                     & 0.50                & 0.29
+        & 0.25                     & 3.49
+        & 1.12                     & 0.1885
+        & 0.1690                   & 1.12                           \\
+        & 0.05
+        & 6.23                     & 0.25                & 3.49
+        & 0.15                     & 10.32
+        & 1.66                     & 0.2308
+        & 0.2141                   & 1.08                           \\
+        & 0.10
+        & 10.62                    & 0.15                & 10.32
+        & 0.10                     & 13.72
+        & 1.03                     & 0.2793
+        & 0.2697                   & 1.04                           \\
+        & 0.15
+        & 14.90                    & 0.10                & 13.72
+        & 0.05                     & 20.25
+        & 1.09                     & 0.3310
+        & 0.3362                   & 0.98                           \\
+        & 0.20
+        & 19.20                    & 0.10                & 13.72
+        & 0.05                     & 20.25
+        & 1.05                     & 0.3994
+        & 0.4058                   & 0.98                           \\
+    \midrule
+    10  & 0.02
+        & 2.54                     & 0.25                & 1.00
+        & 0.15                     & 5.31
+        & 2.09                     & 0.2345
+        & 0.2253                   & 1.04                           \\
+        & 0.05
+        & 5.40                     & 0.15                & 5.31
+        & 0.10                     & 11.15
+        & 1.02                     & 0.2885
+        & 0.3072                   & 0.94                           \\
+        & 0.10
+        & 9.80                     & 0.15                & 5.31
+        & 0.10                     & 11.15
+        & 1.14                     & 0.3560
+        & 0.3960                   & 0.90                           \\
+        & 0.15
+        & 14.18                    & 0.10                & 11.15
+        & 0.05                     & 17.04
+        & 1.20                     & 0.4509
+        & 0.5260                   & 0.86                           \\
+    \midrule
+    15  & 0.02
+        & 1.96                     & 0.15                & 1.91
+        & 0.10                     & 7.37
+        & 1.02                     & 0.2650
+        & 0.3102                   & 0.85                           \\
+        & 0.05
+        & 4.68                     & 0.15                & 1.91
+        & 0.10                     & 7.37
+        & 1.57                     & 0.3319
+        & 0.3846                   & 0.86                           \\
+        & 0.10
+        & 9.13                     & 0.10                & 7.37
+        & 0.05                     & 14.09
+        & 1.24                     & 0.4188
+        & 0.5298                   & 0.79                           \\
+        & 0.15
+        & 14.10                    & 0.05                & 14.09
+        & ---                      & ---
+        & 1.00                     & 0.5915
+        & 0.7324                   & 0.81                           \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 The fixed-share throughput in Table~\ref{tab:x3-matched} is therefore not read
 straight out of Table~\ref{tab:x3-summary}. It is interpolated linearly between
 the two neighbouring rows of that table at the $p_{95}$ of the adaptive run, so
@@ -1053,11 +1336,10 @@ adaptive rows are faster. The largest gap is at $R = 5$ and $c = 0.02$. There
 the adaptive oracle gives 0.1885\,tps and the interpolated fixed-share value is
 0.1690\,tps, a ratio of 1.12. The gap is more than three seed standard
 deviations, which are 0.0040\,tps for the adaptive run and 0.0033 and
-0.0060\,tps for the two neighbours. At $R = 10$ and $R = 15$ the adaptive
-oracle is slower in almost every row. At $R = 10$: ratios 1.04, 0.94, 0.90 and
-0.86. At $R = 15$: ratios 0.85, 0.86, 0.79 and 0.81. The only faster row at
-these $R$ is $R = 10$, $c = 0.02$, whose nearest neighbour is far away ($d =
-  2.09$).
+0.0060\,tps for the two neighbours. At $R = 10$ and $R = 15$ the adaptive oracle
+is slower in almost every row. At $R = 10$: ratios 1.04, 0.94, 0.90 and 0.86. At
+$R = 15$: ratios 0.85, 0.86, 0.79 and 0.81. The only faster row at these $R$ is
+$R = 10$, $c = 0.02$, whose nearest neighbour is far away ($d = 2.09$).
 
 Restricting the comparison to the ten close rows, those where the nearest
 neighbour lies within 12\,\%, shows the same dependence on $R$
@@ -1065,143 +1347,65 @@ neighbour lies within 12\,\%, shows the same dependence on $R$
 and 1.12. At $R = 10$ and $R = 15$ they are 0.94, 0.85 and 0.81. In all ten rows
 the two oracles land on almost the same $\phi_{\mathrm{comp}}$ at matched
 inconsistency. In different ways they control the same thing, the ACID share of
-the completed work. The time share $\phi_{\mathrm{time}}$ differs more. In
-seven of the ten rows the adaptive oracle has the higher value. This comparison
-has to be read with care, because the two oracles measure $\phi_{\mathrm{time}}$
-in different ways (Section~\ref{sec:exp-metrics}). For the adaptive oracle it
-is the time in the global ACID mode. For the fixed-share oracle it is the time
+the completed work. The time share $\phi_{\mathrm{time}}$ differs more. In seven
+of the ten rows the adaptive oracle has the higher value. This comparison has to
+be read with care, because the two oracles measure $\phi_{\mathrm{time}}$ in
+different ways (Section~\ref{sec:exp-metrics}). For the adaptive oracle it is
+the time in the global ACID mode. For the fixed-share oracle it is the time
 after ACID draws.
 
 \begin{table}[!htbp]
   \centering
   \captionsetup{format=plain,justification=centering}
-  \caption{X3: throughput at matched inconsistency.}
-  \label{tab:x3-matched}
-  \small
-  \setlength{\tabcolsep}{4.5pt}
-  \begin{tabular}{r r r r r r r c r r c}
-    \toprule
-                             &                                                     & adaptive            & \multicolumn{2}{c}{\shortstack{cleaner\\neighbour}}
-                             & \multicolumn{2}{c}{\shortstack{dirtier\\neighbour}} &
-    \shortstack{To\\nearest} & \multicolumn{2}{c}{Thr.\ (tps)}                     &
-    \\
-    \cmidrule(lr){3-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-8}\cmidrule(lr){9-10}
-    $R$                      & $c$                                                 & $p_{95}$            & $p_{\mathrm{acid}}$
-                             & $p_{95}$                                            & $p_{\mathrm{acid}}$
-                             & $p_{95}$                                            & $d$                 & adaptive                                            & fixed  & Ratio \\
-    \midrule
-    1                        & 0.02                                                & 3.31                & 0.50
-                             & 3.10                                                & 0.25
-                             & 7.73                                                & 1.07                & 0.0907                                              & 0.0839 & 1.08  \\
-                             & 0.05                                                & 6.09                & 0.50
-                             & 3.10                                                & 0.25
-                             & 7.73                                                & 1.27                & 0.0732                                              & 0.0769 & 0.95  \\
-                             & 0.10                                                & 10.47               & 0.25
-                             & 7.73                                                & 0.15
-                             & 11.16                                               & 1.07                & 0.0711                                              & 0.0721 & 0.99  \\
-                             & 0.15                                                & 14.92               & 0.10
-                             & 14.73                                               & 0.05
-                             & 21.73                                               & 1.01                & 0.0788                                              & 0.0784 & 1.01  \\
-                             & 0.20                                                & 19.14               & 0.10
-                             & 14.73                                               & 0.05
-                             & 21.73                                               & 1.14                & 0.0908                                              & 0.0940 & 0.97  \\
-    \midrule
-    5                        & 0.02                                                & 3.11                & 0.50
-                             & 0.29                                                & 0.25
-                             & 3.49                                                & 1.12                & 0.1885                                              & 0.1690 & 1.12  \\
-                             & 0.05                                                & 6.23                & 0.25
-                             & 3.49                                                & 0.15
-                             & 10.32                                               & 1.66                & 0.2308                                              & 0.2141 & 1.08  \\
-                             & 0.10                                                & 10.62               & 0.15
-                             & 10.32                                               & 0.10
-                             & 13.72                                               & 1.03                & 0.2793                                              & 0.2697 & 1.04  \\
-                             & 0.15                                                & 14.90               & 0.10
-                             & 13.72                                               & 0.05
-                             & 20.25                                               & 1.09                & 0.3310                                              & 0.3362 & 0.98  \\
-                             & 0.20                                                & 19.20               & 0.10
-                             & 13.72                                               & 0.05
-                             & 20.25                                               & 1.05                & 0.3994                                              & 0.4058 & 0.98  \\
-    \midrule
-    10                       & 0.02                                                & 2.54                & 0.25
-                             & 1.00                                                & 0.15
-                             & 5.31                                                & 2.09                & 0.2345                                              & 0.2253 & 1.04  \\
-                             & 0.05                                                & 5.40                & 0.15
-                             & 5.31                                                & 0.10
-                             & 11.15                                               & 1.02                & 0.2885                                              & 0.3072 & 0.94  \\
-                             & 0.10                                                & 9.80                & 0.15
-                             & 5.31                                                & 0.10
-                             & 11.15                                               & 1.14                & 0.3560                                              & 0.3960 & 0.90  \\
-                             & 0.15                                                & 14.18               & 0.10
-                             & 11.15                                               & 0.05
-                             & 17.04                                               & 1.20                & 0.4509                                              & 0.5260 & 0.86  \\
-    \midrule
-    15                       & 0.02                                                & 1.96                & 0.15
-                             & 1.91                                                & 0.10
-                             & 7.37                                                & 1.02                & 0.2650                                              & 0.3102 & 0.85  \\
-                             & 0.05                                                & 4.68                & 0.15
-                             & 1.91                                                & 0.10
-                             & 7.37                                                & 1.57                & 0.3319                                              & 0.3846 & 0.86  \\
-                             & 0.10                                                & 9.13                & 0.10
-                             & 7.37                                                & 0.05
-                             & 14.09                                               & 1.24                & 0.4188                                              & 0.5298 & 0.79  \\
-                             & 0.15                                                & 14.10               & 0.05
-                             & 14.09                                               & ---
-                             & ---                                                 & 1.00                & 0.5915                                              & 0.7324 & 0.81  \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{table}[!htbp]
-  \centering
-  \captionsetup{format=plain,justification=centering}
-  \caption{X3: the ten closest rows matched by inconsistency.}
+  \caption{X3: ten closest matches.}
   \label{tab:x3-close}
   \small
   \setlength{\tabcolsep}{4pt}
   \begin{tabular}{r r c r r r r r r r r}
     \toprule
-                                                                 &       & nearest  &       & \multicolumn{3}{c}{Thr.\ (tps)} &
+                                                                 &       &
+    nearest                                                      &       & \multicolumn{3}{c}{Thr.\ (tps)} &
     \multicolumn{2}{c}{$\phi_{\mathrm{time}}$}                   &
-    \multicolumn{2}{c}{$\phi_{\mathrm{comp}}$}
-    \\
+    \multicolumn{2}{c}{$\phi_{\mathrm{comp}}$}                                                                                           \\
     \cmidrule(lr){5-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11} $R$ & $c$   &
-    $p_{\mathrm{acid}}$                                          & $d$   & adaptive & fixed
-                                                                 & Ratio & adaptive & fixed & adaptive                        &
-    fixed                                                                                                                       \\
+    $p_{\mathrm{acid}}$                                          & $d$   &
+    adaptive                                                     & fixed & Ratio                           & adaptive & fixed & adaptive
+                                                                 & fixed
+    \\
     \midrule
-    1                                                            & 0.02  & 0.50     & 1.07  & 0.0907                          &
-    0.0839                                                       & 1.08
-                                                                 & 0.696 & 0.603    & 0.477 & 0.487                             \\
-                                                                 & 0.10  & 0.15     & 1.07  & 0.0711                          &
-    0.0721                                                       & 0.99
-                                                                 & 0.500 & 0.361    & 0.122 & 0.162                             \\
-                                                                 & 0.15  & 0.10     & 1.01  & 0.0788                          &
-    0.0784                                                       & 1.01
-                                                                 & 0.434 & 0.323    & 0.075 & 0.094                             \\
+    1                                                            & 0.02  & 0.50
+                                                                 & 1.07  & 0.0907                          & 0.0839
+                                                                 & 1.08  & 0.696                           & 0.603    & 0.477 & 0.487    \\
+                                                                 & 0.10  & 0.15
+                                                                 & 1.07  & 0.0711                          & 0.0721
+                                                                 & 0.99  & 0.500                           & 0.361    & 0.122 & 0.162    \\
+                                                                 & 0.15  & 0.10
+                                                                 & 1.01  & 0.0788                          & 0.0784
+                                                                 & 1.01  & 0.434                           & 0.323    & 0.075 & 0.094    \\
     \midrule
-    5                                                            & 0.02  & 0.25     & 1.12  & 0.1885                          &
-    0.1690                                                       & 1.12
-                                                                 & 0.332 & 0.370    & 0.237 & 0.277                             \\
-                                                                 & 0.10  & 0.15     & 1.03  & 0.2793                          &
-    0.2697                                                       & 1.04
-                                                                 & 0.329 & 0.230    & 0.134 & 0.143                             \\
-                                                                 & 0.15  & 0.10     & 1.09  & 0.3310                          &
-    0.3362                                                       & 0.98
-                                                                 & 0.320 & 0.176    & 0.086 & 0.090                             \\
-                                                                 & 0.20  & 0.05     & 1.05  & 0.3994                          &
-    0.4058                                                       & 0.98
-                                                                 & 0.308 & 0.138    & 0.058 & 0.057                             \\
+    5                                                            & 0.02  & 0.25
+                                                                 & 1.12  & 0.1885                          & 0.1690
+                                                                 & 1.12  & 0.332                           & 0.370    & 0.237 & 0.277    \\
+                                                                 & 0.10  & 0.15
+                                                                 & 1.03  & 0.2793                          & 0.2697
+                                                                 & 1.04  & 0.329                           & 0.230    & 0.134 & 0.143    \\
+                                                                 & 0.15  & 0.10
+                                                                 & 1.09  & 0.3310                          & 0.3362
+                                                                 & 0.98  & 0.320                           & 0.176    & 0.086 & 0.090    \\
+                                                                 & 0.20  & 0.05
+                                                                 & 1.05  & 0.3994                          & 0.4058
+                                                                 & 0.98  & 0.308                           & 0.138    & 0.058 & 0.057    \\
     \midrule
-    10                                                           & 0.05  & 0.15     & 1.02  & 0.2885                          &
-    0.3072                                                       & 0.94
-                                                                 & 0.203 & 0.211    & 0.155 & 0.148                             \\
+    10                                                           & 0.05  & 0.15
+                                                                 & 1.02  & 0.2885                          & 0.3072
+                                                                 & 0.94  & 0.203                           & 0.211    & 0.155 & 0.148    \\
     \midrule
-    15                                                           & 0.02  & 0.15     & 1.02  & 0.2650                          &
-    0.3102                                                       & 0.85
-                                                                 & 0.170 & 0.215    & 0.170 & 0.149                             \\
-                                                                 & 0.15  & 0.05     & 1.00  & 0.5915                          &
-    0.7324                                                       & 0.81
-                                                                 & 0.130 & 0.071    & 0.060 & 0.049                             \\
+    15                                                           & 0.02  & 0.15
+                                                                 & 1.02  & 0.2650                          & 0.3102
+                                                                 & 0.85  & 0.170                           & 0.215    & 0.170 & 0.149    \\
+                                                                 & 0.15  & 0.05
+                                                                 & 1.00  & 0.5915                          & 0.7324
+                                                                 & 0.81  & 0.130                           & 0.071    & 0.060 & 0.049    \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1212,99 +1416,155 @@ crosses the threshold $d_k \ge c$. This is when the system has reached the
 critical level of inconsistency allowed. The dirtier the system gets, the longer
 ACID transactions have to wait. Table~\ref{tab:x3-blocking} shows that at every
 $R$ a larger share of the adaptive ACID transactions is blocked on a dirty or
-BASE-claimed resource, and their mean wait is longer. This alone does not
+BASE-claimed resource, and their mean wait is longer. As in
+Table~\ref{tab:x3-matched}, the fixed-share values are interpolated at the
+adaptive $p_{95}$, so the blocked and aborted shares are ratios of interpolated
+counts, and the aborted share is aborts divided by aborts plus completed
+transactions. This alone does not
 explain the trend with $R$, because the blocked-share gap is just as large at $R
   = 5$, where the throughput of the two oracles is equal. The abort column follows
 the trend better. At $R = 1$ and $R = 5$ the adaptive oracle aborts fewer or
 about as many ACID attempts as fixed-share. At $R = 10$ and $R = 15$ it aborts
-more in every row except $R = 10$, $c = 0.02$. At $R = 15$ and $c = 0.10$: 7.7\,\% against 4.6\,\%. This is
-consistent with the complete switch of mode. While fixed-share starts ACID and
-BASE in some mix at all times, the adaptive oracle starts all transactions in
-ACID while the dirty fraction travels from the critical dirty threshold $c$
-back down to the recovery threshold $r$. That likely leads to more ACID
-transactions in flight at the same time, which compete for locks and abort more
-often. The number of ACID transactions in flight is not measured directly.
-
+more in every row except $R = 10$, $c = 0.02$. At $R = 15$ and $c = 0.10$:
+7.7\,\% against 4.6\,\%. This is consistent with the complete switch of mode.
+While fixed-share starts ACID and BASE in some mix at all times, the adaptive
+oracle starts all transactions in ACID while the dirty fraction travels from the
+critical dirty threshold $c$ back down to the recovery threshold $r$. That
+likely leads to more ACID transactions in flight at the same time, which compete
+for locks and abort more often. The number of ACID transactions in flight is not
+measured directly.
 
 \begin{table}[!htb]
   \centering
   \captionsetup{format=plain,justification=centering}
-  \caption{X3: ACID admissions, blocking and aborts at matched inconsistency.
-    The fixed-share values are interpolated at the adaptive $p_{95}$, as in
-    Table~\ref{tab:x3-matched}, and the blocked and aborted shares are ratios of
-    interpolated counts. Aborted is aborts divided by aborts plus completed
-    transactions.}
+  \caption{X3: ACID blocking and aborts.}
   \label{tab:x3-blocking}
   \small
   \setlength{\tabcolsep}{4pt}
   \begin{tabular}{r r c r r r r r r r r}
     \toprule
-                                     &                                     & nearest                          & \multicolumn{2}{c}{Adm.\ $A$} &
+                                     &                                     &
+    nearest                          & \multicolumn{2}{c}{Adm.\ $A$}       &
     \multicolumn{2}{c}{Blocked (\%)} & \multicolumn{2}{c}{\shortstack{Mean
-                                           ACID\\wait (s)}} & \multicolumn{2}{c}{Aborted (\%)}
-    \\
+                                           ACID\\wait (s)}} & \multicolumn{2}{c}{Aborted (\%)}                        \\
     \cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
-    $R$                              & $c$                                 & $p_{\mathrm{acid}}$              & adaptive                      & fixed
-                                     & adaptive                            & fixed
-                                     & adaptive                            & fixed                            & adaptive                      & fixed \\
+    $R$                              & $c$                                 &
+    $p_{\mathrm{acid}}$              & adaptive                            & fixed                            &
+    adaptive                         & fixed                               & adaptive
+                                     & fixed                               & adaptive                         & fixed
+    \\
     \midrule
-    1                                & 0.02                                & 0.50                             & 2633                          & 2544
-                                     & 54.6                                & 41.6
-                                     & 109.1                               & 99.4                             & 38.2                          & 41.6  \\
-                                     & 0.05                                & 0.25                             & 1171                          & 1595
-                                     & 72.2                                & 51.2
-                                     & 214.3                               & 179.1                            & 21.1                          & 29.8  \\
-                                     & 0.10                                & 0.15                             & 498                           & 667
-                                     & 85.5                                & 72.0
-                                     & 344.3                               & 294.3                            & 8.6                           & 11.7  \\
-                                     & 0.15                                & 0.10                             & 327                           & 406
-                                     & 92.7                                & 82.0
-                                     & 447.2                               & 393.4                            & 4.2                           & 5.3   \\
-                                     & 0.20                                & 0.05                             & 253                           & 319
-                                     & 99.0                                & 86.8
-                                     & 549.1                               & 484.1                            & 3.0                           & 3.7   \\
+    1                                & 0.02                                &
+    0.50                             & 2633
+                                     & 2544                                & 54.6
+                                     & 41.6                                & 109.1
+                                     & 99.4                                & 38.2
+                                     & 41.6                                                                           \\
+                                     & 0.05                                &
+    0.25                             & 1171
+                                     & 1595                                & 72.2
+                                     & 51.2                                & 214.3
+                                     & 179.1                               & 21.1
+                                     & 29.8                                                                           \\
+                                     & 0.10                                &
+    0.15                             & 498
+                                     & 667                                 & 85.5
+                                     & 72.0                                & 344.3
+                                     & 294.3                               & 8.6
+                                     & 11.7                                                                           \\
+                                     & 0.15                                &
+    0.10                             & 327
+                                     & 406                                 & 92.7
+                                     & 82.0                                & 447.2
+                                     & 393.4                               & 4.2
+                                     & 5.3                                                                            \\
+                                     & 0.20                                &
+    0.05                             & 253
+                                     & 319                                 & 99.0
+                                     & 86.8                                & 549.1
+                                     & 484.1                               & 3.0
+                                     & 3.7                                                                            \\
     \midrule
-    5                                & 0.02                                & 0.25                             & 2731                          & 2686
-                                     & 60.6                                & 38.1
-                                     & 23.2                                & 20.5                             & 19.8                          & 22.9  \\
-                                     & 0.05                                & 0.15                             & 2652                          & 2509
-                                     & 78.2                                & 49.9
-                                     & 43.1                                & 35.7                             & 15.9                          & 16.3  \\
-                                     & 0.10                                & 0.15                             & 2136                          & 2219
-                                     & 89.2                                & 66.0
-                                     & 67.8                                & 56.6                             & 9.2                           & 10.5  \\
-                                     & 0.15                                & 0.10                             & 1612                          & 1671
-                                     & 96.3                                & 77.1
-                                     & 88.7                                & 79.4                             & 5.9                           & 5.9   \\
-                                     & 0.20                                & 0.05                             & 1298                          & 1254
-                                     & 99.6                                & 85.0
-                                     & 107.3                               & 99.3                             & 3.9                           & 3.7   \\
+    5                                & 0.02                                &
+    0.25                             & 2731
+                                     & 2686                                & 60.6
+                                     & 38.1                                & 23.2
+                                     & 20.5                                & 19.8
+                                     & 22.9                                                                           \\
+                                     & 0.05                                &
+    0.15                             & 2652
+                                     & 2509                                & 78.2
+                                     & 49.9                                & 43.1
+                                     & 35.7                                & 15.9
+                                     & 16.3                                                                           \\
+                                     & 0.10                                &
+    0.15                             & 2136
+                                     & 2219                                & 89.2
+                                     & 66.0                                & 67.8
+                                     & 56.6                                & 9.2
+                                     & 10.5                                                                           \\
+                                     & 0.15                                &
+    0.10                             & 1612
+                                     & 1671                                & 96.3
+                                     & 77.1                                & 88.7
+                                     & 79.4                                & 5.9
+                                     & 5.9                                                                            \\
+                                     & 0.20                                &
+    0.05                             & 1298
+                                     & 1254                                & 99.6
+                                     & 85.0                                & 107.3
+                                     & 99.3                                & 3.9
+                                     & 3.7                                                                            \\
     \midrule
-    10                               & 0.02                                & 0.15                             & 2709                          & 2676
-                                     & 60.7                                & 36.9
-                                     & 11.7                                & 10.1                             & 14.9                          & 15.8  \\
-                                     & 0.05                                & 0.15                             & 2689                          & 2627
-                                     & 77.1                                & 49.4
-                                     & 21.1                                & 18.3                             & 12.6                          & 10.2  \\
-                                     & 0.10                                & 0.10                             & 2487                          & 2452
-                                     & 87.2                                & 61.4
-                                     & 34.1                                & 28.6                             & 9.4                           & 7.1   \\
-                                     & 0.15                                & 0.05                             & 2160                          & 2050
-                                     & 91.6                                & 72.2
-                                     & 45.5                                & 40.7                             & 6.7                           & 4.3   \\
+    10                               & 0.02                                &
+    0.15                             & 2709
+                                     & 2676                                & 60.7
+                                     & 36.9                                & 11.7
+                                     & 10.1                                & 14.9
+                                     & 15.8                                                                           \\
+                                     & 0.05                                &
+    0.15                             & 2689
+                                     & 2627                                & 77.1
+                                     & 49.4                                & 21.1
+                                     & 18.3                                & 12.6
+                                     & 10.2                                                                           \\
+                                     & 0.10                                &
+    0.10                             & 2487
+                                     & 2452                                & 87.2
+                                     & 61.4                                & 34.1
+                                     & 28.6                                & 9.4
+                                     & 7.1                                                                            \\
+                                     & 0.15                                &
+    0.05                             & 2160
+                                     & 2050                                & 91.6
+                                     & 72.2                                & 45.5
+                                     & 40.7                                & 6.7
+                                     & 4.3                                                                            \\
     \midrule
-    15                               & 0.02                                & 0.15                             & 2695                          & 2652
-                                     & 55.5                                & 39.1
-                                     & 7.0                                 & 6.4                              & 12.0                          & 9.2   \\
-                                     & 0.05                                & 0.10                             & 2644                          & 2612
-                                     & 73.6                                & 47.1
-                                     & 14.0                                & 11.5                             & 9.6                           & 7.1   \\
-                                     & 0.10                                & 0.10                             & 2463                          & 2423
-                                     & 84.7                                & 59.8
-                                     & 23.7                                & 19.9                             & 7.7                           & 4.6   \\
-                                     & 0.15                                & 0.05                             & 2091                          & 2001
-                                     & 90.0                                & 76.2
-                                     & 31.6                                & 29.3                             & 4.5                           & 2.7   \\
+    15                               & 0.02                                &
+    0.15                             & 2695
+                                     & 2652                                & 55.5
+                                     & 39.1                                & 7.0
+                                     & 6.4                                 & 12.0
+                                     & 9.2                                                                            \\
+                                     & 0.05                                &
+    0.10                             & 2644
+                                     & 2612                                & 73.6
+                                     & 47.1                                & 14.0
+                                     & 11.5                                & 9.6
+                                     & 7.1                                                                            \\
+                                     & 0.10                                &
+    0.10                             & 2463
+                                     & 2423                                & 84.7
+                                     & 59.8                                & 23.7
+                                     & 19.9                                & 7.7
+                                     & 4.6                                                                            \\
+                                     & 0.15                                &
+    0.05                             & 2091
+                                     & 2001                                & 90.0
+                                     & 76.2                                & 31.6
+                                     & 29.3                                & 4.5
+                                     & 2.7                                                                            \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1323,11 +1583,12 @@ that was measured afterwards for each $R$. The $p_{\mathrm{acid}}$ that gives a
 $p_{95}$ of about 10\,\% moves from about 0.17 at $R = 1$ to about 0.08 at $R =
   15$. An operator would have to tune the share again for each $R$ and each
 workload, while the adaptive oracle uses the same $c = 0.10$ everywhere. Second,
-fixed-share is much noisier across seeds. The median coefficient of variation
-of its $p_{95}$ is 8.6\,\%, against about 0.7\,\% for the adaptive oracle. If
-this tuning effort and spread are acceptable, the fixed-share split between ACID
-and BASE could be a viable option.
+fixed-share is much noisier across seeds. The median coefficient of variation of
+its $p_{95}$ is 8.6\,\%, against about 0.7\,\% for the adaptive oracle. If this
+tuning effort and spread are acceptable, the fixed-share split between ACID and
+BASE could be a viable option.
 
+\FloatBarrier
 \findingshead
 
 \begin{bullets}
@@ -1345,10 +1606,10 @@ and BASE could be a viable option.
   inconsistency the two oracles are close at $R = 1$ and $R = 5$, with a few
   adaptive rows faster (up to 1.12). At $R = 10$ and $R = 15$ the adaptive
   oracle is slower, with ratios down to 0.79, as the comparison in
-  Table~\ref{tab:x3-matched} shows. For RQ3 this means that, under a
-  stationary load, choosing the mode from the internal state does not
-  outperform a fixed split that was tuned for each configuration. Its advantage
-  is that one setting of $c$ holds across all reconciler counts (O5).
+  Table~\ref{tab:x3-matched} shows. For RQ3 this means that, under a stationary
+  load, choosing the mode from the internal state does not outperform a fixed
+  split that was tuned for each configuration. Its advantage is that one setting
+  of $c$ holds across all reconciler counts (O5).
 \end{bullets}
 
 \section{X4: Semantic overlap sweep}\label{sec:x4-overlap-sweep}
@@ -1361,10 +1622,10 @@ each run and keeps it fixed. A transaction that works on a shared resource
 spawns a bookkeeper transaction in another model. What happens next depends on
 the mode of the transaction (Section~\ref{sec:approach-completion}). Under BASE
 the root commits at once and the target resource stays dirty until a reconciler
-clears it. Under ACID the bookkeeper joins the group of the root, and the root holds
-its locks until the bookkeeper has finished. Semantic overlap therefore adds
-work on both sides in a hybrid run. It fills the reconciler queue under BASE,
-and it makes the ACID groups grow. A pure BASE root does not wait for its
+clears it. Under ACID the bookkeeper joins the group of the root, and the root
+holds its locks until the bookkeeper has finished. Semantic overlap therefore
+adds work on both sides in a hybrid run. It fills the reconciler queue under
+BASE, and it makes the ACID groups grow. A pure BASE root does not wait for its
 bookkeepers, so pure BASE throughput does not depend on $\sigma$ at all. It
 depends only on the $30 - R$ foreground processors. This is why the degenerate
 cells of Table~\ref{tab:x4-overlap} show the same throughput at every $\sigma$,
@@ -1376,122 +1637,151 @@ inconsistency. The \emph{semantic overlap} sets how dirty the system can become
 at most. It is therefore important to see how the threshold $c$ behaves under
 different values of the \emph{semantic overlap} $\sigma$.
 
-\paragraph{Experiment configuration.} The sweep covers $\sigma \in \{0.00,
-  0.05, 0.10, 0.20, 0.30, 0.50, 1.00\}$
-against $R \in \{1, 5, 10, 15\}$ over five seeds, so 140 runs, under
-\texttt{HYBRID\_ADAPTIVE} at the X1 baseline thresholds $c = 0.10$ and $r =
-  0.05$. The $\sigma = 0.30$ block is the baseline shared with every other
-experiment, and it reproduces the X1 adaptive rows. A cell in which the oracle
-never switches is marked degenerate. The columns are defined in
-Section~\ref{sec:exp-metrics}. The $p_{50}$ and $p_{95}$ columns come from the
-dirty fraction $d$ sampled at every simulator step. $d_k^{\mathrm{switch}}$ is
-the reading of the oracle. It is taken only at the moments when the
-oracle switches to ACID mode, and it is averaged over all switches of the run.
-Degenerate cells have no switch, so they have no value there.
+\paragraph{Experiment configuration.} The sweep covers $\sigma \in \{0.00, 0.05,
+  0.10, 0.20, 0.30, 0.50, 1.00\}$ against $R \in \{1, 5, 10, 15\}$ over five
+seeds, so 140 runs, under \texttt{HYBRID\_ADAPTIVE} at the X1 baseline
+thresholds $c = 0.10$ and $r = 0.05$. The $\sigma = 0.30$ block is the
+baseline shared with every other experiment, and it reproduces the X1 adaptive
+rows. A cell in which the oracle never switches is marked degenerate. The
+columns are defined in Section~\ref{sec:exp-metrics}. The $p_{50}$ and
+$p_{95}$ columns come from the dirty fraction $d$ sampled at every simulator
+step. $d_k^{\mathrm{switch}}$ is the reading of the oracle. It is taken only
+at the moments when the oracle switches to ACID mode, and it is averaged over
+all switches of the run. Degenerate cells have no switch, so they have no
+value there.
 
 \begin{table}[!htb]
   \centering
   \captionsetup{format=plain,justification=centering}
-  \caption{X4: results by semantic overlap and reconciler count.}
+  \caption{X4: results.}
   \label{tab:x4-overlap}
   \small
   \setlength{\tabcolsep}{4pt}
   \begin{tabular}{r r r r r r r r r r}
     \toprule
-    $\sigma$ & $R$     & $p_{50}$ (\%)          & $p_{95}$ (\%)          & $d_k^{\mathrm{switch}}$
-    (\%)     & Switch. & $\phi_{\mathrm{time}}$ & $\phi_{\mathrm{comp}}$ & Thr.\
-    (tps)    & Aborts                                                                                \\
+    $\sigma$                     & $R$         & $p_{50}$ (\%)          & $p_{95}$ (\%) &
+    $d_k^{\mathrm{switch}}$ (\%) & Switch.     & $\phi_{\mathrm{time}}$ &
+    $\phi_{\mathrm{comp}}$       & Thr.\ (tps) & Aborts
+    \\
     \midrule
-    0.00     & 1       & 0.00                   & 0.00                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 3.8685                  &
-    0.000                                                                                            \\
-    0.00     & 5       & 0.00                   & 0.00                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 3.3344                  &
-    0.000                                                                                            \\
-    0.00     & 10      & 0.00                   & 0.00                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 2.6681                  &
-    0.000                                                                                            \\
-    0.00     & 15      & 0.00                   & 0.00                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 2.0013                  &
-    0.000                                                                                            \\
+    0.00                         & 1           & 0.00                   & 0.00          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 3.8685
+                                 & 0.000
+    \\
+    0.00                         & 5           & 0.00                   & 0.00          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 3.3344
+                                 & 0.000
+    \\
+    0.00                         & 10          & 0.00                   & 0.00          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 2.6681
+                                 & 0.000
+    \\
+    0.00                         & 15          & 0.00                   & 0.00          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 2.0013
+                                 & 0.000
+    \\
     \midrule
-    0.05     & 1       & 4.50                   & 4.62                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 3.8685                  &
-    0.000                                                                                            \\
-    0.05     & 5       & 2.14                   & 2.43                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 3.3344                  &
-    0.000                                                                                            \\
-    0.05     & 10      & 0.08                   & 0.22                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 2.6681                  &
-    0.000                                                                                            \\
-    0.05     & 15      & 0.04                   & 0.15                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 2.0013                  &
-    0.000                                                                                            \\
+    0.05                         & 1           & 4.50                   & 4.62          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 3.8685
+                                 & 0.000
+    \\
+    0.05                         & 5           & 2.14                   & 2.43          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 3.3344
+                                 & 0.000
+    \\
+    0.05                         & 10          & 0.08                   & 0.22          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 2.6681
+                                 & 0.000
+    \\
+    0.05                         & 15          & 0.04                   & 0.15          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 2.0013
+                                 & 0.000
+    \\
     \midrule
-    0.10     & 1       & 9.50                   & 9.62                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 3.8685                  &
-    0.000                                                                                            \\
-    0.10     & 5       & 7.16                   & 7.47                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 3.3344                  &
-    0.000                                                                                            \\
-    0.10     & 10      & 3.20                   & 3.66                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 2.6681                  &
-    0.000                                                                                            \\
-    0.10     & 15      & 0.14                   & 0.35                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 2.0013                  &
-    0.000                                                                                            \\
+    0.10                         & 1           & 9.50                   & 9.62          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 3.8685
+                                 & 0.000
+    \\
+    0.10                         & 5           & 7.16                   & 7.47          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 3.3344
+                                 & 0.000
+    \\
+    0.10                         & 10          & 3.20                   & 3.66          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 2.6681
+                                 & 0.000
+    \\
+    0.10                         & 15          & 0.14                   & 0.35          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 2.0013
+                                 & 0.000
+    \\
     \midrule
-    0.20     & 1       & 5.52                   & 10.04                  & 10.08
-             & 50.8    & 0.4236                 & 0.0878                 & 0.1347                  &
-    0.031                                                                                            \\
-    0.20     & 5       & 2.45                   & 9.98                   & 10.11
-             & 157.0   & 0.2822                 & 0.0989                 & 0.4986                  &
-    0.043                                                                                            \\
-    0.20     & 10      & 0.20                   & 9.46                   & 10.09
-             & 159.2   & 0.1601                 & 0.0764                 & 0.6814                  &
-    0.038                                                                                            \\
-    0.20     & 15      & 7.54                   & 8.23                   & --
-             & deg.    & 0.0000                 & 0.0000                 & 2.0013                  &
-    0.000                                                                                            \\
+    0.20                         & 1           & 5.52                   & 10.04         & 10.08
+                                 & 50.8        & 0.4236                 & 0.0878        &
+    0.1347                       & 0.031
+    \\
+    0.20                         & 5           & 2.45                   & 9.98          & 10.11
+                                 & 157.0       & 0.2822                 & 0.0989        &
+    0.4986                       & 0.043
+    \\
+    0.20                         & 10          & 0.20                   & 9.46          & 10.09
+                                 & 159.2       & 0.1601                 & 0.0764        &
+    0.6814                       & 0.038
+    \\
+    0.20                         & 15          & 7.54                   & 8.23          & --    &
+    deg.                         & 0.0000      & 0.0000                 & 2.0013
+                                 & 0.000
+    \\
     \midrule
-    0.30     & 1       & 5.73                   & 10.47                  & 10.15
-             & 46.4    & 0.4998                 & 0.1221                 & 0.0711                  &
-    0.086                                                                                            \\
-    0.30     & 5       & 3.00                   & 10.62                  & 10.18
-             & 137.4   & 0.3290                 & 0.1336                 & 0.2793                  &
-    0.092                                                                                            \\
-    0.30     & 10      & 0.17                   & 9.80                   & 10.19
-             & 144.4   & 0.1974                 & 0.1183                 & 0.3560                  &
-    0.094                                                                                            \\
-    0.30     & 15      & 0.02                   & 9.13                   & 10.14
-             & 138.0   & 0.1377                 & 0.1003                 & 0.4188                  &
-    0.077                                                                                            \\
+    0.30                         & 1           & 5.73                   & 10.47         & 10.15
+                                 & 46.4        & 0.4998                 & 0.1221        &
+    0.0711                       & 0.086
+    \\
+    0.30                         & 5           & 3.00                   & 10.62         & 10.18
+                                 & 137.4       & 0.3290                 & 0.1336        &
+    0.2793                       & 0.092
+    \\
+    0.30                         & 10          & 0.17                   & 9.80          & 10.19
+                                 & 144.4       & 0.1974                 & 0.1183        &
+    0.3560                       & 0.094
+    \\
+    0.30                         & 15          & 0.02                   & 9.13          & 10.14
+                                 & 138.0       & 0.1377                 & 0.1003        &
+    0.4188                       & 0.077
+    \\
     \midrule
-    0.50     & 1       & 6.31                   & 11.46                  & 10.21
-             & 35.6    & 0.5925                 & 0.1694                 & 0.0303                  &
-    0.177                                                                                            \\
-    0.50     & 5       & 4.39                   & 11.47                  & 10.31
-             & 102.4   & 0.3893                 & 0.1679                 & 0.1242                  &
-    0.164                                                                                            \\
-    0.50     & 10      & 0.56                   & 10.87                  & 10.41
-             & 104.8   & 0.2344                 & 0.1504                 & 0.1634                  &
-    0.180                                                                                            \\
-    0.50     & 15      & 0.03                   & 9.67                   & 10.37
-             & 106.6   & 0.1767                 & 0.1349                 & 0.1841                  &
-    0.168                                                                                            \\
+    0.50                         & 1           & 6.31                   & 11.46         & 10.21
+                                 & 35.6        & 0.5925                 & 0.1694        &
+    0.0303                       & 0.177
+    \\
+    0.50                         & 5           & 4.39                   & 11.47         & 10.31
+                                 & 102.4       & 0.3893                 & 0.1679        &
+    0.1242                       & 0.164
+    \\
+    0.50                         & 10          & 0.56                   & 10.87         & 10.41
+                                 & 104.8       & 0.2344                 & 0.1504        &
+    0.1634                       & 0.180
+    \\
+    0.50                         & 15          & 0.03                   & 9.67          & 10.37
+                                 & 106.6       & 0.1767                 & 0.1349        &
+    0.1841                       & 0.168
+    \\
     \midrule
-    1.00     & 1       & 10.79                  & 22.51                  & 10.73
-             & 11.4    & 0.7720                 & 0.2941                 & 0.0069                  &
-    0.303                                                                                            \\
-    1.00     & 5       & 4.32                   & 17.79                  & 10.58
-             & 29.2    & 0.4341                 & 0.2639                 & 0.0228                  &
-    0.374                                                                                            \\
-    1.00     & 10      & 0.56                   & 16.02                  & 10.73
-             & 35.6    & 0.2880                 & 0.2145                 & 0.0303                  &
-    0.355                                                                                            \\
-    1.00     & 15      & 0.00                   & 14.53                  & 10.67
-             & 39.2    & 0.2367                 & 0.1925                 & 0.0345                  &
-    0.327                                                                                            \\
+    1.00                         & 1           & 10.79                  & 22.51         & 10.73
+                                 & 11.4        & 0.7720                 & 0.2941        &
+    0.0069                       & 0.303
+    \\
+    1.00                         & 5           & 4.32                   & 17.79         & 10.58
+                                 & 29.2        & 0.4341                 & 0.2639        &
+    0.0228                       & 0.374
+    \\
+    1.00                         & 10          & 0.56                   & 16.02         & 10.73
+                                 & 35.6        & 0.2880                 & 0.2145        &
+    0.0303                       & 0.355
+    \\
+    1.00                         & 15          & 0.00                   & 14.53         & 10.67
+                                 & 39.2        & 0.2367                 & 0.1925        &
+    0.0345                       & 0.327
+    \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1501,17 +1791,17 @@ Degenerate cells have no switch, so they have no value there.
 Table~\ref{tab:x4-overlap} are degenerate, and they are not random. Every cell
 at $\sigma \le 0.10$ degenerates at every $R$, and so does $\sigma = 0.20$ at
 $R = 15$. Those rows are pure BASE runs. The reason is that the semantic
-overlap sets a hard ceiling on how much inconsistency is possible by design. The
-oracle engages only where its reading $d_k$ reaches the threshold. At $\sigma =
-  0.10$ the ceiling equals $c = 10\,\%$. One reconciler does not keep up. At $R
-  = 1$ the dirty fraction is already pinned near the ceiling, with a $p_{95}$ of
-9.62\,\%. It stays just under $c$ only because some repair targets collide. The
-same happens at $\sigma = 0.05$, where the $p_{95}$ at $R = 1$ is 4.62\,\%
-against a ceiling of 5\,\%. In the cells where the oracle does engage, more
-semantic overlap raises the cost of a transaction. As a result throughput falls,
-aborts rise, and the system spends more time in ACID. At $R = 1$:
-$\phi_{\mathrm{time}}$ rises from 0.42 at $\sigma = 0.20$ to 0.77 at $\sigma =
-  1.00$.
+overlap sets a hard ceiling on how much inconsistency is possible by design.
+The oracle engages only where its reading $d_k$ reaches the threshold. At
+$\sigma = 0.10$ the ceiling equals $c = 10\,\%$. One reconciler does not keep
+up. At $R = 1$ the dirty fraction is already pinned near the ceiling, with a
+$p_{95}$ of 9.62\,\%. It stays just under $c$ only because some repair targets
+collide. The same happens at $\sigma = 0.05$, where the $p_{95}$ at $R = 1$ is
+4.62\,\% against a ceiling of 5\,\%. In the cells where the oracle does
+engage, more semantic overlap raises the cost of a transaction. As a result
+throughput falls, aborts rise, and the system spends more time in ACID. At $R
+  = 1$: $\phi_{\mathrm{time}}$ rises from 0.42 at $\sigma = 0.20$ to 0.77 at
+$\sigma = 1.00$.
 
 Figure~\ref{fig:x4-overlap-interval} plots the measured inconsistency against
 \emph{semantic overlap} $\sigma$, with the configured critical dirty threshold
@@ -1520,10 +1810,10 @@ $c$ as the dashed line. In the shaded range from $\sigma = 0.20$ to $\sigma =
 cells there, as seed means, it is at most 0.87 percentage points away from $c$.
 Per seed the deviation reaches 0.90. The shaded range also contains one
 degenerate cell, $\sigma = 0.20$ at $R = 15$, with a $p_{95}$ of 8.23\,\%. The
-0.87 comes from the baseline cell $\sigma = 0.30$, $R = 15$, which is shared with
-X1 and X5. At $\sigma = 0.50$ the threshold starts to drift. $R = 10$ and $R =
-  15$ are still within 0.87 (10.87\,\% and 9.67\,\%), while $R = 1$ and $R = 5$
-are 1.46 and 1.47 percentage points above $c$. That is still close to what X2
+0.87 comes from the baseline cell $\sigma = 0.30$, $R = 15$, which is shared
+with X1 and X5. At $\sigma = 0.50$ the threshold starts to drift. $R = 10$ and
+$R = 15$ are still within 0.87 (10.87\,\% and 9.67\,\%), while $R = 1$ and $R =
+  5$ are 1.46 and 1.47 percentage points above $c$. That is still close to what X2
 accepts. At $\sigma = 1.00$ the threshold no longer holds, with a $p_{95}$ of up
 to 22.51\,\%.
 
@@ -1555,12 +1845,12 @@ Those transactions keep writing, and every write to an overlapped resource
 spawns a bookkeeper that inherits the BASE tag of its root, unless the target is
 already dirty. The higher $\sigma$ is, the more of this background work each
 write creates. Cascades happen at any $\sigma$, because each hop matches a rule
-with probability $\sigma$. At $\sigma = 1.00$ every write matches, so the
-writes of each root transaction cascade into bookkeepers that spawn further
+with probability $\sigma$. At $\sigma = 1.00$ every write matches, so the writes
+of each root transaction cascade into bookkeepers that spawn further
 bookkeepers. They dirty more resources than the root transaction touched
 directly, and most likely they push the in-flight work past the threshold on
-their own. No metric separates these marks from the reconciler backlog, which
-is another possible source.
+their own. No metric separates these marks from the reconciler backlog, which is
+another possible source.
 
 At full overlap that cascade looks endless. Every resource carries a rule, so
 the resource a bookkeeper writes carries one too. The simulator bounds the
@@ -1572,10 +1862,11 @@ $\sigma$ do chains often reach it.
 \findingshead
 
 \begin{bullets}
-  \item[O10. $c$ holds only inside a range of $\sigma$.] The oracle needs enough overlap to fire at all. It also needs the
-  overlap to stay small enough that one write does not dirty a large share of
-  the resources in the background. Between those two limits, in the shaded range
-  of Figure~\ref{fig:x4-overlap-interval}, the \emph{inconsistency level}
+  \item[O10. $c$ holds only inside a range of $\sigma$.] The oracle needs enough
+  overlap to fire at all. It also needs the overlap to stay small enough that
+  one write does not dirty a large share of the resources in the background.
+  Between those two limits, in the shaded range of
+  Figure~\ref{fig:x4-overlap-interval}, the \emph{inconsistency level}
   $p_{95}(d)$ lands where it was configured. Below the range every cell is a
   pure BASE run. Above it a single write reaches so far that the transactions
   already admitted keep marking resources dirty in the background. The oracle
@@ -1583,14 +1874,14 @@ $\sigma$ do chains often reach it.
   fixed before the switch. So the trigger holds, while the bound on $p_{95}$
   does not.
 
-  \item[O11. More reconcilers lower $p_{95}$ only partly.] The more the
-  models overlap, the more background work every write creates. That background
-  work comes from transactions that were tagged BASE before the switch. The
+  \item[O11. More reconcilers lower $p_{95}$ only partly.] The more the models
+  overlap, the more background work every write creates. That background work
+  comes from transactions that were tagged BASE before the switch. The
   transactions admitted after the switch pay the same overlap in the foreground
   instead, because every bookkeeper joins the group of its root. More
   reconciliation processors lower $p_{95}$, but they cannot bring it back to $c$
-  at high $\sigma$. At $\sigma = 1.00$: 22.51\,\% at $R = 1$ and 14.53\,\% at
-  $R = 15$. At $\sigma = 0.50$: 11.46\,\% at $R = 1$ and 9.67\,\% at $R = 15$.
+  at high $\sigma$. At $\sigma = 1.00$: 22.51\,\% at $R = 1$ and 14.53\,\% at $R
+    = 15$. At $\sigma = 0.50$: 11.46\,\% at $R = 1$ and 9.67\,\% at $R = 15$.
 \end{bullets}
 
 \section{X5: Max number of resources per transaction
@@ -1600,17 +1891,110 @@ $L$ (\texttt{maxTransactionResources}) is the largest number of resources a
 single transaction may touch. Each transaction draws its size uniformly from $1$
 to $L$ and spreads those resources over up to four of the ten models. All other
 settings stay the same as in Table~\ref{tab:exp-baseline}. $L$ only decides how
-heavy one transaction is. Like X4, this experiment extends the answer to RQ2.
-It tests whether the critical dirty threshold $c$ still holds when transactions
+heavy one transaction is. Like X4, this experiment extends the answer to RQ2. It
+tests whether the critical dirty threshold $c$ still holds when transactions
 become lighter or heavier.
 
-\paragraph{Experiment configuration.} The sweep covers $L \in \{5, 10, 25, 50, 100, 200\}$ against $R \in \{1, 5, 10,
-  15\}$ over five seeds, 120 runs in total, under \texttt{HYBRID\_ADAPTIVE} with
-$c = 0.10$, $r = 0.05$ and $\sigma = 0.30$. In Table~\ref{tab:x5-resources},
-\emph{Lat.}\ is the mean transaction latency from creation to commit, and
-\emph{Aborts} is the share of finished attempts that aborted
-(Section~\ref{sec:exp-metrics}). Aborts are counted as events, so one
-transaction can abort more than once.
+\paragraph{Experiment configuration.} The sweep covers $L \in \{5, 10, 25, 50,
+  100, 200\}$ against $R \in \{1, 5, 10, 15\}$ over five seeds, 120 runs in
+total, under \texttt{HYBRID\_ADAPTIVE} with $c = 0.10$, $r = 0.05$ and $\sigma
+  = 0.30$. In Table~\ref{tab:x5-resources}, \emph{Lat.}\ is the mean transaction
+latency from creation to commit, and \emph{Aborts} is the share of finished
+attempts that aborted (Section~\ref{sec:exp-metrics}). Aborts are counted as
+events, so one transaction can abort more than once.
+
+\begin{table}[!htb]
+  \centering
+  \captionsetup{format=plain,justification=centering}
+  \caption{X5: results.}
+  \label{tab:x5-resources}
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{0.92}
+  \begin{tabular}{r r r r r r r r r}
+    \toprule
+    $L$ & $R$         & $p_{50}$ (\%) & $p_{95}$ (\%) & $p_{99}$ (\%) & Switch.
+        & Thr.\ (tps) & Lat.\ (s)     & Aborts
+    \\
+    \midrule
+    5   & 1           & 6.94          & 9.71          & 9.96          & 84.2
+        & 0.6032      & 27.2          & 0.002
+    \\
+    10  & 1           & 6.81          & 9.73          & 10.04         & 74.0
+        & 0.3316      & 57.3          & 0.005
+    \\
+    25  & 1           & 6.22          & 9.88          & 10.46         & 54.8
+        & 0.1381      & 159.1         & 0.021
+    \\
+    50  & 1           & 5.73          & 10.47         & 11.72         & 46.4
+        & 0.0711      & 340.5         & 0.086
+    \\
+    100 & 1           & 5.43          & 11.51         & 13.51         & 40.8
+        & 0.0360      & 675.0         & 0.223
+    \\
+    200 & 1           & 4.59          & 13.91         & 17.69         & 29.0
+        & 0.0180      & 1225.7        & 0.433
+    \\
+    \midrule
+    5   & 5           & 6.92          & 9.72          & 9.98          & 383.0
+        & 2.9429      & 5.7           & 0.000
+    \\
+    10  & 5           & 6.73          & 9.76          & 10.09         & 330.2
+        & 1.6028      & 12.2          & 0.002
+    \\
+    25  & 5           & 5.42          & 10.12         & 10.82         & 234.8
+        & 0.6603      & 33.3          & 0.015
+    \\
+    50  & 5           & 3.00          & 10.62         & 11.88         & 137.4
+        & 0.2793      & 85.5          & 0.092
+    \\
+    100 & 5           & 0.77          & 11.18         & 13.45         & 78.8
+        & 0.1093      & 234.2         & 0.296
+    \\
+    200 & 5           & 0.05          & 10.84         & 14.84         & 46.2
+        & 0.0434      & 592.8         & 0.524
+    \\
+    \midrule
+    5   & 10          & 6.22          & 9.69          & 10.00         & 634.0
+        & 5.5296      & 3.2           & 0.000
+    \\
+    10  & 10          & 5.16          & 9.71          & 10.14         & 512.4
+        & 2.9288      & 6.7           & 0.001
+    \\
+    25  & 10          & 1.97          & 9.82          & 10.59         & 268.8
+        & 0.9496      & 22.0          & 0.015
+    \\
+    50  & 10          & 0.17          & 9.80          & 11.23         & 144.4
+        & 0.3560      & 65.1          & 0.094
+    \\
+    100 & 10          & 0.00          & 9.49          & 12.14         & 77.6
+        & 0.1397      & 182.7         & 0.277
+    \\
+    200 & 10          & 0.00          & 8.32          & 13.32         & 40.2
+        & 0.0505      & 519.6         & 0.511
+    \\
+    \midrule
+    5   & 15          & 5.37          & 9.62          & 9.94          & 513.2
+        & 7.6077      & 2.7           & 0.000
+    \\
+    10  & 15          & 3.50          & 9.53          & 10.01         & 458.6
+        & 3.6942      & 6.0           & 0.000
+    \\
+    25  & 15          & 0.46          & 9.41          & 10.16         & 250.0
+        & 1.1263      & 19.9          & 0.008
+    \\
+    50  & 15          & 0.02          & 9.13          & 10.47         & 138.0
+        & 0.4188      & 55.7          & 0.077
+    \\
+    100 & 15          & 0.00          & 8.34          & 10.88         & 68.2
+        & 0.1545      & 165.0         & 0.257
+    \\
+    200 & 15          & 0.00          & 7.37          & 11.53         & 37.0
+        & 0.0590      & 452.7         & 0.473
+    \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \paragraph{A larger $L$ breaks the critical dirty threshold
   $c$.}\label{sec:x5-invariance} For $L \le 50$, the measured $p_{95}$ is at
@@ -1618,117 +2002,53 @@ most 0.87 percentage points away from the configured $c = 10\,\%$ at every
 reconciler count. This is the same margin as in X4, because it comes from the
 same baseline cell ($L = 50$, $\sigma = 0.30$, $R = 15$, with a $p_{95}$ of
 9.13\,\%). Per seed the gap reaches 0.90. Above $L = 50$ the threshold breaks,
-but not at every $R$ at once. At $R = 1$ and $R = 15$ it breaks from $L = 100$.
-At $R = 10$ it breaks only at $L = 200$, since $L = 100$ still gives 9.49\,\%.
-At $R = 5$ it stays close, with 11.18\,\% at $L = 100$ and 10.84\,\% at $L =
-  200$. The measured $p_{95}(d)$ either overshoots or undershoots $c$, depending
-on the number of reconciler processors $R$. Figure~\ref{fig:x5-size-band} shows
-that $c$ holds as a threshold only while transactions stay small.
+but not at every $R$ at once. At $R = 1$ and $R = 15$ it breaks from $L =
+  100$. At $R = 10$ it breaks only at $L = 200$, since $L = 100$ still gives
+9.49\,\%. At $R = 5$ it stays close, with 11.18\,\% at $L = 100$ and 10.84\,\%
+at $L = 200$. The measured $p_{95}(d)$ either overshoots or undershoots $c$,
+depending on the number of reconciler processors $R$.
+Figure~\ref{fig:x5-size-band} shows that $c$ holds as a threshold only while
+transactions stay small.
 
-The main reason for this deviation from $c$ at large $L$ is the cost of a
-transaction.
-With more resources, the number of collisions with other transactions grows. In
-addition, more background work is created. Table~\ref{tab:x5-resources} shows
-that the latency of transactions grows with $L$. It takes longer for a
-transaction to commit. As a result, throughput and admissions drop, and so does
-the number of switches. At $R = 1$ it falls from 84 to 29, and at $R = 10$ from
-634 to 40. Transactions most likely also wait longer in the queues, although
-only end-of-run queue lengths are recorded. The direction of the inconsistency
-level $p_{95}(d)$ is then decided by the number of reconciler processors $R$.
-With a small $R$, it takes longer to clear dirty resources, and this causes the
-overshoot. At $R = 1$ and $L = 200$: $p_{95}$ is 13.91\,\%. With $R \ge 10$,
-transactions wait and throughput is low, so the reconciler processors clear
-more dirty resources in the background. The $p_{95}$ then undershoots $c$. At
-$R = 15$ and $L = 200$: $p_{95}$ is 7.37\,\%. The $p_{99}$ column shows that the
-tail grows with $L$ at every $R$, also where $p_{95}$ undershoots.
-
-\begin{figure}[!tbp]
+\begin{figure}[!htb]
   \centering
   \includegraphics[width=0.7\textwidth]{x5_o12_size_band.pdf}
   \captionsetup{format=plain,justification=centering}
   \caption{X5: the measured tail against transaction size.}
   \label{fig:x5-size-band}
-
-  \vspace{12pt}
-
-  \captionsetup{format=plain,justification=centering}
-  \captionof{table}{X5: results by transaction size and reconciler count.}
-  \label{tab:x5-resources}
-  \small
-  \setlength{\tabcolsep}{4pt}
-  \renewcommand{\arraystretch}{0.92}
-  \begin{tabular}{r r r r r r r r r}
-    \toprule
-    $L$   & $R$       & $p_{50}$ (\%) & $p_{95}$ (\%) & $p_{99}$ (\%) & Switch. & Thr.\
-    (tps) & Lat.\ (s) & Aborts                                                           \\
-    \midrule
-    5     & 1         & 6.94          & 9.71          & 9.96          & 84.2    & 0.6032
-          & 27.2      & 0.002                                                            \\
-    10    & 1         & 6.81          & 9.73          & 10.04         & 74.0    & 0.3316
-          & 57.3      & 0.005                                                            \\
-    25    & 1         & 6.22          & 9.88          & 10.46         & 54.8    & 0.1381
-          & 159.1     & 0.021                                                            \\
-    50    & 1         & 5.73          & 10.47         & 11.72         & 46.4    & 0.0711
-          & 340.5     & 0.086                                                            \\
-    100   & 1         & 5.43          & 11.51         & 13.51         & 40.8    & 0.0360
-          & 675.0     & 0.223                                                            \\
-    200   & 1         & 4.59          & 13.91         & 17.69         & 29.0    & 0.0180
-          & 1225.7    & 0.433                                                            \\
-    \midrule
-    5     & 5         & 6.92          & 9.72          & 9.98          & 383.0   & 2.9429
-          & 5.7       & 0.000                                                            \\
-    10    & 5         & 6.73          & 9.76          & 10.09         & 330.2   & 1.6028
-          & 12.2      & 0.002                                                            \\
-    25    & 5         & 5.42          & 10.12         & 10.82         & 234.8   & 0.6603
-          & 33.3      & 0.015                                                            \\
-    50    & 5         & 3.00          & 10.62         & 11.88         & 137.4   & 0.2793
-          & 85.5      & 0.092                                                            \\
-    100   & 5         & 0.77          & 11.18         & 13.45         & 78.8    & 0.1093
-          & 234.2     & 0.296                                                            \\
-    200   & 5         & 0.05          & 10.84         & 14.84         & 46.2    & 0.0434
-          & 592.8     & 0.524                                                            \\
-    \midrule
-    5     & 10        & 6.22          & 9.69          & 10.00         & 634.0   & 5.5296
-          & 3.2       & 0.000                                                            \\
-    10    & 10        & 5.16          & 9.71          & 10.14         & 512.4   & 2.9288
-          & 6.7       & 0.001                                                            \\
-    25    & 10        & 1.97          & 9.82          & 10.59         & 268.8   & 0.9496
-          & 22.0      & 0.015                                                            \\
-    50    & 10        & 0.17          & 9.80          & 11.23         & 144.4   & 0.3560
-          & 65.1      & 0.094                                                            \\
-    100   & 10        & 0.00          & 9.49          & 12.14         & 77.6    & 0.1397
-          & 182.7     & 0.277                                                            \\
-    200   & 10        & 0.00          & 8.32          & 13.32         & 40.2    & 0.0505
-          & 519.6     & 0.511                                                            \\
-    \midrule
-    5     & 15        & 5.37          & 9.62          & 9.94          & 513.2   & 7.6077
-          & 2.7       & 0.000                                                            \\
-    10    & 15        & 3.50          & 9.53          & 10.01         & 458.6   & 3.6942
-          & 6.0       & 0.000                                                            \\
-    25    & 15        & 0.46          & 9.41          & 10.16         & 250.0   & 1.1263
-          & 19.9      & 0.008                                                            \\
-    50    & 15        & 0.02          & 9.13          & 10.47         & 138.0   & 0.4188
-          & 55.7      & 0.077                                                            \\
-    100   & 15        & 0.00          & 8.34          & 10.88         & 68.2    & 0.1545
-          & 165.0     & 0.257                                                            \\
-    200   & 15        & 0.00          & 7.37          & 11.53         & 37.0    & 0.0590
-          & 452.7     & 0.473                                                            \\
-    \bottomrule
-  \end{tabular}
 \end{figure}
 
+The main reason for this deviation from $c$ at large $L$ is the cost of a
+transaction. With more resources, the number of collisions with other
+transactions grows. In addition, more background work is created.
+Table~\ref{tab:x5-resources} shows that the latency of transactions grows with
+$L$. It takes longer for a transaction to commit. As a result, throughput and
+admissions drop, and so does the number of switches. At $R = 1$ it falls from 84
+to 29, and at $R = 10$ from 634 to 40. Transactions most likely also wait longer
+in the queues, although only end-of-run queue lengths are recorded. The
+direction of the inconsistency level $p_{95}(d)$ is then decided by the number
+of reconciler processors $R$. With a small $R$, it takes longer to clear dirty
+resources, and this causes the overshoot. At $R = 1$ and $L = 200$: $p_{95}$ is
+13.91\,\%. With $R \ge 10$, transactions wait and throughput is low, so the
+reconciler processors clear more dirty resources in the background. The $p_{95}$
+then undershoots $c$. At $R = 15$ and $L = 200$: $p_{95}$ is 7.37\,\%. The
+$p_{99}$ column shows that the tail grows with $L$ at every $R$, also where
+$p_{95}$ undershoots.
+
+\FloatBarrier
 \findingshead
 
 \begin{bullets}
-  \item[O12. Size is paid for in the foreground.] Large transactions take
-  much longer than their size alone explains, and they collide far more often. From $L = 5$ to $L = 200$ the mean size grows about 33 times. The mean
-  latency grows more. At $R = 1$: about 45 times. At $R = 15$: about 168 times.
-  At $L = 200$, between 43\,\% and 52\,\% of the finished attempts abort
-  (Aborts column of Table~\ref{tab:x5-resources}). The work per transaction
-  grows, but the work per second does not. For $R \ge 5$ resources become dirty
-  at a lower rate as $L$ grows, and at $R = 1$ the rate stays flat. Semantic
-  overlap loads the reconciler, while the transaction size $L$ is paid for in
-  waiting and in wasted work.
+  \item[O12. Size is paid for in the foreground.] Large transactions take much
+  longer than their size alone explains, and they collide far more often. From
+  $L = 5$ to $L = 200$ the mean size grows about 33 times. The mean latency
+  grows more. At $R = 1$: about 45 times. At $R = 15$: about 168 times. At $L =
+    200$, between 43\,\% and 52\,\% of the finished attempts abort (Aborts column
+  of Table~\ref{tab:x5-resources}). The work per transaction grows, but the work
+  per second does not. For $R \ge 5$ resources become dirty at a lower rate as
+  $L$ grows, and at $R = 1$ the rate stays flat. Semantic overlap loads the
+  reconciler, while the transaction size $L$ is paid for in waiting and in
+  wasted work.
 
   \item[O13. $R$ decides overshoot or undershoot.] The number of reconciler
   processors sets the direction. Where the number of reconciler processors is
@@ -1749,18 +2069,18 @@ threshold $r$. The previous sections reported only how the dirty fraction
 relates to $c$. This section reports for the first time where the runs leave
 ACID, and it shows that they undershoot the recovery threshold $r$. We call the
 median level at which the oracle leaves ACID the \emph{effective recovery
-threshold}.
+  threshold}.
 
-Table~\ref{tab:effective-recovery} gives the readings of the oracle, $p_{50}(d_k)$
-and $p_{95}(d_k)$, taken at the switch. The column ACID visit is the mean length
-of one ACID visit. The column Drain is the time that reconciliation alone needs
-to clear the dirty set from $c$ down to $r$, that is, 250 resources at $0.5R$
-resources per second. The two check intervals are a proxy for how often the
-oracle reads the inconsistency level. They are the time spent in each mode
-divided by the number of committed root transactions tagged with that mode.
-Readings themselves are not counted, and a transaction tagged in one mode can
-commit in the other. Like all other values, these statistics include the
-warm-up (Section~\ref{sec:exp-setup}).
+Table~\ref{tab:effective-recovery} gives the readings of the oracle,
+$p_{50}(d_k)$ and $p_{95}(d_k)$, taken at the switch. The column ACID visit is
+the mean length of one ACID visit. The column Drain is the time that
+reconciliation alone needs to clear the dirty set from $c$ down to $r$, that is,
+250 resources at $0.5R$ resources per second. The two check intervals are a
+proxy for how often the oracle reads the inconsistency level. They are the time
+spent in each mode divided by the number of committed root transactions tagged
+with that mode. Readings themselves are not counted, and a transaction tagged in
+one mode can commit in the other. Like all other values, these statistics
+include the warm-up (Section~\ref{sec:exp-setup}).
 
 The switch from BASE to ACID happens close to the configured threshold, at both
 $p_{50}$ and $p_{95}$. The switch from ACID to BASE does not. The median lies
@@ -1776,33 +2096,48 @@ below $r$. So more than 250 resources are cleared in one visit.
 \begin{table}[htbp]
   \centering
   \captionsetup{format=plain,justification=centering}
-  \caption{Where the oracle switches, and how often it looks (X2, $c = 0.10$).}
+  \caption{Where the oracle switches.}
   \label{tab:effective-recovery}
   \small
   \setlength{\tabcolsep}{5pt}
   \begin{tabular}{r r r r r r r r r}
     \toprule
-                              & \multicolumn{2}{c}{BASE $\to$ ACID} & \multicolumn{2}{c}{ACID $\to$
-                                                                        BASE} & ACID visit & Drain & \multicolumn{2}{c}{Check
-                                                                                                       interval}
+                            & \multicolumn{2}{c}{BASE $\to$ ACID} &
+    \multicolumn{2}{c}{ACID
+      $\to$
+      BASE} &
+    ACID
+    visit                   &
+    Drain                   &
+    \multicolumn{2}{c}{Check
+      interval}
     \\
     \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-6}\cmidrule(lr){7-7}\cmidrule(lr){8-9}
-    $R$                       & $p_{50}$ (\%)                       & $p_{95}$ (\%)
-                              & $p_{50}$ (\%)                       & $p_{95}$ (\%)                 & (s)        & (s)   &
-    $txn_{\mathrm{ACID}}$ (s) & $txn_{\mathrm{BASE}}$ (s)                                                                    \\
+    $R$                     & $p_{50}$ (\%)                       & $p_{95}$
+    (\%)                    & $p_{50}$ (\%)                       & $p_{95}$ (\%)             &
+    (s)                     & (s)                                 & $txn_{\mathrm{ACID}}$ (s) & $txn_{\mathrm{BASE}}$ (s)
+    \\
     \midrule
-    1                         & 10.10                               & 10.43
-                              & 3.92                                & 4.90                          & 1075       & 500   &
-    57.5                      & 8.0                                                                                          \\
-    5                         & 10.14                               & 10.47
-                              & 3.84                                & 4.89                          & 240        & 100   &
-    8.8                       & 2.8                                                                                          \\
-    10                        & 10.14                               & 10.48
-                              & 3.05                                & 4.90                          & 137        & 50    &
-    4.7                       & 2.6                                                                                          \\
-    15                        & 10.10                               & 10.37
-                              & 2.61                                & 4.76                          & 100        & 33    &
-    3.3                       & 2.3                                                                                          \\
+    1                       & 10.10                               & 10.43                     &
+    3.92                    & 4.90
+                            & 1075                                & 500                       & 57.5                      &
+    8.0
+    \\
+    5                       & 10.14                               & 10.47                     &
+    3.84                    & 4.89
+                            & 240                                 & 100                       & 8.8                       &
+    2.8
+    \\
+    10                      & 10.14                               & 10.48                     &
+    3.05                    & 4.90
+                            & 137                                 & 50                        & 4.7                       &
+    2.6
+    \\
+    15                      & 10.10                               & 10.37                     &
+    2.61                    & 4.76
+                            & 100                                 & 33                        & 3.3                       &
+    2.3
+    \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1818,27 +2153,28 @@ transactions are slow, because they wait for locks and for dirty resources.
 While all of them are stuck, no transaction finishes, no new one arrives, and
 no reading is taken. Between two readings the value $d_k$ is therefore out of
 date. The check interval columns in Table~\ref{tab:effective-recovery} show
-this. At every $R$, the oracle reads less often in ACID mode than in BASE mode.
-An example of this scenario follows. The inconsistency level is $d_k = 0.053$,
-which is still above $r = 0.05$. For a long time no in-flight transaction
-finishes, so no new transaction arrives and no reading is taken. Meanwhile the
-reconciler processors clear the inconsistency in the background. When the next
-transaction finally arrives, the level has already dropped to $d_{k+1} = 0.04$.
-The oracle now switches back to BASE, because $d_{k+1} \le r$. So the next value
-the oracle gets is already lower than the one it should react to. The exit level
-in Table~\ref{tab:effective-recovery} is recorded at this reading, not at the
-moment $d_k$ crosses $r$. A reading once per tick would record the exit close
-to $r$, but the first BASE transaction would still be admitted only when an ACID
-transaction finishes (Section~\ref{sec:approach-sampling}).
+this. At every $R$, the oracle reads less often in ACID mode than in BASE
+mode. An example of this scenario follows. The inconsistency level is $d_k =
+  0.053$, which is still above $r = 0.05$. For a long time no in-flight
+transaction finishes, so no new transaction arrives and no reading is taken.
+Meanwhile the reconciler processors clear the inconsistency in the background.
+When the next transaction finally arrives, the level has already dropped to
+$d_{k+1} = 0.04$. The oracle now switches back to BASE, because $d_{k+1} \le
+  r$. So the next value the oracle gets is already lower than the one it should
+react to. The exit level in Table~\ref{tab:effective-recovery} is recorded at
+this reading, not at the moment $d_k$ crosses $r$. A reading once per tick
+would record the exit close to $r$, but the first BASE transaction would still
+be admitted only when an ACID transaction finishes
+(Section~\ref{sec:approach-sampling}).
 
 The mean check interval shows the direction of the effect, but not its size.
 Reconciliation drains about $0.5R$ resources per second. Multiplied by the mean
 ACID check interval, this gives only about 0.5 percentage points between two
-readings at every $R$. At $R = 1$: $0.5 \cdot 57.5 \approx 29$ resources. At
-$R = 15$: $7.5 \cdot 3.3 \approx 25$ resources. The measured median undershoot
-is 1.08 to 2.39 percentage points and grows with $R$. The size of the
-undershoot therefore most likely comes from gaps between readings that are much
-longer than the mean. The distribution of these gaps is not measured.
+readings at every $R$. At $R = 1$: $0.5 \cdot 57.5 \approx 29$ resources. At $R
+  = 15$: $7.5 \cdot 3.3 \approx 25$ resources. The measured median undershoot is
+1.08 to 2.39 percentage points and grows with $R$. The size of the undershoot
+therefore most likely comes from gaps between readings that are much longer than
+the mean. The distribution of these gaps is not measured.
 
 The miss has only one direction. By construction, the oracle can leave ACID only
 at a reading at or below $r$, so switches from ACID to BASE are late and never
@@ -1856,45 +2192,6 @@ its $p_{95}$ is roughly the second-highest exit value.
   \label{fig:recovery-exit}
 \end{figure}
 
-\section{Summary of findings}\label{sec:exp-summary}
-
-This section maps the findings of the chapter to the research questions. All
-numbers are seed means under the stationary \texttt{EQUILIBRIUM} load.
-
-\begin{bullets}
-  \item[RQ1. Weak experimental evidence only.] RQ1 is answered by the design in
-  Chapter~\ref{chapter:approach}. The experiments add only that none of the 140
-  X1 runs stalls in 50\,000\,s (O1).
-
-  \item[RQ2. Hybrid lies between ACID and BASE.] Where the adaptive oracle
-  engages ($1 \le R \le 15$ in X1), it is faster than pure ACID and much slower
-  than pure BASE (O2, O3). At $R = 1$: 1.7 times the ACID throughput. At $R =
-    15$: 10 times the ACID throughput and 4.8 times lower than BASE. Its $p_{95}$
-  stays within 0.62 percentage points of $c = 0.10$ (O4).
-
-  \item[RQ2. The threshold $c$ is configurable.] Across $c = 0.02$ to $0.20$ and
-  $R = 1$ to $15$, the measured $p_{95}$ is at most 1.5 percentage points away
-  from $c$ in every engaged run (O5). The deviation is two-sided. The
-  configurable range ends where BASE alone stays below $c$, which is set by
-  $\sigma$ and $R$ (O6). A higher $c$ moves work from ACID to BASE (O7). On the
-  way back, the oracle leaves ACID 1.08 to 2.39 percentage points below $r$
-  (Section~\ref{sec:effective-recovery}).
-
-  \item[RQ2. The threshold has limits.] $c$ holds for $\sigma$ between 0.20 and
-  0.30 and for $L \le 50$. Above that range the oracle still switches near $c$,
-  but $p_{95}$ drifts away from it (O10, O13). More reconcilers lower $p_{95}$
-  only partly (O11), and $R$ decides whether the run overshoots or undershoots
-  (O13).
-
-  \item[RQ3. No advantage under stationary load.] A fixed ACID share, tuned for
-  each $R$, reaches the same inconsistency levels (O8). At matched
-  inconsistency the adaptive oracle is close to it at $R = 1$ and $R = 5$ and
-  slower at $R = 10$ and $R = 15$, with ratios down to 0.79 (O9). Its advantage
-  is that one setting of $c$ holds for every $R$, while the fixed-share oracle has to
-  be tuned again and varies more across seeds. A varying load, where feedback
-  should matter most, was not tested.
-\end{bullets}
-
 \section{Threats to validity}\label{sec:exp-threats}
 
 The results above hold under the conditions of this chapter. The following
@@ -1903,8 +2200,8 @@ points limit how far they can be generalised.
 \begin{bullets}
   \item[Stationary load only.] Every run uses the \texttt{EQUILIBRIUM} profile,
   so the load never changes (Section~\ref{sec:approach-stationary-load}). This
-  is the setting in which feedback helps least. The RQ3 result should be read
-  in that light.
+  is the setting in which feedback helps least. The RQ3 result should be read in
+  that light.
 
   \item[Simulated execution.] The simulator treats all models as one entity, so
   a lookup of the arbiter has no latency and never fails
@@ -1912,31 +2209,17 @@ points limit how far they can be generalised.
   properties of the simulator. The comparisons between configurations are the
   part that transfers.
 
-  \item[One workload shape.] Service times, bookkeeper depth, referential
-  action and the uniform distribution of transaction sizes are fixed. X4 and
-  X5 vary one axis each, so the corner where both $\sigma$ and $L$ are extreme
-  is not sampled.
-
   \item[Five seeds per cell.] The results move little between seeds, but five
   runs give an indication rather than a confidence interval. The fixed-share
-  oracle varies more than the adaptive one. Its median coefficient of
-  variation of $p_{95}$ is 8.6\,\%. For the adaptive oracle it is 0.7\,\%.
+  oracle varies more than the adaptive one. Its median coefficient of variation
+  of $p_{95}$ is 8.6\,\%. For the adaptive oracle it is 0.7\,\%.
 
-  \item[Hidden dirty resources.] A deferred repair is not in the dirty set
-  until it is created (Section~\ref{sec:approach-arbiter}). The measured
-  dirty fraction can therefore be lower than the real inconsistency, most of
-  all in ACID mode.
-
-  \item[Recovery threshold not swept.] Every run uses $r = 0.5c$. How the
-  results depend on the width of the hysteresis band is not tested. The
-  percentiles of the exit levels also rest on few switches. At $R = 1$: about
-  23 exits per run.
+  \item[Hidden dirty resources.] A deferred repair is not in the dirty set until
+  it is created (Section~\ref{sec:approach-arbiter}). The measured dirty
+  fraction can therefore be lower than the real inconsistency, most of all in
+  ACID mode.
 
   \item[Interpolated X3 comparison.] The fixed-share oracle is sampled at five
-  values of $p_{\mathrm{acid}}$. Table~\ref{tab:x3-matched} reads its
-  throughput between measured points, and some of these points are far apart.
-
-  \item[Coarse locks not tested.] Every resource has its own lock at the
-  baseline, so the effect of lock buckets (C1 in
-  Section~\ref{sec:approach-conservatism}) does not appear in the results.
+  values of $p_{\mathrm{acid}}$. Table~\ref{tab:x3-matched} reads its throughput
+  between measured points, and some of these points are far apart.
 \end{bullets}

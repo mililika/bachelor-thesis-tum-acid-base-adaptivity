@@ -1,220 +1,71 @@
 % !TeX root = ../kazymyr-thesis.tex
 
-\chapter{Conclusion and Future Work}\label{chapter:conclusion}
+\chapter{Conclusions and Future Work}\label{chapter:conclusion}
 
-\begin{comment}
-\todo{summary --- to be written once the remaining work is finished; the
-  RQ1--RQ3 answers below are drafted from Chapters~\ref{chapter:approach}
-  and~\ref{chapter:experiments} and are kept commented out until then}
+This chapter closes the thesis. Section~\ref{sec:concl-summary} summarises the
+work. Section~\ref{sec:concl-lessons}
+describes the problems that came up when ACID and BASE were combined in one
+system, and how they were solved or could be solved.
+Section~\ref{sec:future-work} lists the open questions that could be addressed
+in future work.
 
-% ---------------------------------------------------------------------
-% Summary, hidden for now. Restore by uncommenting the block below.
-% ---------------------------------------------------------------------
-% \section{Summary}\label{sec:concl-summary}
-%
-% \subsection{RQ1: making the hybrid mode well defined}\label{sec:concl-rq1}
-%
-% ACID's lock table and BASE's dirty set are independent mechanisms that
-% never coexist in a pure run. Selecting the mode per transaction allows a
-% resource to be locked and dirty at the same time, which is contradictory.
-% The shared-resource arbiter resolves this by making ACID wait on dirty
-% while BASE defers its repair on locked. Because the only cross-mode wait edge points one
-% way, no cross-mode wait cycle can form, and the arbiter introduces no
-% deadlock that pure ACID did not already admit. The resolution is not free;
-% its cost is quantified under RQ2.
-%
-% \subsection{RQ2: performance and tunability}\label{sec:concl-rq2}
-%
-% The hybrid mode offers a configurable inconsistency budget and charges for
-% it.
-%
-% The adaptive oracle engages only inside an interior band of reconciler
-% provisioning, $1 \le R \le 15$ at the baseline configuration, and is inert
-% outside it; at $R = 0$ and $R \ge 25$ every statistic is identical to pure
-% BASE in every seed. Inside that band, throughput does not interpolate
-% between the two pure modes but falls below a time-weighted mixture of them
-% by 2.8 to 12.3 times, with the gap widening as reconciliation slows.
-%
-% The critical dirty fraction $c$ nonetheless behaves as a configurable
-% bound on the tail. Across $c$ from 2\% to 30\% and $R$ from 1 to 15,
-% measured $p_{95}$ never departs from configured $c$ by more than
-% 0.74 percentage points, with a median seed-to-seed coefficient of variation
-% of 0.25\%. X4 and X5 extend the same result across two workload axes: it
-% spans 1.04\,pp across semantic overlap from 0.20 to 0.50 and
-% 0.78\,pp as the resources per transaction grow 20 times, in
-% both
-% cases straddling the configured value. It stops applying in two predictable and detectable ways: once
-% $c$ exceeds the BASE steady-state dirtiness at that $R$, and once
-% reconciliation capacity falls below the dirtying rate the workload
-% imposes, at which point the oracle saturates in ACID and misses the budget
-% regardless of configuration.
-%
-% \subsection{RQ3: is the feedback necessary?}\label{sec:concl-rq3}
-%
-% The answer depends on what is being asked for, and the two halves point
-% in opposite directions.
-%
-% On the trade-off itself, feedback is not necessary and it is not free.
-% Compared at the same measured inconsistency, the two oracles are level at
-% $R = 1$ and $R = 5$, and the adaptive one is between a tenth and a fifth
-% slower at $R = 10$ and $R = 15$ (Section~\ref{sec:x3-frontier}). The cause
-% is measured rather than guessed. The adaptive oracle enters ACID at the
-% moment the dirty fraction has just crossed $c$, so it admits its expensive
-% transactions when the dirty set is at its largest, and a higher share of
-% them block on a resource waiting to be repaired. Where repair is the limit
-% that costs nothing, and where capacity is the limit it costs throughput.
-%
-% That result should be read with the workload in mind. Every run in this
-% thesis is executed under a stationary load, and an adaptive controller has
-% nothing to adapt to when the operating point never moves; the experiment
-% was always going to be a poor place for feedback to show its value.
-% Running the same comparison under a workload that changes while the run is
-% in progress is the single most valuable extension of this work
-% (Section~\ref{sec:future-work}), and until it is done, RQ3 is answered
-% only for the stationary case.
-%
-% The other half is not a throughput result at all. Each oracle holds fixed
-% the quantity it reads and lets the other float. The fixed-share oracle
-% realises its configured ACID share to within 6\% across the whole
-% reconciler range while its measured $p_{95}$ moves by up to 38.8 times,
-% and the adaptive threshold is the mirror image, holding $p_{95}$ within
-% 1.5 percentage points of the configured $c$ while its realised ACID share
-% varies by 2.8 times. Only one of those two quantities is the one an
-% operator wants to bound. A fixed share reaches a 10\% tail too, but the
-% setting that does it depends on the provisioning and has to be found by
-% measurement for each one; $c = 0.10$ holds it everywhere.
-%
-% The adaptive oracle therefore does not make the ACID/BASE trade-off
-% cheaper. It makes it addressable, and at high reconciler counts that
-% costs some throughput.
-\end{comment}
+\section{Summary of the work}\label{sec:concl-summary}
+
+This thesis started from the multi-model simulator of Zacouris and
+Acosta~\cite{zacouris2026mxs}. The
+goal was to combine them in one system that is faster than ACID alone, while the
+inconsistency stays within a limit that the administrator sets.
+
+The simulator was extended with a hybrid mode, in which the mode is chosen for
+each transaction at admission. A shared-resource arbiter makes both modes
+respect each other's work on the same resources, and an oracle chooses the mode.
+Two oracles were built, one with a fixed ACID/BASE split and one that reacts to
+the measured inconsistency.
+
+Five experiments showed that the hybrid mode lies between the two pure
+modes and that its threshold holds within a certain range of workloads. Under
+the constant load used here, the adaptive oracle does not beat a well-tuned
+fixed split.
+
+
+In conclusion, the hybrid mode does not make the trade-off between throughput
+and inconsistency cheaper, but it makes it configurable with one parameter.
+Whether the adaptive oracle pays off under a changing load is still open.
 
 \section{Lessons learned}\label{sec:concl-lessons}
 
-This section collects the methodological lessons of the work. They are
-about how the results had to be produced and read, rather than about the
-hybrid mode itself, and each of them cost something before it was
-understood.
+Wrapping the ACID and BASE pipelines is not enough to combine them. As long as
+both modes work on the same resources without knowing about each other, the
+state of a resource can be corrupted. A resource management layer, such as the
+arbiter of this thesis, has to be in place before the modes can be mixed.
 
-\begin{itemize}
-\item A HYBRID run with zero mode switches \emph{is} pure BASE with a
-different label. Engagement must be verified before a result is
-interpreted: five of the 24 cells in X2 are degenerate in exactly this
-way, and thirteen of the 28 in X4.
+An oracle can keep a chosen parameter under control, whether it is the
+inconsistency, as in this thesis, or any other value of the system. The main
+effect of switching between ACID and BASE, however, is always on the
+throughput, so every controlled parameter is paid for with it.
 
-\item A configured threshold bounds the estimate, not the underlying
-quantity. The two coincide only when the system is slow relative to the
-sampler, and when they diverge, the direction of the error depends on
-which mode the condition is evaluated in.
-
-\item Composing two correct mechanisms does not yield a mechanism whose
-cost is the weighted average of theirs.
-
-\item A metric with three plausible definitions needs all three named
-before any of them is reported. Choosing one and describing another
-produced a headline number that was wrong by six times, and the
-error survived several readings because both quantities are fractions and
-both were plausible in size.
-
-\item An analytical model can be qualitatively right and mechanistically
-wrong. The blocking probability derived in
-Section~\ref{sec:approach-blocking-cost} is close to one across most of
-the operating range, which the measurements confirm --- and that is
-precisely why it explains nothing: a saturated variable has no variation
-left with which to explain a response.
-
-\item Comparing a controller against a baseline without feedback requires
-deciding which variable is held constant. If that variable is an input to
-one arm and an output of the other, the comparison is not well posed,
-however carefully it is measured. The way out is to match on a quantity
-that is an output of both arms and to interpolate the baseline onto it,
-rather than to pair up whichever settings happen to land near each other:
-matching to the nearest sampled cell discarded most of the data and left a
-residual mismatch as large as the effect being measured.
-\end{itemize}
+Framing the decision as a single threshold often lets the hybrid mode degrade
+to a pure mode. When the threshold is never reached, the run stays in BASE, and
+when the system cannot get below it, the run stays in ACID. A policy that learns
+from the state of the system, rather than a fixed threshold, could avoid these
+cases.
 
 \section{Future work}\label{sec:future-work}
 
-This section lists the extensions the thesis leaves open, ordered roughly by
-how much they would add. The first ones address limits of the evaluation,
-the later ones address limits of the design itself.
+\begin{bullets}
+  \item[Varying load.] Repeat the oracle comparison under a load that changes
+  during a run, where feedback is expected to help most.
 
-\begin{enumerate}
-\item \textbf{Non-stationary workloads} (terminal-based arrivals,
-phase-changing overlap). This is the setting in which adaptive control
-would be expected to earn back the throughput it costs under stationary
-load (Section~\ref{sec:x3-frontier}), and it is the most valuable single
-extension.
+  \item[Real multi-model system.] Model the latency and failures of arbiter
+  lookups, and validate the hybrid mode against the Vitruvius case studies.
 
-\item \textbf{A finer grid of ACID shares.} The fixed-share arm is
-sampled at five values of $p_{\mathrm{acid}}$, and a third of the X3 comparisons fall too
-far from any of them to be read on their own
-(Section~\ref{sec:x3-frontier}). Sampling between $p_{\mathrm{acid}} = 0.10$ and
-$p_{\mathrm{acid}} = 0.25$, and below $p_{\mathrm{acid}} = 0.05$ where the trade-off is steepest, would
-turn those readings into measurements.
+  \item[Stronger statistics.] Run more seeds per cell and a finer grid of fixed
+  ACID shares, and count the targets of deferred repairs as dirty.
 
-\item \textbf{Tick-driven signal sampling}, to decouple the filter's time
-constant from the load it measures. Because admissions track completions
-under \texttt{EQUILIBRIUM}, the oracle's sampling rate is approximately
-the throughput its own decisions suppress, and the measured interval
-varies by 60 times across the sweep.
+  \item[Transaction-aware oracle.] Predict how heavy a transaction is from its
+  resources and the updates it triggers, and send heavy work to BASE.
 
-\item \textbf{Within-visit sampling analysis.} The undershoot of the
-recovery threshold at exit is measured, but the mechanism that makes it
-grow with $R$ is not established, and the aggregate sample counts rule out
-the obvious explanation. The tick timelines record per-tick state and
-would settle it.
-
-\item \textbf{A time-based oracle clock.} The oracle samples once per
-admission, so its sampling rate collapses with the throughput it causes.
-Sampling on a fixed interval of simulated time would decouple the two and
-is the single change most likely to close the remaining exit slack.
-
-\item \textbf{Absolute dirty thresholds} alongside fractional ones, for
-small systems.
-
-\item \textbf{Predictive switching}, on the dirty \emph{trend} rather than
-the level.
-
-\item \textbf{Lock-granularity aliasing} in the check that defers a
-BASE repair.
-
-\item \textbf{Real-system validation} against the Vitruvius case-study
-parameters under HYBRID.
-
-\item \textbf{Transaction-size interaction.} The blocking mechanism makes
-the maximum transaction size $L$ a hidden co-determinant of the mixing
-cost. Sweeping $L$ at fixed $c$ would test the mechanism directly: since
-block duration rather than incidence carries the cost, $L$ should move the
-number of dirty resources waited on, and therefore the block duration,
-roughly linearly.
-
-\item \textbf{Closing the fixed-share frontier at small $p_{\mathrm{acid}}$.} The
-interval $p_{\mathrm{acid}} \in (0, 0.05)$ is unsampled and contains the steepest part of
-the trade-off.
-
-\item \textbf{Reporting the arbiter invariant empirically.} The
-arbiter's invariant and the deadlock-freedom argument
-(Sections~\ref{sec:approach-arbiter-rule} and~\ref{sec:approach-deadlock})
-are established by construction and on paper; no measurement of them is
-reported. The evidence already exists in the run data and would need no new
-runs. Both sides of the rule are counted per run as
-\texttt{acid\_txn\_blocked\_on\_dirty\_count} and
-\texttt{base\_txn\_yielded\_on\_locked\_count}, and both are exactly zero in
-every pure ACID and pure BASE run and at the degenerate adaptive points
-$R = 0$ and $R = 25$, while in the engaged band they number in the hundreds
-and tens of thousands respectively. Reporting them would show that the
-mixed state was reached and resolved constantly rather than merely never
-observed, which is what makes ``the invariant was never violated'' a claim
-with content. It would also confirm the degeneracy of $R = 0$ and $R = 25$
-through a mechanism independent of the switch count. Two cautions apply to
-the wording: the invariant is enforced by construction at the two write
-paths, not checked by a runtime assertion --- the Java \texttt{assert}
-statements in the codebase were disabled in every experiment run, as no
-harness passes \texttt{-ea} --- so the claim to make is that the hazardous
-state cannot be constructed, evidenced by how often the enforcing branch was
-taken. The natural home is
-Section~\ref{sec:approach-arbiter}, after the deadlock argument, rather
-than the experiments chapter, since neither property varies with $R$ or
-$c$.
-\end{enumerate}
+  \item[Other oracle policies.] React to the trend of the dirty fraction, read
+  it on a fixed time interval, or learn the policy as HybML
+  does~\cite{kobus2018htr}.
+\end{bullets}
