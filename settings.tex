@@ -238,9 +238,14 @@
     \setlength{\parsep}{0pt}%
     \setlength{\topsep}{6pt}%
     \setlength{\partopsep}{0pt}%
-    \renewcommand{\makelabel}[1]{%
-      \textbullet\enspace
-      \if\relax\detokenize{##1}\relax\else\normalfont\bfseries ##1\enspace\fi}}%
+    \renewcommand{\makelabel}[1]{\textbullet\enspace}}%
+  % The lead-in is set as paragraph text after the label rather than inside
+  % it, because LaTeX puts the label in an unbreakable box and a long
+  % lead-in would run into the right margin instead of wrapping.
+  \let\bulletsitem\item
+  \renewcommand{\item}[1][]{%
+    \bulletsitem[]%
+    \if\relax\detokenize{##1}\relax\else{\normalfont\bfseries ##1}\enspace\fi}%
 }{\end{list}}
 
 % A numbered marker that matches the circles drawn inside the figures, and
