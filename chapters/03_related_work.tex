@@ -4,9 +4,9 @@
 
 This chapter describes how the thesis integrates into existing literature.
 Section~\ref{sec:rw-simulators} covers transaction simulators and the base
-simulator that this thesis extends. Section~\ref{sec:rw-mode-selection} covers
+simulator that this thesis extends. Section~\ref{sec:rw-mode-selection} explains
 systems that already choose an execution mode per transaction at runtime.
-Section~\ref{sec:rw-acid-base} covers work that combines strong and weak
+Section~\ref{sec:rw-acid-base} describes work that combines strong and weak
 consistency in one system. Section~\ref{sec:rw-multimodel} focuses on the
 multi-model framework. Section~\ref{sec:rw-gap} summarises what was build upon
 and what was added with this thesis.
@@ -40,7 +40,7 @@ Its main result is that throughput drops towards zero as the number of models
 increases, and that lock acquisition is the bottleneck.
 
 \paragraph{ACID and BASE in the same simulator.} The follow-up
-study~\cite{zacouris2026mxs} relaxes ACID and adds the BASE semantic and is the
+study~\cite{zacouris2026mxs} adds the BASE semantic and is the
 direct base of this thesis. Under BASE a transaction takes no locks, and the
 triggered updates run later in the background on dedicated reconciliation
 processors. The study also measures inconsistency as the share of resources that
@@ -101,14 +101,14 @@ strongly consistent, and the oracles optimise only throughput and latency.
 \section{Combining strong and weak consistency}\label{sec:rw-acid-base}
 
 The work in this section lets strong and weak consistency exist in the same
-system, as ACID and BASE do in this thesis. It falls into two groups.
+system, as ACID and BASE do in this thesis.
 Section~\ref{sec:rw-static} covers Salt and RedBlue consistency. They run strong
 and weak work side by side, but the consistency type has to be set by a
 developer  before the system runs. Section~\ref{sec:rw-adaptive} covers
 Consistency Rationing, OptCon, epsilon-serializability and TACT. They change the
-consistency level at runtime or put an inconsistency under threshold, but they
-decide for single database records, operations or units of data, and not for a
-whole transaction with its triggered updates.
+consistency level at runtime or put an inconsistency under threshold, but none
+of them decides whether a whole transaction with its triggered updates runs as
+ACID or BASE.
 
 \subsection{Static classification of transactions}\label{sec:rw-static}
 
@@ -123,17 +123,18 @@ often.
 
 \paragraph{RedBlue consistency.} Li et al.~\cite{li2012redblue} make a similar
 split for geo-replicated systems, but per operation. A \emph{blue} operation
-runs first at the node that received it, without waiting for other nodes, and is
+runs first at the node that received it, without waiting for other, and is
 sent to the other nodes later. Different nodes may therefore apply blue
 operations in different orders. A \emph{red} operation is placed in one order
 that all nodes follow, so it needs coordination. An operation may be blue only
 if the order does not change the final state, and if it doesn't corrupt the
 system state.
 
-Both papers show that strong and weak consistency can safely run in one system.
+\vspace{1.8ex plus .4ex minus .2ex}
+\noindent Both papers show that strong and weak consistency can safely run in one system.
 Salt is also the closest precedent for the arbiter of this thesis, because its
-ACID transactions wait for BASE work to finish while BASE transactions do not
-wait for each other. The claim table of Section~\ref{sec:approach-claim-table}
+ACID transactions wait for BASE work to finish, while BASE transactions may see
+each other's unfinished work. The claim table of Section~\ref{sec:approach-claim-table}
 follows the same idea. What these papers do not do is decide the mode at
 runtime. In both systems the split is made by hand and is fixed in the source
 code before the system runs. They also do not measure or bound how much
@@ -162,16 +163,19 @@ Wu et al.~\cite{wu1992divergence} let a read-only transaction see a limited
 amount of inconsistency, while update transactions stay serializable. Yu and
 Vahdat~\cite{yu2000conit} bound how far the copies of replicated data may drift
 apart, with limits that the application sets for each unit of data. Both treat
-inconsistency as a number with a limitt. The threshold $c$ of this thesis is a
-limit of this kind.
+inconsistency as a number with a limit. The critical dirty threshold of this
+thesis is a limit of this kind.
 
-All of this work changes or bounds consistency based on what the system
+\vspace{1.8ex plus .4ex minus .2ex}
+\noindent All of this work changes or bounds consistency based on what the system
 observes, which is the idea behind the adaptive oracle and critical dirty
-threshold $c$. The difference is what is decided and where the limit is set.
-These papers decide per record, per operation, or per unit of data. None of them
+threshold. The difference is what is decided and where the limit is set.
+These papers work per record, per operation or per unit of data, but none of them
 decides whether a whole transaction and the repairs it triggers run as ACID or
-BASE, and none keeps one inconsistency level for the whole system, like the
-dirty fraction in this thesis.
+BASE. Their limits are also set for a single transaction, as in
+epsilon-serializability, or for single units of data, and none keeps one
+inconsistency level for the whole system, like the dirty fraction in
+this thesis.
 
 \section{Multi-model consistency preservation}\label{sec:rw-multimodel}
 
@@ -189,11 +193,11 @@ gives a consistent state after every change without any concurrency control.
 
 \section{Discussion and delimitation}\label{sec:rw-gap}
 
-Except from the base simulator, all work discussed above targets replicated or
-partitioned data under a single schema. There inconsistency only means
-difference in replicas of the data. The inconsistency that updates create
+Except for the two papers of the base simulator, all work focuses on data under a single schema. There inconsistency means, for example,
+replicas that differ, unfinished work that other transactions may see, or a
+query result that is off by a limited amount. The inconsistency that updates create
 between overlapping models is not addressed. Vitruvius addresses these models,
 but it has no transactions and no deferred repairs. This thesis works in the
 space between the two. It chooses ACID or BASE per transaction at runtime in a
-multi-model system, and keeps the resulting inconsistency close to a configured
-threshold $c$.
+multi-model system, and keeps the resulting inconsistency close to a configured inconsistency
+threshold.

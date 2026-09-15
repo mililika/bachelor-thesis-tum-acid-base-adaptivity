@@ -2,53 +2,44 @@
 
 \chapter{Conclusions and Future Work}\label{chapter:conclusion}
 
-This chapter closes the thesis. Section~\ref{sec:concl-summary} summarises the
-work. Section~\ref{sec:concl-lessons}
-describes the problems that came up when ACID and BASE were combined in one
-system, and how they were solved or could be solved.
-Section~\ref{sec:future-work} lists the open questions that could be addressed
-in future work.
+This chapter summarises the work, describes the lessons learned from combining
+ACID and BASE in one system, and lists open questions for future work.
 
 \section{Summary of the work}\label{sec:concl-summary}
 
-This thesis started from the multi-model simulator of Zacouris and
-Acosta~\cite{zacouris2026mxs}. The
-goal was to combine them in one system that is faster than ACID alone, while the
-inconsistency stays within a limit that the administrator sets.
+This thesis focused on whether ACID and BASE can run together in one multi-model
+system. To address this, the simulator of Zacouris and
+Acosta~\cite{zacouris2026mxs} was extended with a hybrid mode, in which a
+dedicated mechanism, the \emph{mode oracle}, tags each transaction as ACID or
+BASE, and a shared-resource arbiter keeps the two semantics from corrupting each
+other's work. We built two mode oracles, an adaptive oracle driven by the dirty
+fraction and a fixed-share oracle, and compared their performance.
 
-The simulator was extended with a hybrid mode, in which the mode is chosen for
-each transaction at admission. A shared-resource arbiter makes both modes
-respect each other's work on the same resources, and an oracle chooses the mode.
-Two oracles were built, one with a fixed ACID/BASE split and one that reacts to
-the measured inconsistency.
-
-Five experiments showed that the hybrid mode lies between the two pure
-modes and that its threshold holds within a certain range of workloads. Under
-the constant load used here, the adaptive oracle does not beat a well-tuned
-fixed split.
-
-
-In conclusion, the hybrid mode does not make the trade-off between throughput
-and inconsistency cheaper, but it makes it configurable with one parameter.
-Whether the adaptive oracle pays off under a changing load is still open.
+In the evaluation, the hybrid mode was faster than pure ACID and slower than
+pure BASE. The dirty fraction stayed close to the configured critical dirty
+threshold, but this held only for a range of workloads, and under constant load
+the adaptive oracle did not outperform a fixed split. The hybrid mode therefore
+does not make the trade-off between ACID and BASE cheaper, but it allows
+different system parameters to be configured.
 
 \section{Lessons learned}\label{sec:concl-lessons}
 
-Wrapping the ACID and BASE pipelines is not enough to combine them. As long as
-both modes work on the same resources without knowing about each other, the
-state of a resource can be corrupted. A resource management layer, such as the
-arbiter of this thesis, has to be in place before the modes can be mixed.
+ACID and BASE cannot simply run side by side, because without a resource
+management layer such as the arbiter they corrupt the state of shared
+resources.
 
-An oracle can keep a chosen parameter under control, whether it is the
-inconsistency, as in this thesis, or any other value of the system. The main
-effect of switching between ACID and BASE, however, is always on the
-throughput, so every controlled parameter is paid for with it.
+Sharing resources costs performance in both modes. ACID transactions now
+additionally wait on resources that are claimed by BASE or dirty, and BASE
+parent transactions wait on ACID locks. As a result, the hybrid mode cannot
+reach the throughput of a theoretical combination of ACID and BASE.
 
-Framing the decision as a single threshold often lets the hybrid mode degrade
-to a pure mode. When the threshold is never reached, the run stays in BASE, and
-when the system cannot get below it, the run stays in ACID. A policy that learns
-from the state of the system, rather than a fixed threshold, could avoid these
-cases.
+Once the resource management layer is in place, any oracle can be used without
+changes to the rest of the system, but every value it controls will be paid for
+with throughput.
+
+Because the tag is fixed for the whole life of a transaction, transactions
+already in flight after a switch push the dirty fraction past the thresholds.
+Changing the mode of these transactions would allow more precise control.
 
 \section{Future work}\label{sec:future-work}
 

@@ -2,15 +2,13 @@
 
 \chapter{Preliminaries}\label{chapter:preliminaries}
 
-This chapter describes the background that the later chapters use. Each
-section builds on the previous one. Section~\ref{sec:prelim-transactions}
+This chapter describes the background that the later sections use. Section~\ref{sec:prelim-transactions}
 defines a transaction, the ACID guarantees, the locking rule that provides
-them, and BASE, which gives up part of these guarantees.
+them, and BASE.
 Section~\ref{sec:prelim-simulator} describes the basics of the simulator that
 this thesis extends. Section~\ref{sec:prelim-multimodel} explains the
 multi-model system it simulates, where a write in one model requires updates in
-other models. It shows how ACID and BASE carry out these updates and how the
-resulting inconsistency is measured. Section~\ref{sec:prelim-hysteresis} covers
+other models. Section~\ref{sec:prelim-hysteresis} covers
 the hysteresis band, which the adaptive oracle uses.
 Section~\ref{sec:prelim-notation} lists the symbols used in the thesis.
 
@@ -64,7 +62,7 @@ so the results do not depend on the speed of the machine.
 \paragraph{Simulator parameters.}\label{sec:prelim-parameters}
 A run is configured by the number of resources, models and locks, the number of
 IO and CPU processors, and the execution mode, ACID or BASE, which holds for the
-whole run. It is also configured by the maximum number of resources $L$ and of
+whole run. It is also configured by the maximum number of resources and of
 models that one transaction may touch. The multi-model parameters are introduced
 in Section~\ref{sec:prelim-multimodel}. Table~\ref{tab:exp-baseline} gives the
 values used in this thesis.
@@ -72,12 +70,11 @@ values used in this thesis.
 
 \paragraph{Workload.}\label{sec:prelim-workload-profiles}
 The simulator creates its own transactions. Each transaction draws at random how
-many resources and models it touches, and which ones. A seed makes this sequence
-reproducible. This thesis uses the \texttt{EQUILIBRIUM} profile, which keeps the
+many resources and which models it touches, which is reproducable with a seed. This thesis uses the \texttt{EQUILIBRIUM} profile, which keeps the
 number of in-flight transactions constant. Whenever one transaction finishes, a
 new one is created. A second profile,
 \texttt{TERMINAL}, lets the load rise and fall, but it was still under
-development and is not used (Section~\ref{sec:approach-stationary-load}).
+development and is not used.
 
 \section{Multi-model systems and consistency preservation}\label{sec:prelim-multimodel}
 
@@ -86,8 +83,7 @@ A model is a set of resources that describes one view of a
 product~\cite{klare2021vitruvius}. A multi-model system is a finite set of
 resources $\mathcal{X}$ with $|\mathcal{X}| = N$, divided between the models
 $M_1, \dots, M_m$. Two models have \emph{semantic overlap} when they contain
-resources that represent the same fact. The overlap degree $\sigma$ is the
-fraction of resources that overlap between models~\cite{zacouris2026mxs}.
+resources that represent the same fact~\cite{zacouris2026mxs}.
 
 \paragraph{Consistency preservation rules.}\label{sec:prelim-cprs}
 A consistency preservation rule (CPR) states that a write to one resource
@@ -101,7 +97,7 @@ show such a chain of rules across five models.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-cpr-expansion-acid.pdf}
+  \includegraphics[width=1\textwidth]{fig-cpr-expansion-acid.pdf}
   \captionsetup{format=plain,justification=centering}
   \caption{Rule expansion under ACID.}
   \label{fig:cpr-expansion-acid}
@@ -109,7 +105,7 @@ show such a chain of rules across five models.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-cpr-expansion-base.pdf}
+  \includegraphics[width=1\textwidth]{fig-cpr-expansion-base.pdf}
   \captionsetup{format=plain,justification=centering}
   \caption{Rule expansion under BASE.}
   \label{fig:cpr-expansion-base}
@@ -122,9 +118,7 @@ must also be updated. These updates are made by separate transactions, called
 \emph{bookkeepers}. A bookkeeper may itself trigger further rules, and then it
 creates bookkeepers of its own. Every bookkeeper runs in the same execution mode
 as the transaction that created it. \emph{Rule expansion} is the step that
-creates the bookkeepers of a transaction. It runs after that transaction has
-finished its work, because the targets of a rule depend on what was actually
-written (Section~\ref{sec:approach-completion}). The following paragraphs
+creates the bookkeepers of a transaction. The following paragraphs
 describe how ACID and BASE execute the bookkeepers.
 
 \paragraph{Transaction groups.}\label{sec:prelim-group}
@@ -134,7 +128,8 @@ one unit, and if one member is blocked or aborted, so is the whole group. The
 bookkeepers are not known when the root is admitted, so the root preclaims only
 its own locks. The bookkeepers add their locks later, and all locks are released
 when the group commits (Figure~\ref{fig:cpr-expansion-acid}). A group can
-therefore wait while it holds locks, and two groups can wait on each other.
+therefore wait while it holds locks, and two groups can wait on each other,
+what can result in deadlock.
 
 \paragraph{Cautious waiting.}\label{sec:prelim-deadlock}
 The base simulator prevents such a deadlock with cautious
@@ -148,8 +143,8 @@ therefore cannot deadlock, but it loses aborted work
 Under BASE a root transaction commits without waiting for its bookkeepers. Until
 a bookkeeper has committed, the resource it updates holds an old value and is
 called \emph{dirty}. \emph{Reconciliation} runs the pending bookkeepers in the
-background on $R$ reconciler processors, taken from the IO and CPU processors
-(Figure~\ref{fig:cpr-expansion-base}). Under ACID $R$ is ignored.
+background on dedicated reconciler processors, taken from the forefground IO and CPU processors
+(Figure~\ref{fig:cpr-expansion-base}). Under ACID number of reconciler processors is ignored.
 
 \paragraph{Inconsistency.}\label{sec:prelim-inconsistency}
 The dirty set $D_k \subseteq \mathcal{X}$ holds the dirty resources at reading
@@ -165,7 +160,7 @@ every crossing when the measured value moves around it. It pays the cost of each
 switch without gaining from it. A \emph{hysteresis band} uses two thresholds
 instead, one for entering a state and a lower one for leaving it. The next
 switch happens only after the value has crossed the whole band.
-Section~\ref{sec:approach-adaptive-oracle} applies this to the adaptive oracle.
+Section~\ref{sec:approach-adaptive-oracle} applies this idea to the adaptive oracle.
 
 \section{Notation}\label{sec:prelim-notation}
 

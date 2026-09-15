@@ -1,38 +1,38 @@
 <mxfile host="Electron" agent="claude">
   <diagram name="arbiter-layer" id="arbiter-layer">
-    <mxGraphModel dx="1047" dy="630" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="528" math="0" shadow="0">
+    <mxGraphModel dx="1414" dy="850" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="528" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="c2" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=13;fontFamily=Helvetica;fontColor=#000000;fontStyle=1" value="&lt;span&gt;1.&lt;/span&gt; the resource name" vertex="1">
+        <mxCell id="c2" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontFamily=Helvetica;fontColor=#000000;fontStyle=1" value="&lt;span&gt;1.&lt;/span&gt; the resource name" vertex="1">
           <mxGeometry height="20" width="190" x="210" y="20" as="geometry" />
         </mxCell>
-        <mxCell id="c3" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=13;fontFamily=Helvetica;fontColor=#000000;fontStyle=1" value="&lt;span&gt;2.&lt;/span&gt; the key it maps to" vertex="1">
-          <mxGeometry height="20" width="250" x="420" y="20" as="geometry" />
+        <mxCell id="c3" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontFamily=Helvetica;fontColor=#000000;fontStyle=1" value="&lt;span&gt;2.&lt;/span&gt; the key it maps to" vertex="1">
+          <mxGeometry height="20" width="250" x="427" y="20" as="geometry" />
         </mxCell>
-        <mxCell id="c4" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=13;fontFamily=Helvetica;fontColor=#000000;fontStyle=1" value="&lt;span&gt;3.&lt;/span&gt; entry under the key" vertex="1">
+        <mxCell id="c4" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontFamily=Helvetica;fontColor=#000000;fontStyle=1" value="&lt;span&gt;3.&lt;/span&gt; entry under the key" vertex="1">
           <mxGeometry height="20" width="280" x="704" y="20" as="geometry" />
         </mxCell>
         <mxCell id="askA" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="ACID transaction" vertex="1">
-          <mxGeometry height="52" width="176" x="16" y="130" as="geometry" />
+          <mxGeometry height="52" width="176" x="16" y="118" as="geometry" />
         </mxCell>
         <mxCell id="askB" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="BASE parent" vertex="1">
-          <mxGeometry height="52" width="176" x="16" y="210" as="geometry" />
+          <mxGeometry height="52" width="176" x="16" y="198" as="geometry" />
         </mxCell>
         <mxCell id="askC" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="BASE repair" vertex="1">
-          <mxGeometry height="52" width="176" x="16" y="290" as="geometry" />
+          <mxGeometry height="52" width="176" x="16" y="278" as="geometry" />
         </mxCell>
-        <mxCell id="pool" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f7f7f7;strokeColor=#bbbbbb;dashed=1;dashPattern=6 4;verticalAlign=top;align=center;spacingTop=8;fontSize=13;fontFamily=Helvetica;fontColor=#666666;" value="&lt;b&gt;One resource pool&lt;/b&gt;" vertex="1">
-          <mxGeometry height="368" width="170" x="220" y="58" as="geometry" />
+        <mxCell id="pool" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f7f7f7;strokeColor=#bbbbbb;dashed=1;dashPattern=6 4;verticalAlign=top;align=center;spacingTop=8;fontSize=13;fontFamily=Helvetica;fontColor=#666666;" value="&lt;b&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;One resource pool&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="312" width="170" x="220" y="58" as="geometry" />
         </mxCell>
         <mxCell id="r1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="res&lt;sub&gt;1&lt;/sub&gt;" vertex="1">
-          <mxGeometry height="32" width="130" x="240" y="96" as="geometry" />
+          <mxGeometry height="32" width="130" x="240" y="101" as="geometry" />
         </mxCell>
         <mxCell id="r2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontFamily=Helvetica;fontSize=15;fontColor=#333333;" value="res&lt;sub&gt;2&lt;/sub&gt;" vertex="1">
-          <mxGeometry height="32" width="130" x="240" y="148" as="geometry" />
+          <mxGeometry height="32" width="130" x="240" y="153" as="geometry" />
         </mxCell>
         <mxCell id="rk" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dedede;strokeColor=#444444;strokeWidth=3;fontFamily=Helvetica;fontSize=15;fontColor=#333333;fontStyle=1;" value="res&lt;sub&gt;k&lt;/sub&gt;" vertex="1">
-          <mxGeometry height="32" width="130" x="240" y="200" as="geometry" />
+          <mxGeometry height="32" width="130" x="240" y="208" as="geometry" />
         </mxCell>
         <mxCell id="rd" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=22;fontFamily=Helvetica;fontColor=#999999;" value="⋮" vertex="1">
           <mxGeometry height="26" width="130" x="240" y="254" as="geometry" />
@@ -49,11 +49,11 @@
         <mxCell id="eC" edge="1" parent="1" source="askC" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#d79b00;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="rk">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="keyL" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f4f4f0;strokeColor=#555555;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;fontStyle=0" value="&lt;span&gt;lockId&lt;/span&gt; = lockId(res&lt;sub&gt;k&lt;/sub&gt;)&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#666666&quot;&gt;the granularity mapping. N resources&lt;br&gt;over the configured number of locks&lt;/font&gt;" vertex="1">
-          <mxGeometry height="96" width="250" x="420" y="134" as="geometry" />
+        <mxCell id="keyL" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f4f4f0;strokeColor=#555555;strokeWidth=2;fontFamily=Helvetica;fontSize=17;fontColor=#333333;fontStyle=0" value="&lt;span&gt;lockId&lt;/span&gt; = lockId(res&lt;sub&gt;k&lt;/sub&gt;)" vertex="1">
+          <mxGeometry height="52" width="250" x="422" y="153" as="geometry" />
         </mxCell>
-        <mxCell id="keyD" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f4f4f0;strokeColor=#555555;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;fontStyle=0" value="&lt;span&gt;dirtyKey&lt;/span&gt; = (resModel, res&lt;sub&gt;k&lt;/sub&gt;)&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#666666&quot;&gt;the resource-to-model index.&lt;br&gt;Always one entry per resource&lt;/font&gt;" vertex="1">
-          <mxGeometry height="96" width="250" x="420" y="323" as="geometry" />
+        <mxCell id="keyD" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#f4f4f0;strokeColor=#555555;strokeWidth=2;fontFamily=Helvetica;fontSize=17;fontColor=#333333;fontStyle=0" value="&lt;span&gt;dirtyKey&lt;/span&gt; = (resModel, res&lt;sub&gt;k&lt;/sub&gt;)" vertex="1">
+          <mxGeometry height="56" width="250" x="422" y="294" as="geometry" />
         </mxCell>
         <mxCell id="ek1" edge="1" parent="1" source="rk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#555555;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="keyL">
           <mxGeometry relative="1" as="geometry" />
@@ -61,14 +61,14 @@
         <mxCell id="ek2" edge="1" parent="1" source="rk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#555555;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="keyD">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="recL" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;fontStyle=0" value="&lt;span&gt;Lock table&lt;/span&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#555555&quot;&gt;lock id → the transactions holding it&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#3a5f8f&quot;&gt;written and read by ACID, as before&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#a86a13&quot;&gt;now also read by both BASE paths&lt;/font&gt;" vertex="1">
-          <mxGeometry height="110" width="280" x="704" y="64" as="geometry" />
+        <mxCell id="recL" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;fontStyle=0" value="&lt;font style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;Lock table&lt;br&gt;&lt;/font&gt;&lt;font style=&quot;font-size: 16px;&quot; color=&quot;#a86a13&quot;&gt;accessed by BASE&lt;/font&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="64" width="280" x="704" y="91" as="geometry" />
         </mxCell>
-        <mxCell id="recC" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;fontStyle=0" value="&lt;span&gt;Claim table&lt;/span&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#555555&quot;&gt;lock id → the BASE parents writing under it&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#a86a13&quot;&gt;written by the BASE parent&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#3a5f8f&quot;&gt;read by ACID&lt;/font&gt;" vertex="1">
-          <mxGeometry height="110" width="280" x="704" y="190" as="geometry" />
+        <mxCell id="recC" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Helvetica;fontSize=16;fontColor=#333333;fontStyle=0" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Claim table&lt;br&gt;&lt;/font&gt;&lt;font color=&quot;#a86a13&quot;&gt;written by the BASE parent&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#3a5f8f&quot;&gt;read by ACID&lt;/font&gt;" vertex="1">
+          <mxGeometry height="77" width="280" x="704" y="190" as="geometry" />
         </mxCell>
-        <mxCell id="recD" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Helvetica;fontSize=15;fontColor=#333333;fontStyle=0" value="&lt;span&gt;Dirty set&lt;/span&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#555555&quot;&gt;dirty key → the repair outstanding on it&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#a86a13&quot;&gt;written by the BASE repair&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px;&quot; color=&quot;#3a5f8f&quot;&gt;read by ACID&lt;/font&gt;" vertex="1">
-          <mxGeometry height="110" width="280" x="704" y="316" as="geometry" />
+        <mxCell id="recD" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Helvetica;fontSize=16;fontColor=#333333;fontStyle=0" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Dirty set&lt;br&gt;&lt;/font&gt;&lt;font color=&quot;#3a5f8f&quot;&gt;read by ACID&lt;/font&gt;" vertex="1">
+          <mxGeometry height="64" width="280" x="704" y="290" as="geometry" />
         </mxCell>
         <mxCell id="er1" edge="1" parent="1" source="keyL" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#555555;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="recL">
           <mxGeometry relative="1" as="geometry" />

@@ -1,14 +1,11 @@
 <mxfile host="Electron" agent="claude">
   <diagram name="hysteresis-band" id="hysteresis-band">
-    <mxGraphModel dx="1571" dy="944" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="700" math="0" shadow="0">
+    <mxGraphModel dx="1488" dy="895" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="700" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="band" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=none;opacity=70;" value="" vertex="1">
           <mxGeometry height="200" width="1160" x="200" y="200" as="geometry" />
-        </mxCell>
-        <mxCell id="bandLabel" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=18;fontFamily=Helvetica;fontColor=#8a8a8a;fontStyle=0" value="&lt;font style=&quot;&quot;&gt;&lt;span style=&quot;color: rgb(151, 208, 119);&quot;&gt;&lt;font&gt;hysteresis&lt;br&gt;band&lt;/font&gt;&lt;/span&gt;&lt;br&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;no mode swtich&lt;br&gt;while r &amp;lt; d&lt;sub style=&quot;&quot;&gt;k &lt;/sub&gt;&amp;lt; c&lt;/font&gt;&lt;/font&gt;" vertex="1">
-          <mxGeometry height="120" width="130" x="212" y="240" as="geometry" />
         </mxCell>
         <mxCell id="lineC" edge="1" parent="1" style="endArrow=none;html=1;strokeColor=#6c8ebf;strokeWidth=2.5;dashed=1;dashPattern=8 5;" value="">
           <mxGeometry relative="1" as="geometry">
@@ -26,7 +23,7 @@
           <mxGeometry height="44" width="141" x="49" y="178" as="geometry" />
         </mxCell>
         <mxCell id="labR" parent="1" style="text;html=1;align=right;verticalAlign=middle;fontSize=21;fontFamily=Helvetica;fontColor=#7f4f00;fontStyle=0" value="&lt;span&gt;r&lt;/span&gt;&lt;br&gt;&lt;font style=&quot;font-size:15px;&quot;&gt;recoveryDirtyFraction&lt;/font&gt;" vertex="1">
-          <mxGeometry height="44" width="104" x="86" y="378" as="geometry" />
+          <mxGeometry height="44" width="145" x="45" y="378" as="geometry" />
         </mxCell>
         <mxCell id="axisY" edge="1" parent="1" style="endArrow=blockThin;html=1;strokeColor=#555555;strokeWidth=2;" value="">
           <mxGeometry relative="1" as="geometry">
@@ -159,7 +156,7 @@
         <mxCell id="m4" parent="1" style="ellipse;html=1;fillColor=#d79b00;strokeColor=#ffffff;strokeWidth=2.5;" value="" vertex="1">
           <mxGeometry height="22" width="22" x="1204" y="389" as="geometry" />
         </mxCell>
-        <mxCell id="anEnter" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=16;fontFamily=Helvetica;fontColor=#1f3c66;fontStyle=0" value="&lt;span&gt;d&lt;sub&gt;k&lt;/sub&gt; reaches c →&amp;nbsp;&lt;/span&gt;&lt;div&gt;&lt;span&gt;oracle switches to ACID&lt;/span&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="anEnter" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=18;fontFamily=Helvetica;fontColor=#1f3c66;fontStyle=0" value="&lt;span&gt;d&lt;sub&gt;k&lt;/sub&gt; reaches c →&amp;nbsp;&lt;/span&gt;&lt;div&gt;&lt;span&gt;oracle switches to ACID&lt;/span&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="55" width="330" x="228" y="112" as="geometry" />
         </mxCell>
         <mxCell id="anEnterA" edge="1" parent="1" style="endArrow=blockThin;html=1;strokeColor=#6c8ebf;strokeWidth=2;entryX=0;entryY=0;entryDx=0;entryDy=0;" target="m1" value="">
@@ -168,7 +165,7 @@
             <mxPoint x="508" y="188" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="anLeaveA" edge="1" parent="1" source="rJfm3UyjerckKWtgPgGN-1" style="endArrow=blockThin;html=1;strokeColor=#d79b00;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" target="m2" value="">
+        <mxCell id="anLeaveA" edge="1" parent="1" source="rJfm3UyjerckKWtgPgGN-1" style="endArrow=blockThin;html=1;strokeColor=#d79b00;strokeWidth=2;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" target="m2" value="">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="884.8339999999998" y="465.99" as="sourcePoint" />
             <mxPoint x="778" y="414" as="targetPoint" />
@@ -192,14 +189,14 @@
         <mxCell id="stripeLab" parent="1" style="text;html=1;align=right;verticalAlign=middle;fontSize=17;fontFamily=Helvetica;fontColor=#555555;fontStyle=0" value="&lt;span&gt;oracle mode&lt;/span&gt;" vertex="1">
           <mxGeometry height="37" width="101" x="92" y="584.5" as="geometry" />
         </mxCell>
-        <mxCell id="rJfm3UyjerckKWtgPgGN-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;labelBackgroundColor=default;fontSize=16;" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font&gt;&lt;span style=&quot;color: rgb(127, 79, 0);&quot;&gt;&lt;font&gt;&lt;span style=&quot;white-space: nowrap;&quot;&gt;d&lt;/span&gt;&lt;sub style=&quot;white-space: nowrap;&quot;&gt;k&lt;/sub&gt;&lt;/font&gt;&lt;/span&gt;&lt;span style=&quot;text-wrap-mode: nowrap;&quot;&gt;&lt;span style=&quot;color: rgb(127, 79, 0);&quot;&gt;&lt;font&gt;&amp;nbsp;&lt;/font&gt;&lt;/span&gt;&lt;span style=&quot;color: rgb(127, 79, 0);&quot;&gt;reaches r →&amp;nbsp;&lt;/span&gt;&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font&gt;&lt;span style=&quot;text-wrap-mode: nowrap;&quot;&gt;&lt;span style=&quot;color: rgb(127, 79, 0);&quot;&gt;oracle switches to BASE.&lt;/span&gt;&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="55" width="226" x="474" y="411" as="geometry" />
+        <mxCell id="rJfm3UyjerckKWtgPgGN-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;labelBackgroundColor=default;fontSize=18;" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font&gt;&lt;span style=&quot;color: rgb(127, 79, 0);&quot;&gt;&lt;font&gt;&lt;span style=&quot;white-space: nowrap;&quot;&gt;d&lt;/span&gt;&lt;sub style=&quot;white-space: nowrap;&quot;&gt;k&lt;/sub&gt;&lt;/font&gt;&lt;/span&gt;&lt;span style=&quot;text-wrap-mode: nowrap;&quot;&gt;&lt;span style=&quot;color: rgb(127, 79, 0);&quot;&gt;&lt;font&gt;&amp;nbsp;&lt;/font&gt;&lt;/span&gt;&lt;span style=&quot;color: rgb(127, 79, 0);&quot;&gt;reaches r →&amp;nbsp;&lt;/span&gt;&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;font&gt;&lt;span style=&quot;text-wrap-mode: nowrap;&quot;&gt;&lt;span style=&quot;color: rgb(127, 79, 0);&quot;&gt;oracle switches to BASE.&lt;/span&gt;&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="55" width="226" x="531" y="439" as="geometry" />
         </mxCell>
         <mxCell id="keyOver" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=none;fontColor=#ffffff;fontSize=15;fontFamily=Helvetica;fontStyle=1;verticalAlign=middle;align=center;" value="1" vertex="1">
-          <mxGeometry height="26" width="26" x="578" y="134" as="geometry" />
+          <mxGeometry height="26" width="26" x="562" y="152" as="geometry" />
         </mxCell>
         <mxCell id="keyUnder" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=none;fontColor=#ffffff;fontSize=15;fontFamily=Helvetica;fontStyle=1;verticalAlign=middle;align=center;" value="2" vertex="1">
-          <mxGeometry height="26" width="26" x="832" y="462" as="geometry" />
+          <mxGeometry height="26" width="26" x="818" y="453.5" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
