@@ -5,7 +5,7 @@
 This chapter introduces the problem of this thesis and the approach taken to
 solve it. Section~\ref{sec:intro-motivation} explains why the problem exists.
 Section~\ref{sec:intro-problem} states the problem. Section~\ref{sec:intro-rqs}
-lists the research questions. Section~\ref{sec:intro-contributions} summarises
+lists the research questions. Section~\ref{sec:intro-contributions} summarizes
 the approach and the contributions. Section~\ref{sec:intro-structure} gives the
 structure of the thesis.
 
@@ -13,8 +13,8 @@ structure of the thesis.
 \section{Motivation}\label{sec:intro-motivation}
 
 Engineering systems often describe one product with several models. Examples are
-the CAD geometry, a simulation mesh and a written specification. These models
-overlap, because the same fact about the product appears in more than one of
+the CAD geometry, a simulation mesh, and a written specification. These models
+overlap because the same fact about the product appears in more than one of
 them. Consistency Preservation Rules (CPRs) keep the models in agreement. They
 take an update made in one model and propagate it to every model that shares the
 changed resource.
@@ -30,7 +30,7 @@ background work is called \emph{reconciliation}. Until it is done, the other
 models that share the resource still show the old state. They see the change
 only after some delay.
 
-In transactional systems these two ways are known as ACID and BASE.
+In transactional systems, these two ways are known as ACID and BASE.
 Chapter~\ref{chapter:preliminaries} introduces both in detail. This thesis
 combines them in one system. The goal is to find a point between the two that is
 faster than the consistent way alone, while the delay in the other models stays
@@ -38,11 +38,11 @@ within a limit that the system administrator accepts.
 
 \section{Formal problem statement}\label{sec:intro-problem}\label{sec:intro-formal}
 
-The delay of the background updates may leave some resources out of date. This thesis
+Delays in background updates may leave some resources out of date. This thesis
 measures this inconsistency as the share of resources that are out of date. We
 call this share the \emph{dirty fraction} $d$
 (Section~\ref{sec:prelim-inconsistency}). Let $c$ be the \emph{critical dirty
-  threshold}, which means highest dirty fraction
+  threshold}, which is the highest dirty fraction
 that the system administrator accepts. The task is to build a mechanism that
 keeps the dirty fraction $d$
 below $c$ for most of the run. More precisely, the 95th percentile of the dirty
@@ -54,7 +54,7 @@ fraction over the run, $p_{95}(d)$, has to satisfy
 \end{equation}
 
 where $\varepsilon$ is a small tolerance for deviations. The threshold should be
-set once and while the system is running, the mechanism has to keep the dirty
+set once, and while the system is running, the mechanism has to keep the dirty
 fraction at this level on its own, so the administrator does not have to adjust
 any setting.
 
@@ -88,12 +88,12 @@ following.
   resources (Section~\ref{sec:approach-hybrid}).
 
   \item[A shared-resource arbiter.] When ACID and BASE run together, they may
-  need the same resource at the same time. The arbiter manages this access, so
+  need the same resource at the same time. The arbiter manages this access so
   that no resource is corrupted (Section~\ref{sec:approach-arbiter}).
 
   \item[Two mode oracles.] An oracle chooses the mode of each transaction,
   either ACID or BASE. The adaptive oracle decides from the internal state of
-  the system, namely the measured dirty fraction $d$. The fixed-share oracle is
+  the system, namely the measured dirty fraction. The fixed-share oracle is
   the alternative. It uses a fixed split between ACID and BASE that is set at
   the start (Section~\ref{sec:approach-oracles}).
 
@@ -105,15 +105,16 @@ following.
   in total (Chapter~\ref{chapter:experiments}).
 \end{bullets}
 
+
 \section{Structure of the thesis}\label{sec:intro-structure}
 
 Chapter~\ref{chapter:preliminaries} introduces the background needed to
 understand this work. It covers transactions, ACID and BASE, the base simulator,
-multi-model systems and hysteresis.
+multi-model systems, and hysteresis.
 Chapter~\ref{chapter:related-work} discusses the literature this thesis builds
 on. Chapter~\ref{chapter:approach} describes the hybrid mode, the
-shared-resource arbiter and the two mode oracles.
+shared-resource arbiter, and the two mode oracles.
 Chapter~\ref{chapter:experiments} describes the experimental setup, reports the
-results and maps them to the research questions.
-Chapter~\ref{chapter:conclusion} summarises the work, records the
-lessons learned and lists future work.
+results, and maps them to the research questions.
+Chapter~\ref{chapter:conclusion} summarizes the work, records the
+lessons learned, and lists future work.

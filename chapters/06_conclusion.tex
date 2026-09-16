@@ -2,7 +2,7 @@
 
 \chapter{Conclusions and Future Work}\label{chapter:conclusion}
 
-This chapter summarises the work, describes the lessons learned from combining
+This chapter summarizes the work, describes the lessons learned from combining
 ACID and BASE in one system, and lists open questions for future work.
 
 \section{Summary of the work}\label{sec:concl-summary}
@@ -17,15 +17,15 @@ fraction and a fixed-share oracle, and compared their performance.
 
 In the evaluation, the hybrid mode was faster than pure ACID and slower than
 pure BASE. The dirty fraction stayed close to the configured critical dirty
-threshold, but this held only for a range of workloads, and under constant load
-the adaptive oracle did not outperform a fixed split. The hybrid mode therefore
+threshold, but this held only for a range of workloads, and under constant load,
+the adaptive oracle did not outperform a fixed split. The hybrid mode, therefore,
 does not make the trade-off between ACID and BASE cheaper, but it allows
 different system parameters to be configured.
 
 \section{Lessons learned}\label{sec:concl-lessons}
 
 ACID and BASE cannot simply run side by side, because without a resource
-management layer such as the arbiter they corrupt the state of shared
+management layer such as the arbiter, they corrupt the state of shared
 resources.
 
 Sharing resources costs performance in both modes. ACID transactions now

@@ -52,7 +52,7 @@
         <mxCell id="groupBox" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;strokeColor=#3a5f8f;strokeWidth=2;dashed=1;dashPattern=6 4;fillColor=#dae8fc;opacity=30;" value="" vertex="1">
           <mxGeometry height="102" width="914" x="30" y="201" as="geometry" />
         </mxCell>
-        <mxCell id="groupLab" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontFamily=Helvetica;fontColor=#3a5f8f;fontStyle=0" value="One transaction group. Total group locks will be released only after every transaction finished successfully." vertex="1">
+        <mxCell id="groupLab" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontFamily=Helvetica;fontColor=#3a5f8f;fontStyle=0" value="One transaction group. All group locks are released only after every transaction has finished successfully." vertex="1">
           <mxGeometry height="24" width="914" x="30" y="275" as="geometry" />
         </mxCell>
         <mxCell id="e_a_b" edge="1" parent="1" source="r0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;endFill=1;exitX=0.7;exitY=0;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;" target="r1">

@@ -18,6 +18,11 @@ system. The hybrid mode is implemented in an existing simulator of multi-model
 systems, which makes it possible to evaluate how well it balances consistency
 and throughput.
 
+The evaluation shows that the hybrid mode reaches a higher
+throughput than pure ACID and, unlike pure BASE, keeps the inconsistency close
+to a configured threshold. Under a static load, however, the adaptive oracle
+gives no performance gain over the fixed share.
+
 
 \makeatletter
 \ifthenelse{\pdf@strcmp{\languagename}{english}=0}
@@ -48,6 +53,12 @@ and throughput.
   Modus ist in einem bestehenden Simulator für Multi-Modell-Systeme
   implementiert, wodurch sich bewerten lässt, wie gut er Konsistenz und
   Durchsatz ausbalanciert.
+
+  Die Evaluation zeigt, dass der hybride Modus einen
+  höheren Durchsatz als reines ACID erreicht und, anders als reines BASE, die
+  Inkonsistenz nahe an einem konfigurierten Schwellenwert hält. Unter statischer
+  Last bringt das adaptive Orakel jedoch keinen Leistungsgewinn gegenüber dem
+  festen Anteil.
 \end{otherlanguage}
 
 % Undo the name switch

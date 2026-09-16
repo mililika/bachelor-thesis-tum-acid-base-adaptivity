@@ -13,12 +13,12 @@ the hysteresis band, which the adaptive oracle uses.
 Section~\ref{sec:prelim-notation} lists the symbols used in the thesis.
 
 
-\section{Transactions, ACID and BASE}\label{sec:prelim-transactions}
+\section{Transactions, ACID, and BASE}\label{sec:prelim-transactions}
 
 \paragraph{Transactions.}\label{sec:prelim-serialisability}
 A transaction is a group of read and write steps on resources that takes effect
 as one unit. When several transactions run at the same time, the result must be the same as if
-they had run one after another. This property is called serialisability.
+they had run one after another. This property is called serializability.
 
 \paragraph{ACID.}\label{sec:prelim-acid}
 ACID names four guarantees that a transactional system gives. Atomicity means
@@ -53,14 +53,14 @@ basics.
 \paragraph{The execution engine.}\label{sec:prelim-engine}
 Time advances in fixed steps of one simulated second. A new transaction waits in
 a pending queue until it is admitted. It then passes through a lock phase, an IO
-phase and a CPU phase on pools of IO and CPU processors, and finally it commits
+phase, and a CPU phase on pools of IO and CPU processors, and finally, it commits
 or aborts. ACID transactions use conservative two-phase locking
 (Section~\ref{sec:prelim-2pl}). BASE transactions skip the lock phase, and
 conflicting writes are resolved by a last-write-wins rule. The clock is virtual,
 so the results do not depend on the speed of the machine.
 
 \paragraph{Simulator parameters.}\label{sec:prelim-parameters}
-A run is configured by the number of resources, models and locks, the number of
+A run is configured by the number of resources, models, and locks, the number of
 IO and CPU processors, and the execution mode, ACID or BASE, which holds for the
 whole run. It is also configured by the maximum number of resources and of
 models that one transaction may touch. The multi-model parameters are introduced
@@ -70,7 +70,7 @@ values used in this thesis.
 
 \paragraph{Workload.}\label{sec:prelim-workload-profiles}
 The simulator creates its own transactions. Each transaction draws at random how
-many resources and which models it touches, which is reproducable with a seed. This thesis uses the \texttt{EQUILIBRIUM} profile, which keeps the
+many resources and which models it touches, which is reproducible with a seed. This thesis uses the \texttt{EQUILIBRIUM} profile, which keeps the
 number of in-flight transactions constant. Whenever one transaction finishes, a
 new one is created. A second profile,
 \texttt{TERMINAL}, lets the load rise and fall, but it was still under
@@ -95,9 +95,10 @@ rules, up to a maximum depth. One write can therefore reach resources in several
 models. Figures~\ref{fig:cpr-expansion-acid} and~\ref{fig:cpr-expansion-base}
 show such a chain of rules across five models.
 
+
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=1\textwidth]{fig-cpr-expansion-acid.pdf}
+  \includegraphics[width=0.94\textwidth]{fig-cpr-expansion-acid.pdf}
   \captionsetup{format=plain,justification=centering}
   \caption{Rule expansion under ACID.}
   \label{fig:cpr-expansion-acid}
@@ -123,34 +124,34 @@ describe how ACID and BASE execute the bookkeepers.
 
 \paragraph{Transaction groups.}\label{sec:prelim-group}
 A root transaction and all the bookkeepers that follow from it form a
-\emph{transaction group}~\cite{zacouris2026mxs}. Under ACID the group commits as
+\emph{transaction group}~\cite{zacouris2026mxs}. Under ACID, the group commits as
 one unit, and if one member is blocked or aborted, so is the whole group. The
 bookkeepers are not known when the root is admitted, so the root preclaims only
 its own locks. The bookkeepers add their locks later, and all locks are released
 when the group commits (Figure~\ref{fig:cpr-expansion-acid}). A group can
 therefore wait while it holds locks, and two groups can wait on each other,
-what can result in deadlock.
+which can result in deadlock.
 
 \paragraph{Cautious waiting.}\label{sec:prelim-deadlock}
 The base simulator prevents such a deadlock with cautious
 waiting~\cite{hsu1992cautious,zacouris2026mxs}. A transaction may queue for a
-lock only if the group that holds it is not blocked itself. Otherwise its group
-is aborted, releases all of its locks and is retried later. A pure ACID run
-therefore cannot deadlock, but it loses aborted work
+lock only if the group that holds it is not blocked itself. Otherwise, its group
+is aborted, releases all of its locks, and is retried later. A pure ACID run,
+therefore, cannot deadlock, but it loses aborted work
 (Section~\ref{sec:approach-group-locking}).
 
 \paragraph{Dirty resources and reconciliation.}\label{sec:prelim-reconciliation}
-Under BASE a root transaction commits without waiting for its bookkeepers. Until
+Under BASE, a root transaction commits without waiting for its bookkeepers. Until
 a bookkeeper has committed, the resource it updates holds an old value and is
 called \emph{dirty}. \emph{Reconciliation} runs the pending bookkeepers in the
-background on dedicated reconciler processors, taken from the forefground IO and CPU processors
-(Figure~\ref{fig:cpr-expansion-base}). Under ACID number of reconciler processors is ignored.
+background on dedicated reconciler processors, taken from the foreground IO and CPU processors
+(Figure~\ref{fig:cpr-expansion-base}). Under ACID, the number of reconciler processors is ignored.
 
 \paragraph{Inconsistency.}\label{sec:prelim-inconsistency}
 The dirty set $D_k \subseteq \mathcal{X}$ holds the dirty resources at reading
-$k$, and $d_k = |D_k| / N$ is the \emph{dirty fraction}. A run is summarised by
+$k$, and $d_k = |D_k| / N$ is the \emph{dirty fraction}. A run is summarized by
 its 95th percentile $p_{95}(d)$, which is the value bounded in
-Equation~\ref{eq:problem}. Under pure ACID $d_k$ is always zero.
+Equation~\ref{eq:problem}. Under pure ACID, $d_k$ is always zero.
 
 
 \section{Hysteresis band}\label{sec:prelim-hysteresis}
@@ -178,20 +179,20 @@ the end of every simulated step.
   \renewcommand{\arraystretch}{1.3}
   \begin{tabular}{llll}
     \toprule
-    Symbol                 & Meaning                  & Definition            & Implementation                        \\
+    Symbol                 & Meaning                  & Definition  & Implementation                        \\
     \midrule
-    $N$                    & Total resources          & ---                   & \texttt{totalResources}               \\
-    $\sigma$               & Semantic overlap degree  & ---                   & \texttt{semanticOverlap}              \\
-    $L$                    & Max resources per txn    & ---                   & \texttt{maxTransactionResources}      \\
-    $R$                    & Reconciler processors    & ---                   & \texttt{numberOfReconcilerProcessors} \\
-    $D_k$                  & Dirty resource set       & ---                   & \texttt{DirtySetManager.size()}       \\
-    $d_k$                  & Dirty fraction           & $|D_k| / N$           & \texttt{dirtyFraction}                \\
-    $p_{95}(d)$            & Dirty-fraction tail      & 95th pct.\ per step   & \texttt{dirty\_p95\_pct}              \\
-    $c$                    & Critical dirty threshold & ---                   & \texttt{criticalDirtyFraction}        \\
-    $r$                    & Recovery threshold       & --- ($0 \le r \le c$) & \texttt{recoveryDirtyFraction}        \\
-    $p_{\mathrm{acid}}$    & Configured ACID share    & ---                   & \texttt{fixedAcidShare}               \\
-    $\phi_{\mathrm{time}}$ & ACID time share          & ---                   & \texttt{acid\_fraction\_time}         \\
-    $\phi_{\mathrm{comp}}$ & ACID completion share    & ---                   & \texttt{acid\_fraction\_completed}    \\
+    $N$                    & Total resources          & ---         & \texttt{totalResources}               \\
+    $\sigma$               & Semantic overlap degree  & ---         & \texttt{semanticOverlap}              \\
+    $L$                    & Max resources per txn    & ---         & \texttt{maxTransactionResources}      \\
+    $R$                    & Reconciler processors    & ---         & \texttt{numberOfReconcilerProcessors} \\
+    $D_k$                  & Dirty resource set       & ---         & \texttt{DirtySetManager.size()}       \\
+    $d_k$                  & Dirty fraction           & $|D_k| / N$ & \texttt{dirtyFraction}                \\
+    $p_{95}(d)$            & Dirty-fraction tail      & 95th pct.   & \texttt{dirty\_p95\_pct}              \\
+    $c$                    & Critical dirty threshold & ---         & \texttt{criticalDirtyFraction}        \\
+    $r$                    & Recovery threshold       & ---         & \texttt{recoveryDirtyFraction}        \\
+    $p_{\mathrm{acid}}$    & Configured ACID share    & ---         & \texttt{fixedAcidShare}               \\
+    $\phi_{\mathrm{time}}$ & ACID time share          & ---         & \texttt{acid\_fraction\_time}         \\
+    $\phi_{\mathrm{comp}}$ & ACID completion share    & ---         & \texttt{acid\_fraction\_completed}    \\
     \bottomrule
   \end{tabular}
   \endgroup

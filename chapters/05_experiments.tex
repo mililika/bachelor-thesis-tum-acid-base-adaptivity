@@ -4,28 +4,29 @@
 
 To evaluate the hybrid mode, we ran five experiments on the extended simulator.
 Section~\ref{sec:exp-setup} first describes configurations shared by all of
-them. First and second experiments answer the question of incosistency threshold
-configurability (RQ2), and third experiment answers how does adaptive oracle
-pefrormes compared to a static ACID/BASE split (RQ3). Safe adpation between ACID
+them. The first experiment answers how the hybrid mode compares with pure ACID and pure
+BASE (RQ2), the second experiment answers the question of inconsistency threshold
+configurability (RQ2), and the third experiment answers how the adaptive oracle
+performs compared to a static ACID/BASE split (RQ3). Safe adaptation between ACID
 and BASE (RQ1) is covered only partially by
 the experiments, since it is a design question rather than an experimental one.
-Foruth and fifth experiments extend the answer to (RQ2) and give further insight into the system,
-critical dirty threshold and how well this threshold holds under
+The fourth and fifth experiments extend the answer to (RQ2) and give further insight into the system,
+the critical dirty threshold, and how well this threshold holds under
 different loads. Section~\ref{sec:effective-recovery} takes a closer look at the
-recovery threshold.  Section~\ref{sec:exp-threats} closes the chapter with the
+recovery threshold. Section~\ref{sec:exp-threats} closes the chapter with the
 threats to validity.
 
 \begin{itemize}
   \item \textbf{X1: Reconciler-processor sweep}
         (Section~\ref{sec:x1-reconciler-sweep}). This experiment varies the
-        number of reconciler processors available in the system. It used to
+        number of reconciler processors available in the system. It is used to
         measure how background reconciliation affects different semantic
-        configruations in simulator.
+        configurations in the simulator.
 
   \item \textbf{X2: Critical dirty fraction threshold sweep}
         (Section~\ref{sec:x2-critical-sweep}). This experiment sweeps the
         critical dirty threshold introduced in this thesis. It tests whether
-        this threshold holds, meaning if the measured incosistency fraction
+        this threshold holds, meaning if the measured inconsistency fraction
         follows it.
 
   \item \textbf{X3: Fixed-share oracle ACID/BASE split sweep}
@@ -52,7 +53,7 @@ This section shows the baseline simulator configuration, described in
 Table~\ref{tab:exp-baseline}. Every experiment starts from it and changes only
 the variables it sweeps. Each sweep is crossed with the number of reconciler
 processors. Most settings come from the table of simulation parameters and
-default configuration of Zacouris and Acosta~\cite[Table~1]{zacouris2026mxs}.
+the default configuration of Zacouris and Acosta~\cite[Table~1]{zacouris2026mxs}.
 The deviations from it are listed below the table. Thresholds are given as
 fractions in the configuration, while the measured dirty fraction is reported in
 percent.
@@ -118,7 +119,7 @@ percent.
 \end{table}
 
 \paragraph{Processors.} The reconciler processors are not extra capacity. In
-BASE and HYBRID runs the reconcilers are taken out of the 30 foreground
+BASE and HYBRID runs, the reconcilers are taken out of the 30 foreground
 processors, so the IO and CPU processors left for foreground work are 30 minus
 the number of reconcilers. Pure ACID runs use no reconcilers and keep all 30.
 
@@ -129,27 +130,27 @@ finishes, a new one is created at the next step.
 
 \paragraph{Deviations from the reference configuration.} Three new entries were
 added to the configuration, the critical dirty threshold, the recovery dirty
-threshold and fixed ACID probability. Three values differ from the reference
+threshold, and the fixed ACID probability. One value differs from the reference
 table.
 
-The only major deviation is the number of simulated seconds was raised from
+The only deviation is that the number of simulated seconds was raised from
 10\,000\,s to 50\,000\,s. The reason is that switches between \texttt{ACID} and
-\texttt{BASE} take time, therefore more simulated time needed to let enough
+\texttt{BASE} take time. Therefore, more simulated time is needed to let enough
 switches happen for a reliable comparison.
 
 \paragraph{Seeds.} The simulator provides the \emph{transaction-sampling seed}.
-It fixes the how many resources each transaction touches, how many models it
+It fixes how many resources each transaction touches, how many models it
 reaches, and which models and resources it uses. The same seed also drives the
 draws of the fixed-share oracle.
 
 The second seed, the \emph{semantic-overlap seed}, fixes which resources are
-shared between the different models. The semantic-overlap seed therefore fixes
+shared between the different models. The semantic-overlap seed, therefore, fixes
 the state of the multi-model resource pool.
 
-\paragraph{Experiments implementation.} For each experiment a dedicated runner
+\paragraph{Experiments implementation.} For each experiment, a dedicated runner
 script was created. It configures the baseline variables and allows the selected
 variable to be swept. Every script is then run under the five seed pairs shared
-across all experiments. An experiment provides two types of result, the
+across all experiments. An experiment provides two types of results, the
 fixed-step simulation log and a CSV file in which each row represents one
 simulation. A row combines the configuration of that run with the different
 output metrics we want to study.
@@ -168,12 +169,12 @@ evaluation.
   \item[$p_{95}$ dirty fraction (\texttt{dirty\_p95\_pct}).] The 95th percentile
   of the same quantity. Within one run, inconsistency stays below this value for
   95\% of the simulated time. This describes the bad case, and it is the number
-  a threshold is supposed to limit.
+  that a threshold is supposed to limit.
 \end{bullets}
 
 The resource dirty fraction is sampled at the end of every simulator step, that
 is, once per simulated second. We call this value the measured dirty fraction
-(also incosistency level), and its 95th percentile is the quantity limited in
+(also inconsistency level), and its 95th percentile is the quantity limited in
 Equation~\ref{eq:problem}.
 
 \paperbreak
@@ -182,7 +183,7 @@ Two further numbers describe the ACID part of the run.
 \begin{bullets}
   \item[ACID time share ($\phi_{\mathrm{time}}$).] How much of the run the
   system spent in ACID mode. The oracle timestamps every decision and sums the
-  lengths of the intervals that were marked as ACID
+  lengths of the intervals that were marked as ACID.
 
   \item[ACID completed share ($\phi_{\mathrm{comp}}$).] What share of the
   completed transactions were tagged as ACID.
@@ -197,7 +198,7 @@ three modes are started under the same conditions.
 
 \paragraph{Experiment configuration.} The sweep covers reconciler processors in
 \{0, 1, 5, 10, 15, 20, 25\} for four configurations, pure \texttt{ACID}, pure
-\texttt{BASE}, \texttt{HYBRID\_ADAPTIVE} and \texttt{HYBRID\_FIXED\_SHARE}. The
+\texttt{BASE}, \texttt{HYBRID\_ADAPTIVE}, and \texttt{HYBRID\_FIXED\_SHARE}. The
 fixed-share oracle runs with a fixed ACID share of 0.5.
 
 Table~\ref{tab:x1-summary} reports one row per configuration and number of
@@ -207,11 +208,11 @@ the share of time the system spent in ACID mode, and $\phi_{comp}$ is the
 fraction of transactions completed with the ACID tag.
 
 In Table~\ref{tab:x1-summary}, ACID gets a single row for all seven reconciler
-counts, since reconciler processors by design have no influence in pure ACID
+counts, since reconciler processors, by design, have no influence in pure ACID
 mode.
 
 \paragraph{Processor configuration rule.} Reconcilers are taken out of the 30
-foreground processors (Section~\ref{sec:exp-setup}). At the end of the sweep
+foreground processors (Section~\ref{sec:exp-setup}). At the end of the sweep,
 only 5 foreground processors are left.
 
 \begin{table}[!htb]
@@ -307,13 +308,12 @@ few reconcilers push inconsistency up to the semantic overlap, and that more
 reconcilers lower inconsistency at the cost of throughput.
 Table~\ref{tab:x1-summary} shows the same trade-off. The $p_{50}$ inconsistency
 read from Figure~12a of the reference matches ours. With 15 reconcilers, the reference
-shows about 18\,\% and our run shows 17.7\,\%. The small differences are most
+shows about 18\%, and our run shows 17.7\%. The small differences are most
 likely caused by our longer run of 50\,000\,s.
 
 \paragraph{Edge case with zero reconciler processors.} The row with zero
-reconcilers looks contradictory at first. Without reconciler processors it
-combines a low dirty fraction with a high throughput, which no other row of the
-BASE block does. The reason is that repairs are queued on the foreground
+reconcilers looks contradictory at first. Without reconciler processors, it
+combines a low dirty fraction with a high throughput. The reason is that repairs are queued on the foreground
 processors and run there once the transaction that caused them has
 committed~\cite[Section~4.5]{zacouris2026mxs}. So the simulator has two cases.
 
@@ -324,7 +324,7 @@ committed~\cite[Section~4.5]{zacouris2026mxs}. So the simulator has two cases.
 
   \item[Foreground processors converted.] One worker owns one repair until it
   finishes, so no more repairs are in flight at the same time than there are
-  reconcilers. Each worker finishes one repair every two seconds, because the
+  reconcilers. Each worker finishes one repair every two seconds because the
   reconciliation design separates IO and CPU work.
 \end{bullets}
 
@@ -345,7 +345,7 @@ threshold, \texttt{HYBRID\_ADAPTIVE} behaves like pure BASE.
 \paragraph{Effect of reconciler processors on the fixed-share oracle.} In
 Table~\ref{tab:x1-summary}, the small throughput improvement of
 \texttt{HYBRID\_FIXED\_SHARE} seems unexpected at first. More reconciler
-processors means fewer foreground ones, so the throughput should decrease. What
+processors mean fewer foreground ones, so the throughput should decrease. What
 actually happens is that fewer foreground processors run fewer transactions at
 the same time, so fewer ACID transactions hold locks and abort. In addition,
 more reconciler processors clear the background work faster, which results in
@@ -354,15 +354,15 @@ fewer ACID waits on dirty resources.
 \findingshead
 
 \begin{bullets}
-  \item[O1. None of the runs stall.] Every one of the 140 runs makes progress
+  \item[O1. None of the runs stall.] Every one of the 140 runs makes progress,
   and no run stalls completely. This gives a weak argument for RQ1, since no
   deadlock was encountered within 50\,000\,s.
 
   \item[O2. The adaptive oracle engages only from 1 to 15 reconcilers.]
   With 0 and with 20 or more reconciler processors, every adaptive run behaves
   like pure BASE.\footnote{With 20 reconcilers, the oracle still switches mode, on
-    average 2.4 times per run, and spends only 0.16\,\% of the time in ACID. This
-    difference is too small to matter, so from 20 reconciler processors on the
+    average 2.4 times per run, and spends only 0.16\% of the time in ACID. This
+    difference is too small to matter, so from 20 reconciler processors on, the
     adaptive oracle is counted as BASE.} The adaptive oracle starts in BASE
   mode, so in runs where the dirty fraction never reaches the configured
   threshold, the oracle never engages. Figure~\ref{fig:x1-throughput-valley}
@@ -385,10 +385,10 @@ fewer ACID waits on dirty resources.
   reconcilers for the adaptive oracle and at every reconciler count for
   fixed-share.
 
-  \item[O4. The configured threshold bounds inconsistency. but the limit is not hard.]
-  With 1 to 15 reconcilers the adaptive $p_{95}$ stays close to the critical
-  dirty threshold of 10\,\% and never exceeds it by more than 0.62 percentage
-  points. The limit is not hard, since $p_{99}$ reaches 11.9\,\%, as
+  \item[O4. The configured threshold bounds inconsistency, but the limit is not hard.]
+  With 1 to 15 reconcilers, the adaptive $p_{95}$ stays close to the critical
+  dirty threshold of 10\% and never exceeds it by more than 0.62 percentage
+  points. The limit is not hard, since $p_{99}$ reaches 11.9\%, as
   Figure~\ref{fig:x1-tail-bound} shows. This is only a first check, and X2
   studies the critical dirty threshold in detail
   (Section~\ref{sec:x2-critical-sweep}).
@@ -402,7 +402,7 @@ fewer ACID waits on dirty resources.
   \label{fig:x1-tail-bound}
 \end{figure}
 
-\section{X2: Dirty resource fraction threshold
+\section{X2: Critical dirty fraction threshold
   sweep}\label{sec:x2-critical-sweep}
 
 RQ2 asks whether the hybrid mode with the adaptive oracle makes it possible to
@@ -424,11 +424,11 @@ shows that the adaptive oracle behaves like pure BASE there.
 
 
 One detail of this experiment is worth mentioning, which is the semantic overlap
-of 0.30. Only 30\,\% of the 5000 resources carry a CPR, so by design a run can be
-at most 30\,\% dirty, and this is a hard ceiling on the inconsistency.
+of 0.30. Only 30\% of the 5000 resources carry a CPR, so, by design, a run can be
+at most 30\% dirty, and this is a hard ceiling on the inconsistency.
 
 Table~\ref{tab:x2-grid} gives the throughput, the $p_{95}$ of the measured dirty
-fraction and the number of mode switches for each critical dirty threshold. A
+fraction, and the number of mode switches for each critical dirty threshold. A
 cell marked ``deg.'' is degenerate, which means that no mode switches happened
 and \texttt{HYBRID\_ADAPTIVE} ran only in BASE mode. The mean ACID wait in
 Table~\ref{tab:blocking} is the mean time an ACID transaction is blocked, counted
@@ -513,12 +513,12 @@ overshoots the threshold, and a negative one means that the run stayed below it.
 This is the central result of the thesis. The $p_{95}$ dirty fraction is never
 more than 1.31 percentage points away from the configured critical dirty
 threshold, and the further a run is from the edges of the threshold range, the
-smaller this deviation is. In the terms of
+smaller this deviation is. In terms of
 Equation~\ref{eq:problem}, the critical dirty threshold works as a configurable
 limit on the inconsistency level.
 
-\paragraph{The incosistency deviation changes from overshoot to undershoot.} From
-Table~\ref{tab:x2-tracking} we see that the average deviation of $p_{95}$ turns
+\paragraph{The inconsistency deviation changes from overshoot to undershoot.} From
+Table~\ref{tab:x2-tracking}, we see that the average deviation of $p_{95}$ turns
 from positive to negative. It changes direction both when the critical dirty
 threshold grows and when more reconciler processors are added.
 Figure~\ref{fig:x2-panels} helps to understand the cause. As the critical dirty
@@ -533,12 +533,12 @@ Table~\ref{tab:x2-grid} is counterintuitive at first. By
 Equation~\ref{eq:blocking-probability}, the probability that an ACID transaction
 is blocked by at least one dirty resource climbs fast as the critical dirty
 threshold increases. A small critical dirty threshold should therefore be the
-faster setting. The measurements show the opposite. With 5 or more reconcilers
+faster setting. The measurements show the opposite. With 5 or more reconcilers,
 the runs with a small critical dirty threshold are the slow ones.
 
 The reason is that a small critical dirty threshold forces the system to tag
 more transactions as ACID, because it has to keep the inconsistency level low.
-The system has to complete more slow work, and as a result the throughput drops
+The system has to complete more slow work, and as a result, the throughput drops
 towards pure ACID. As the critical dirty threshold is relaxed, the fraction of
 completed transactions tagged ACID drops significantly, because the system can
 focus on fast BASE transactions (Figures~\ref{fig:x2-panels}
@@ -768,8 +768,8 @@ but most of the throughput comes from completed BASE transactions.
   \item[O6. A high threshold disables the adaptive oracle.] O5 holds only while
   the oracle actually engages. The oracle stops engaging once the inconsistency
   that BASE produces on its own stays below the configured critical dirty
-  threshold, so it never switches to ACID. The configurable range of RQ2
-  therefore has an upper limit, which is set by how dirty the system becomes on
+  threshold, so it never switches to ACID. The configurable range of RQ2,
+  therefore, has an upper limit, which is set by how dirty the system becomes on
   its own.
 
   \item[O7. A higher threshold moves work from ACID to BASE.]
@@ -782,7 +782,7 @@ but most of the throughput comes from completed BASE transactions.
 
 The fixed-share oracle (Section~\ref{sec:approach-fixed-share-oracle}) allows
 users to set the probability of starting a transaction in ACID mode. It
-was introduced as a baseline for the adaptive oracle. In fixed-share the split is set at the beginning, and afterwards the
+was introduced as a baseline for the adaptive oracle. In fixed-share, the split is set at the beginning, and afterwards, the
 system uses no information about its internal state. The third experiment answers
 the third research question, which asks whether the adaptive oracle performs better
 than a static split decided at the start.
@@ -905,7 +905,7 @@ workload, and the core principles from the previous experiments hold here as
 well. The two settings act on different parts of the system.
 
 The ACID share acts on what the system is asked to do. Under
-\texttt{EQUILIBRIUM} the number of in-flight transactions is held constant
+\texttt{EQUILIBRIUM}, the number of in-flight transactions is held constant
 (Section~\ref{sec:exp-workload}), so increasing the ACID share replaces fast
 BASE transactions with slow ACID ones. Throughput falls, fewer transactions are
 admitted per second, and less dirtying work enters the system.
@@ -925,8 +925,8 @@ the inconsistency is drained.
 
 \paragraph{Matching inconsistency for throughput
   comparison.}\label{sec:x3-frontier} The two oracles are configured in
-different ways. By setting the critical dirty threshold to 0.10 we configure
-the adaptive oracle to limit inconsistency near 10\,\%. Setting the ACID share
+different ways. By setting the critical dirty threshold to 0.10, we configure
+the adaptive oracle to limit inconsistency near 10\%. Setting the ACID share
 to 0.10 makes the fixed-share oracle start one transaction in ten in ACID
 mode. No pair of settings makes the two runs comparable by
 configuration, so the runs are matched on their output, the measured
@@ -937,9 +937,9 @@ only five probabilities. Table~\ref{tab:x3-matched} groups the adaptive and
 fixed-share runs by the number of reconciler processors. The adaptive runs are the
 sweep of the critical dirty threshold from the second experiment (Table~\ref{tab:x2-grid}), and
 the fixed-share runs are the sweep of the ACID share from
-Table~\ref{tab:x3-summary}. Inside each group
+Table~\ref{tab:x3-summary}. Inside each group,
 the table places every adaptive run between the two fixed-share
-runs on either side of it. These two fixed-share neighbours are the inconsistency
+runs on either side of it. These two fixed-share neighbors are the inconsistency
 levels reached under a specific ACID share. The match
 distance to the nearer of the two is defined as
 
@@ -960,8 +960,8 @@ distance to the nearer of the two is defined as
   \begin{tabular}{r r r r r r r c r r c}
     \toprule
                                                         &          & adaptive            &
-    \multicolumn{2}{c}{\shortstack{cleaner\\neighbour}} &
-    \multicolumn{2}{c}{\shortstack{dirtier\\neighbour}} &
+    \multicolumn{2}{c}{\shortstack{cleaner\\neighbor}} &
+    \multicolumn{2}{c}{\shortstack{dirtier\\neighbor}} &
     \shortstack{To\\nearest}                            &
     \multicolumn{3}{c}{Thr.\ (tps)}
     \\
@@ -1087,32 +1087,32 @@ distance to the nearer of the two is defined as
 \end{table}
 
 The fixed-share throughput in Table~\ref{tab:x3-matched} is interpolated linearly between
-the two neighbouring rows of that table.
+the two neighboring rows of Table~\ref{tab:x3-summary}.
 
 One candidate run with a critical dirty threshold of
 0.20 and 10 reconcilers is left out. Its $p_{95}$ is higher than that of the dirtiest fixed-share
 run with 10 reconcilers, so it is dropped rather than extrapolated.
 
 The resulting throughput ratios range from $0.79$ to $1.12$, and they
-depend on the number of reconcilers. With 1 and 5 reconcilers the two oracles
-are close, and a few adaptive rows are faster. With 10 and 15 reconcilers the adaptive oracle is slower in almost
+depend on the number of reconcilers. With 1 and 5 reconcilers, the two oracles
+are close, and a few adaptive rows are faster. With 10 and 15 reconcilers, the adaptive oracle is slower in almost
 every row.
 
-Consider only the ten close rows, where the nearest
-neighbour lies within 12\,\%. In all ten rows the two oracles reach almost the same share of
-completed ACID transactions at matched inconsistency. In different ways they control the same
+Consider only the ten closest rows, where the nearest
+neighbor lies within 12\%. In all ten rows, the two oracles reach almost the same share of
+completed ACID transactions at matched inconsistency. In different ways, they control the same
 quantity, which is the ACID share of the completed work. The time spent in ACID mode, however,
 differs, and in seven of the ten rows the adaptive oracle has the higher value.
 
-\paragraph{One weakness of the adaptive oracle compared to fixed-share.} The
+\paragraph{One weakness of the adaptive oracle compared to the fixed-share.} The
 adaptive oracle switches to ACID mode at the moment when the dirty fraction
 reaches the critical dirty threshold, which is when the system has already reached
 the highest allowed level of inconsistency. The dirtier the system gets, the longer
 ACID transactions have to wait. Table~\ref{tab:x3-blocking} shows that at every
-reconciler count a larger share of the adaptive ACID transactions is blocked on
+reconciler count, a larger share of the adaptive ACID transactions is blocked on
 a dirty or BASE-claimed resource, and their mean blocked wait is longer. While
 fixed-share starts a mix of ACID and BASE transactions at all times, the adaptive oracle
-starts all transactions in ACID while the dirty fraction travels from the
+starts all transactions in ACID, while the dirty fraction travels from the
 critical dirty threshold back down to the recovery threshold. That likely leads
 to more ACID transactions in flight at the same time, which compete for locks
 and wait on dirty resources.
@@ -1223,7 +1223,7 @@ transactions that are started in the slow ACID mode. This increases the throughp
 ACID while still controlling the inconsistency level of the system.
 
 As a result, fixed-share is cheaper to run, since it does not read the
-internal system state, and it performs most of the time better than pure
+internal system state, and it always performs better than pure
 ACID. It allows the inconsistency to be controlled within a certain range, and if the
 tuning effort is acceptable, the fixed-share split between ACID and BASE is
 a viable option.
@@ -1232,14 +1232,14 @@ a viable option.
 \findingshead
 
 \begin{bullets}
-  \item[O8. The ACID transactions share controls inconsistency.] Under constant load
+  \item[O8. The ACID transaction share controls inconsistency.] Under constant load,
   the ACID share together with the number of reconcilers reaches the
   inconsistency levels of the adaptive oracle, so the decision does not need
   to be based on the internal system state.
 
-  \item[O9. Adaptive oracle falls behind with reconciler processors increase.] At matched
-  inconsistency the two oracles are close with 1 and 5 reconcilers. With 10 and
-  15 reconcilers the adaptive oracle is slower. For RQ3 this means that, under a
+  \item[O9. The adaptive oracle falls behind as the number of reconciler processors increases.] At matched
+  inconsistency, the two oracles are close with 1 and 5 reconcilers. With 10 and
+  15 reconcilers, the adaptive oracle is slower. For RQ3, this means that, under a
   stationary load, choosing the mode from the internal state does not outperform
   a fixed split that was tuned for each configuration.
 \end{bullets}
@@ -1258,7 +1258,9 @@ reconciler processors, with a critical dirty threshold of 0.10 and a recovery
 threshold of 0.05. A cell in which the oracle never switches is marked
 degenerate. The column $d_k^{\mathrm{switch}}$ is the reading of the oracle at
 the switch. It is taken only at the moments when the oracle switches to ACID
-mode and is averaged over all switches of the run.
+mode and is averaged over all switches of the run. \emph{Aborts} is the share
+of finished attempts that aborted. Aborts are counted as events, so one
+transaction can abort more than once.
 
 \begin{table}[!htb]
   \centering
@@ -1417,9 +1419,9 @@ Table~\ref{tab:x4-overlap} behave exactly like a pure BASE run, because the adap
 never switches to ACID. The reason is that the semantic overlap sets a hard
 ceiling on how much inconsistency is possible by design, while the oracle engages
 only where its reading of the dirty fraction reaches the threshold. At a
-semantic overlap of 0.10 the ceiling equals the critical dirty threshold of
-10\,\%. With one reconciler the dirty
-fraction is already pinned near the ceiling, with a $p_{95}$ of 9.62\,\%. In the cells where
+semantic overlap of 0.10, the ceiling equals the critical dirty threshold of
+10\%. With one reconciler, the dirty
+fraction is already pinned near the ceiling, with a $p_{95}$ of 9.62\%. In the cells where
 the oracle does engage, more semantic overlap raises the background cost of a
 transaction. As a result, throughput falls, aborts rise, and the system spends
 more time in ACID.
@@ -1427,10 +1429,10 @@ more time in ACID.
 Figure~\ref{fig:x4-overlap-interval} plots the dirty fraction against
 semantic overlap, with the configured critical dirty threshold as the dashed
 line. In the shaded range from a semantic overlap of 0.20 to 0.30, the $p_{95}$
-dirty fraction lands where it was configured. At a semantic overlap of 0.50 the
+dirty fraction lands where it was configured. At a semantic overlap of 0.50, the
 threshold starts to drift, and as semantic
-overlap approaches 1.00 the threshold no longer holds, with a $p_{95}$ of up to
-22.51\,\%.
+overlap approaches 1.00, the threshold no longer holds, with a $p_{95}$ of up to
+22.51\%.
 
 \begin{figure}[!htb]
   \centering
@@ -1441,12 +1443,12 @@ overlap approaches 1.00 the threshold no longer holds, with a $p_{95}$ of up to
 \end{figure}
 
 
-\paragraph{Why the $p_{95}(dirty\ fraction)$ overshoots the threshold.} The
+\paragraph{Why the $p_{95}(\text{dirty fraction})$ overshoots the threshold.} The
 trigger works, but the limit on $p_{95}$ does not. The oracle still engages
 where it was configured to engage, as the column with the reading at the switch
 ($d_k^{\mathrm{switch}}$) in Table~\ref{tab:x4-overlap} shows. In every
 engaged cell of the sweep, the oracle switches to ACID mode just above the
-configured critical dirty threshold of 10\,\%.
+configured critical dirty threshold of 10\%.
 
 What breaks the threshold is the work already in flight. A tag is fixed at
 admission (Section~\ref{sec:approach-tagging-point}), so a mode switch affects only
@@ -1454,10 +1456,10 @@ the transactions admitted after it and not the 30 that are already running.
 Those transactions keep writing, and every write to an overlapped resource
 spawns a bookkeeper that inherits the BASE tag of its root. The higher the semantic overlap, the more of this background
 work each transaction creates. At a
-semantic overlap of 1.00 each transaction has CPR on every resource, so the writes of each root
+semantic overlap of 1.00, every resource has a CPR, so the writes of each root
 transaction cascade into bookkeepers that spawn further bookkeepers.
 
-At full overlap this cascade looks endless, but the simulator bounds it
+At full overlap, this cascade looks endless, but the simulator bounds it
 with the bookkeeper depth, which is 5 in every run of this chapter
 (Table~\ref{tab:exp-baseline}). A bookkeeper at that depth creates no children,
 so each chain stops there.
@@ -1471,7 +1473,7 @@ so each chain stops there.
   small enough that one write does not dirty a large share of the resources in
   the background. Figure~\ref{fig:x4-overlap-interval} shows that the critical
   dirty threshold holds only for semantic overlap values from 0.20 to 0.30.
-  Below this range every cell is a pure BASE run. Above it, a single write
+  Below this range, every cell is a pure BASE run. Above it, a single write
   reaches so far that the transactions already admitted keep marking resources
   dirty in the background.
 
@@ -1493,10 +1495,8 @@ four of the ten models.
 \paragraph{Experiment configuration.} The sweep covers maximum transaction sizes
 of \{5, 10, 25, 50, 100, 200\} resources against \{1, 5, 10, 15\} reconciler
 processors, with a critical dirty threshold of 0.10, a recovery threshold of
-0.05 and a semantic overlap of 0.30. In Table~\ref{tab:x5-resources}, \emph{Lat.}\ is the
-mean transaction latency from creation to commit, and \emph{Aborts} is the share
-of finished attempts that aborted (Section~\ref{sec:exp-metrics}). Aborts are
-counted as events, so one transaction can abort more than once.
+0.05, and a semantic overlap of 0.30. In Table~\ref{tab:x5-resources}, \emph{Lat.}\ is the
+mean transaction latency from creation to commit.
 
 \begin{table}[!htb]
   \centering
@@ -1594,7 +1594,7 @@ counted as events, so one transaction can abort more than once.
 \paragraph{Transactions with a large pool of resources break the critical dirty
   threshold.}\label{sec:x5-invariance} For maximum sizes up to 50 resources, the
 measured $p_{95}$ is at most 0.87 percentage points away from the configured
-critical dirty threshold of 10\,\% at every reconciler count. Above a maximum
+critical dirty threshold of 10\% at every reconciler count. Above a maximum
 size of 50, the threshold starts to break, and the measured $p_{95}$ dirty
 fraction either overshoots or undershoots it, depending on the number of
 reconciler processors. Figure~\ref{fig:x5-size-band} shows that the critical
@@ -1618,8 +1618,8 @@ Transactions most likely also wait longer in the queues, although only
 end-of-run queue lengths are recorded. The number of reconciler processors then
 decides the direction of the deviation. With few reconcilers, dirty resources
 take longer to clear, which causes the overshoot. With 10 or more reconcilers,
-transactions wait long and throughput is low, so the reconciler processors clear
-more dirty resources in the background and the $p_{95}$ undershoots the critical
+transactions wait long, and throughput is low, so the reconciler processors clear
+more dirty resources in the background, and the $p_{95}$ undershoots the critical
 dirty threshold.
 
 \FloatBarrier
@@ -1629,10 +1629,10 @@ dirty threshold.
   \item[O12. Transaction size loads the foreground.] Large transactions take
   much longer to process and collide far more often, so the low throughput comes
   from waiting and from wasted work. Semantic overlap, in contrast, loads the
-  reconciler, because BASE resolves bookkeepers with dedicated reconciler
+  reconciler because BASE resolves bookkeepers with dedicated reconciler
   processors.
 
-  \item[O13. Reconciler processors count decide overshoot or undershoot of incosistency.] The number of
+  \item[O13. Reconciler processor count decides overshoot or undershoot of inconsistency.] The number of
   reconciler processors sets the direction. With few reconciler processors, the
   inconsistency level overshoots, because a switch binds only the transactions
   admitted after it, while the heavy ones already running keep dirtying
@@ -1660,7 +1660,7 @@ threshold down to the recovery threshold.
 
 The switch from BASE to ACID happens close to the configured threshold at both
 $p_{50}$ and $p_{95}$. The switch from ACID to BASE does not, and its median
-lies below the configured recovery threshold of 5\,\%. Figure~\ref{fig:recovery-exit}
+lies below the configured recovery threshold of 5\%. Figure~\ref{fig:recovery-exit}
 draws the exit switch against the configured recovery threshold, together with
 the shortfall of each point.
 
@@ -1719,11 +1719,11 @@ the previous experiments and in the approach description
 The oracle reads the inconsistency level only once per root transaction, at its
 first admission attempt. Under \texttt{EQUILIBRIUM}, a new root transaction is
 created only when an in-flight one finishes. In ACID mode, the 30 in-flight
-transactions are slow, because they wait for locks and for dirty resources.
-While all of them are stuck, no transaction finishes, no new one arrives and no
-reading is taken, so between two readings the value the oracle holds is out of
+transactions are slow because they wait for locks and for dirty resources.
+While all of them are stuck, no transaction finishes, no new one arrives, and no
+reading is taken, so between two readings, the value the oracle holds is out of
 date. The check interval columns in Table~\ref{tab:effective-recovery} show
-this, because at every reconciler count the oracle reads less often in ACID mode
+this, because at every reconciler count, the oracle reads less often in ACID mode
 than in BASE mode. A reading once per tick would record the exit close to the
 recovery threshold, but the first BASE transaction would still be admitted only
 when an ACID transaction finishes (Section~\ref{sec:approach-sampling}).
@@ -1739,11 +1739,11 @@ when an ACID transaction finishes (Section~\ref{sec:approach-sampling}).
 \section{Threats to validity}\label{sec:exp-threats}
 
 The results above hold under the conditions of this chapter. The following
-points limit how far they can be generalised.
+points limit how far they can be generalized.
 
 \begin{bullets}
   \item[Stationary load only.] Every run uses the \texttt{EQUILIBRIUM} profile,
-  so the load never changes (Section~\ref{sec:approach-stationary-load}). This
+  so the load never changes (Section~\ref{sec:prelim-workload-profiles}). This
   is the setting in which feedback helps least.
 
   \item[Simulated execution.] The simulator treats all models as one entity, so
